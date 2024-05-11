@@ -1,1 +1,0 @@
-This folder contains the result run by Tengfei Li.
