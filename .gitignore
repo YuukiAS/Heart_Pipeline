@@ -49,3 +49,5 @@ checkpoint
 *.npz
 overlay
 *.nrrd
+.ruff_cache
+others

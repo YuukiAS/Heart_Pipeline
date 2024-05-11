@@ -8,29 +8,48 @@ out = sprintf('/work/users/y/u/yuukias/Strain/Data/out'); % todo2: modify this
 long_axis = home + "/20208/"
 short_axis = home + "/20209/"
 aortic = home + "/20210/"
-% tagging = home + "/20211/"
-% LVOT = home + "/20212/"
+tagging = home + "/20211/"
+LVOT = home + "/20212/"
+blood_flow = home + "/20213/"
+T1 = home + "/20214/"
 
 sub_la = dir(sprintf('%s/20208/%s.zip', home, YourPattern)); sub_la = {sub_la.name}';
-% sub_la=dir(sprintf('%s/20208_retest/%s.zip',home,YourPattern));sub_la={sub_la.name}';
 sub_la = cellfun(@(x)strsplit(x, '_'), sub_la, 'UniformOutput', 0);
 sub_la = cellfun(@(x)x{1}, sub_la, 'UniformOutput', 0);
 
 sub_sa = dir(sprintf('%s/20209/%s.zip', home, YourPattern)); sub_sa = {sub_sa.name}';
-% sub_sa=dir(sprintf('%s/20209_retest/%s.zip',home,YourPattern));sub_sa={sub_sa.name}';
 sub_sa = cellfun(@(x)strsplit(x, '_'), sub_sa, 'UniformOutput', 0);
 sub_sa = cellfun(@(x)x{1}, sub_sa, 'UniformOutput', 0);
 
 sub_aor = dir(sprintf('%s/20210/%s.zip', home, YourPattern)); sub_aor = {sub_aor.name}';
-% sub_aor=dir(sprintf('%s/20210_retest/%s.zip',home,YourPattern));sub_aor={sub_aor.name}';
 sub_aor = cellfun(@(x)strsplit(x, '_'), sub_aor, 'UniformOutput', 0);
 sub_aor = cellfun(@(x)x{1}, sub_aor, 'UniformOutput', 0);
+
+sub_tag = dir(sprintf('%s/20211/%s.zip', home, YourPattern)); sub_tag = {sub_tag.name}';
+sub_tag = cellfun(@(x)strsplit(x, '_'), sub_tag, 'UniformOutput', 0);
+sub_tag = cellfun(@(x)x{1}, sub_tag, 'UniformOutput', 0);
+
+sub_lvot = dir(sprintf('%s/20212/%s.zip', home, YourPattern)); sub_lvot = {sub_lvot.name}';
+sub_lvot = cellfun(@(x)strsplit(x, '_'), sub_lvot, 'UniformOutput', 0);
+sub_lvot = cellfun(@(x)x{1}, sub_lvot, 'UniformOutput', 0);
+
+sub_blood = dir(sprintf('%s/20213/%s.zip', home, YourPattern)); sub_blood = {sub_blood.name}';
+sub_blood = cellfun(@(x)strsplit(x, '_'), sub_blood, 'UniformOutput', 0);
+sub_blood = cellfun(@(x)x{1}, sub_blood, 'UniformOutput', 0);
+
+sub_t1 = dir(sprintf('%s/20214/%s.zip', home, YourPattern)); sub_t1 = {sub_t1.name}';
+sub_t1 = cellfun(@(x)strsplit(x, '_'), sub_t1, 'UniformOutput', 0);
+sub_t1 = cellfun(@(x)x{1}, sub_t1, 'UniformOutput', 0);
 
 length_la = length(sub_la);
 length_sa = length(sub_sa);
 length_aor = length(sub_aor);
+length_tag = length(sub_tag);
+length_lvot = length(sub_lvot);
+length_blood = length(sub_blood);
+length_t1 = length(sub_t1);
 
-% Modify here to select the subjects you want to use
+% * Modify here to select the subjects you want to use
 sub_used = sub_la;
 % sub_used = intersect(sub_la, sub_sa);
 % sub_used = intersect(intersect(sub_la, sub_sa), sub_aor);  % todo3: enable if want to use aortic data

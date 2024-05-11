@@ -1,0 +1,21 @@
+[tool.ruff]
+line-length = 120
+lint.select = ["E", "F"]  # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default
+lint.extend-select = ["E501"]
+
+# todo 'common','util' and 'src' need to be completed in the future
+exclude = [
+    "common", 
+    "utils",
+    "src",
+    ".git",
+    "archive",
+    "data",
+    "doc",
+    "others",
+    "par",
+    "test",
+    "third_party",
+    "model",
+    "others"
+]
