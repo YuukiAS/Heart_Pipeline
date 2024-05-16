@@ -15,7 +15,9 @@
 import os
 import argparse
 import pandas as pd
-from common.cardiac_utils import *
+import sys
+sys.path.append('../..')
+from utils.cardiac_utils import *
 
 
 if __name__ == '__main__':
@@ -64,7 +66,7 @@ if __name__ == '__main__':
         # Record data
         if os.path.exists('{0}/strain_la_4ch_longit.csv'.format(data_dir)):
             df_longit = pd.read_csv('{0}/strain_la_4ch_longit.csv'.format(data_dir), index_col=0)
-            line = [df_longit.iloc[i, :].min() for i in range(7)]
+            line = [df_longit.iloc[i, :].min() for i in range(7)]  # todo Why choose the minimum value?
             table += [line]
             processed_list += [data]
 

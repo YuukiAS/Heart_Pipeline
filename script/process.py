@@ -1,18 +1,9 @@
-"""
-#pip install tensorflow==1.15 --user 
-module load python/3.7.9;cd /proj/tengfei/pipeline/UKB_Heart/;
-PATH=/proj/tengfei/pipeline/UKB_Heart:/proj/tengfei/pipeline/UKB_Heart/third_party/ubuntu_18.04_bin:${PATH}
-module load mirtk/2.0.0;module load gcc/6.3.0
-PYTHONPATH=/proj/tengfei/pipeline/UKB_Heart
-python3 ID/process.py downloaded/nii/tengfei/ 3400300 demo_csv/blood_pressure_img.csv
-"""
 import os
+import sys
 # import urllib.request as urllib
 # import shutil
-# import argparse
 # import pandas as pd
 # from common.cardiac_utils import *
-import sys
 
 # Deploy the segmentation network
 print("Deploying the segmentation network ...")

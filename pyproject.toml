@@ -7,7 +7,7 @@ lint.extend-select = ["E501"]
 exclude = [
     "common", 
     "utils",
-    "src",
+    "src",    
     ".git",
     "archive",
     "data",

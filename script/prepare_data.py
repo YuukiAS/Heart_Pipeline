@@ -74,8 +74,8 @@ if os.path.exists(dicom_dir):
     os.system("rm -rf {0}".format(dicom_dir))
 if os.path.exists(cvi42_contours_dir):
     os.system("rm -rf {0}".format(cvi42_contours_dir))
-if os.path.exists(nii_dir):
-    os.system("rm -rf {0}".format(nii_dir))
+# if os.path.exists(nii_dir):
+#     os.system("rm -rf {0}".format(nii_dir))
 os.makedirs(dicom_dir, exist_ok=True)
 os.makedirs(cvi42_contours_dir, exist_ok=True)
 os.makedirs(nii_dir, exist_ok=True)
@@ -99,9 +99,9 @@ for file_i in np.arange(len(files)):
         series_files = [os.path.join(dicom_dir, x) for x in series_df["filename"]]
         os.system("mv {0} {1}".format(" ".join(series_files), series_dir))
 
-cvi42_contours_file = os.path.join(cvi42_contours_dir, f"{0}.cvi42wsx")
+cvi42_contours_file = os.path.join(contour_gt_dir, f"{args.sub_id}.cvi42wsx")
 if os.path.exists(cvi42_contours_file):
-    print("Found cvi42 contours for subject {0}".format(args.sub_id))
+    print(f"Found cvi42 contours for subject {args.sub_id}")
     parse_cvi42_xml.parseFile(cvi42_contours_file, cvi42_contours_dir)
 
 # It will automatically determines the modality according to manifest.csv

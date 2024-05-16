@@ -438,7 +438,7 @@ class Biobank_Dataset(object):
                     self.data['label_' + name].volume = label
                     self.data['label_' + name].affine = affine
                     self.data['label_' + name].dt = dt
-
+                # Upsampled label map
                 if np.any(label_up):
                     self.data['label_up_' + name] = BaseImage()
                     self.data['label_up_' + name].volume = label_up

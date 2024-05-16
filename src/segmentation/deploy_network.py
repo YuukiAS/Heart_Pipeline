@@ -19,7 +19,9 @@ import math
 import numpy as np
 import nibabel as nib
 import tensorflow as tf
-from common.image_utils import rescale_intensity
+import sys
+sys.path.append('../..')
+from utils.image_utils import rescale_intensity
 
 
 """ Deployment parameters """

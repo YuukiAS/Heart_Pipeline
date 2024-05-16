@@ -19,7 +19,9 @@ import pandas as pd
 import nibabel as nib
 import vtk
 import math
-from common.cardiac_utils import atrium_pass_quality_control, evaluate_atrial_area_length
+import sys
+sys.path.append('../..')
+from utils.cardiac_utils import atrium_pass_quality_control, evaluate_atrial_area_length
 
 
 if __name__ == '__main__':
@@ -45,7 +47,7 @@ if __name__ == '__main__':
 
             # Determine the long-axis from short-axis image
             nim_sa = nib.load(sa_name)
-            long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])
+            long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2]) # todo Why choose the third row?
             if long_axis[2] < 0:
                 long_axis *= -1
 
@@ -122,6 +124,7 @@ if __name__ == '__main__':
                 A['LA_4ch'][t] = area[0]
                 L['LA_4ch'][t] = length[0]
                 V['LA_4ch'][t] = 8 / (3 * math.pi) * area[0] * area[0] / length[0]
+                # * We only report the LA volume calculated using the biplane area-length formula 
                 V['LA_bip'][t] = 8 / (3 * math.pi) * area[0] * A['LA_2ch'][t] / (0.5 * (length[0] + L['LA_2ch'][t]))
 
                 A['RA_4ch'][t] = area[1]

@@ -24,7 +24,7 @@ from vtk.util import numpy_support
 from scipy import interpolate
 import skimage
 import skimage.measure
-from common.image_utils import *
+from .image_utils import *
 
 
 def approximate_contour(contour, factor=4, smooth=0.05, periodic=False):
@@ -1344,7 +1344,7 @@ def evaluate_la_strain_by_length(contour_name_stem, T, dt, output_name_stem):
     lines_dir = poly.GetCellData().GetArray('Direction ID')
     n_lines = lines.GetNumberOfCells()
     length_ED = np.zeros(n_lines)
-    seg_id = np.zeros(n_lines)
+    seg_id = np.zeros(n_lines)  # define 6 segments
     dir_id = np.zeros(n_lines)
 
     lines.InitTraversal()
@@ -1400,14 +1400,14 @@ def evaluate_la_strain_by_length(contour_name_stem, T, dt, output_name_stem):
         # Calculate the segmental and global strains
         for i in range(6):
             table_strain['longit'][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 3)])
-        table_strain['longit'][-1, fr] = np.mean(strain[dir_id == 3])
+        table_strain['longit'][-1, fr] = np.mean(strain[dir_id == 3])  # global
 
     for c in ['longit']:
         # Save into csv files
         index = [str(x) for x in np.arange(1, 7)] + ['Global']
         column = np.arange(0, T) * dt * 1e3
         df = pd.DataFrame(table_strain[c], index=index, columns=column)
-        df.to_csv('{0}_{1}.csv'.format(output_name_stem, c))
+        df.to_csv('{0}_{1}.csv'.format(output_name_stem, c))  # used in eval_strain_lax.py
 
 
 def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_name_stem):
@@ -1655,13 +1655,13 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         # Go through all the points in the atrium, sort them by the distance along the long-axis.
         points_label = np.nonzero(label_i)
         points = []
-        for j in range(len(points_label[0])):
+        for j in range(len(points_label[0])):  # the number of points
             x = points_label[0][j]
             y = points_label[1][j]
             points += [[x, y,
-                        np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]  # the last dimension is the distance along the long-axis777777
+                        np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]  # todo How these two np.dot work?
         points = np.array(points)
-        points = points[points[:, 2].argsort()]
+        points = points[points[:, 2].argsort()]  # sort by the distance along the long-axis (no removal)
 
         # The centre at the top part of the atrium (top third)
         n_points = len(points)
@@ -1692,7 +1692,7 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         cv2.line(image_line, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
         image_line = label_i & (image_line > 0)
 
-        # Sort the intersection points by the distance along long-axis
+        # * Sort the intersection points by the distance along long-axis
         # and calculate the length of the intersection
         points_line = np.nonzero(image_line)
         points = []
@@ -1702,11 +1702,11 @@ def evaluate_atrial_area_length(label, nim, long_axis):
             # World coordinate
             point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
             # Distance along the long-axis
-            points += [np.append(point, np.dot(point, long_axis))]
+            points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
         points = np.array(points)
         if len(points) == 0:
             return -1, -1, -1
-        points = points[points[:, 3].argsort(), :3]
+        points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
         L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]  # Unit: cm
 
         # Calculate the area
