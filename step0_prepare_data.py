@@ -10,11 +10,12 @@ import config
 
 logging.config.fileConfig(config.logging_config)
 logger = logging.getLogger('main')
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=config.logging_level)
 
 # This file is used to prepare the data for the pipeline using zip files
 
-def generate_scripts(data_raw_dir, code_dir, out_dir, modality, retest_suffix = None):
+def generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, 
+                     modality, num_subjects_per_file = 1000, retest_suffix = None):
     if retest_suffix is None:
         code_step0_dir = os.path.join(code_dir, "prepare_data_visit1")
         out_step0_dir = os.path.join(out_dir, "visit1/")
@@ -82,23 +83,29 @@ def generate_scripts(data_raw_dir, code_dir, out_dir, modality, retest_suffix = 
 
     length_total = len(sub_total)
     logger.info(f"Total number of subjects: {length_total}")
-
-    num_subjects_per_file = 1000
     num_files = length_total // num_subjects_per_file + 1
 
     with open(os.path.join(code_step0_dir, "batAll.sh"), "w") as file_submit:
         file_submit.write("#!/bin/bash\n")        
         for file_i in tqdm(range(num_files)):
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
-            with open(os.path.join(code_step0_dir, "bat{}.pbs".format(file_i)), "w") as file_script:
+            with open(os.path.join(code_step0_dir, f"bat{file_i}.pbs"), "w") as file_script:
                 file_script.write("#!/bin/bash\n")
                 file_script.write("#SBATCH --ntasks=1\n")
-                file_script.write(f"#SBATCH --job-name=Heart_Prepare_{file_i}\n")
+                if retest_suffix is None:
+                    file_script.write(f"#SBATCH --job-name=Heart_Prepare_{file_i}\n")
+                    file_script.write(f"#SBATCH --output=Heart_Prepare_{file_i}.out\n")
+                else:
+                    file_script.write(f"#SBATCH --job-name=Heart_Prepare_{file_i}_{retest_suffix}\n")
+                    file_script.write(f"#SBATCH --output=Heart_Prepare_{file_i}_{retest_suffix}.out\n")
                 file_script.write("#SBATCH --cpus-per-task=4\n")
                 file_script.write("#SBATCH --mem=8G\n")
                 file_script.write("#SBATCH --time=48:00:00\n")
                 file_script.write("#SBATCH --partition=general\n")
-                file_script.write(f"#SBATCH --output=Heart_Prepare_{file_i}.out\n")
+                file_script.write("\n")
+                file_script.write("\n")
+                file_script.write(f"cd {pipeline_dir}\n")
+
                 for sub_i in range(
                     file_i * num_subjects_per_file + 1,
                     min((file_i + 1) * num_subjects_per_file + 1, length_total + 1),
@@ -120,14 +127,13 @@ def generate_scripts(data_raw_dir, code_dir, out_dir, modality, retest_suffix = 
                     if "t1" in modality:
                         option_str += " --T1=" + T1
                     file_script.write(
-                        f"python {config.pipeline_dir}/script/prepare_data.py "
-                        f"--out_dir={out_step0_dir} --sub_id={sub_id} {option_str}\n"
+                        f"python ./script/prepare_data.py --out_dir={out_step0_dir} --sub_id={sub_id} {option_str}\n"
                     )
     
 if __name__ == "__main__":
     pipeline_dir = config.pipeline_dir
     data_raw_dir = config.data_raw_dir
-    out_dir = config.out_dir
+    out_dir = config.data_out_dir
     code_dir = config.code_dir
     modality = config.modality
     retest_suffix = config.retest_suffix
@@ -136,9 +142,9 @@ if __name__ == "__main__":
     os.makedirs(code_dir, exist_ok=True)
 
     logger.info("Generate scripts for preparing visit1 data")
-    generate_scripts(data_raw_dir, code_dir, out_dir, modality)
+    generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, modality)
     if retest_suffix is not None:
         logger.info("Generate scripts for preparing visit2 data")
-        generate_scripts(data_raw_dir, code_dir, out_dir, modality, retest_suffix)
+        generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, modality, retest_suffix=retest_suffix)
     else:
         logger.info("No retest_suffix is provided, only visit1 data will be prepared")

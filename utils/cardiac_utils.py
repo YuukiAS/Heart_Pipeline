@@ -1658,8 +1658,10 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         for j in range(len(points_label[0])):  # the number of points
             x = points_label[0][j]
             y = points_label[1][j]
+            # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
+            # * The third element is the distance along the long-axis, which will be used when calculating L
             points += [[x, y,
-                        np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]  # todo How these two np.dot work?
+                        np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
         points = np.array(points)
         points = points[points[:, 2].argsort()]  # sort by the distance along the long-axis (no removal)
 
@@ -1677,7 +1679,8 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         major_axis = major_axis / np.linalg.norm(major_axis)  # normalization
 
         # Get the intersection between the major axis and the atrium contour
-        px = cx + major_axis[0] * 100  # after normalization, can directly multiply by 100
+        # * By introducing (px,py),(qx,qy), we can force the line on the point
+        px = cx + major_axis[0] * 100
         py = cy + major_axis[1] * 100
         qx = cx - major_axis[0] * 100
         qy = cy - major_axis[1] * 100
@@ -1692,8 +1695,6 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         cv2.line(image_line, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
         image_line = label_i & (image_line > 0)
 
-        # * Sort the intersection points by the distance along long-axis
-        # and calculate the length of the intersection
         points_line = np.nonzero(image_line)
         points = []
         for j in range(len(points_line[0])):
@@ -1707,12 +1708,13 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         if len(points) == 0:
             return -1, -1, -1
         points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
+        # todo: Why not multiply pixdim[0]?
         L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]  # Unit: cm
 
         # Calculate the area
         A += [np.sum(label_i) * area_per_pix]
 
-        # Landmarks of the intersection points
+        # Landmarks of the intersection points are the top and bottom points along points_line
         landmarks += [points[0]]
         landmarks += [points[-1]]
     return A, L, landmarks

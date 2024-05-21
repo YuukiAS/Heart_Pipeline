@@ -19,11 +19,17 @@ import pandas as pd
 import numpy as np
 import shutil
 import dateutil.parser
+import logging
+import logging.config
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import config
 from utils.biobank_utils import process_manifest, Biobank_Dataset
 import utils.parse_cvi42_xml as parse_cvi42_xml
+
+logging.config.fileConfig(config.logging_config)
+logger = logging.getLogger('prepare_data')
+logging.basicConfig(level=config.logging_level)
 
 contour_gt_dir = config.contour_gt_dir
 
@@ -47,24 +53,45 @@ argparser.add_argument(
 
 args = argparser.parse_args()
 
-print(f"Subject ID: {args.sub_id}")
+logger.info(f"Subject ID: {args.sub_id}")
 files = []
 if args.long_axis:
+    if len(glob.glob(args.long_axis + args.sub_id + "_*.zip")) == 0:
+        logger.error(f"No long axis zip found for subject {args.sub_id}")
+        sys.exit(1)
     files = files + glob.glob(args.long_axis + args.sub_id + "_*.zip")
 if args.short_axis:
+    if len(glob.glob(args.short_axis + args.sub_id + "_*.zip")) == 0:
+        logger.error(f"No short axis zip found for subject {args.sub_id}")
+        sys.exit(1)
     files = files + glob.glob(args.short_axis + args.sub_id + "_*.zip")
 if args.aortic:
+    if len(glob.glob(args.aortic + args.sub_id + "_*.zip")) == 0:
+        logger.error(f"No aortic zip found for subject {args.sub_id}")
+        sys.exit(1)
     files = files + glob.glob(args.aortic + args.sub_id + "_*.zip")
 if args.tag:
+    if len(glob.glob(args.tag + args.sub_id + "_*.zip")) == 0:
+        logger.error(f"No tagging zip found for subject {args.sub_id}")
+        sys.exit(1)
     files = files + glob.glob(args.tag + args.sub_id + "_*.zip")
 if args.lvot:
+    if len(glob.glob(args.lvot + args.sub_id + "_*.zip")) == 0:
+        logger.error(f"No LVOT zip found for subject {args.sub_id}")
+        sys.exit(1)
     files = files + glob.glob(args.lvot + args.sub_id + "_*.zip")
 if args.blood_flow:
+    if len(glob.glob(args.blood_flow + args.sub_id + "_*.zip")) == 0:
+        logger.error(f"No blood flow zip found for subject {args.sub_id}")
+        sys.exit(1)
     files = files + glob.glob(args.blood_flow + args.sub_id + "_*.zip")
 if args.T1:
+    if len(glob.glob(args.T1 + args.sub_id + "_*.zip")) == 0:
+        logger.error(f"No T1 zip found for subject {args.sub_id}")
+        sys.exit(1)
     files = files + glob.glob(args.T1 + args.sub_id + "_*.zip")
-assert len(files) > 0, f"No zip files found for subject {args.sub_id}"
-print(f"Found {len(files)} zip files for subject {args.sub_id}")
+
+logger.info(f"Found {len(files)} zip files for subject {args.sub_id}")
 
 dicom_dir = args.out_dir + "dicom/" + args.sub_id+ "/"   # temporary directory to store files
 cvi42_contours_dir = args.out_dir + "contour/" + args.sub_id + "/"  # temporary directory to store files
@@ -112,6 +139,8 @@ dset.convert_dicom_to_nifti(nii_dir)
 # clean up the temporary directories
 shutil.rmtree(dicom_dir)
 shutil.rmtree(cvi42_contours_dir)
+
+logger.info(f"Data for subject {args.sub_id} has been stored in {nii_dir}")
 
 # os.system("rm -rf {0}".format(dicom_dir))
 # os.system("rm -rf {0}".format(cvi42_contours_dir))
