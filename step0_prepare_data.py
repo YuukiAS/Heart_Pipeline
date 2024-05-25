@@ -5,17 +5,20 @@ import logging
 import logging.config
 
 import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
 logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger('main')
+logger = logging.getLogger("main")
 logging.basicConfig(level=config.logging_level)
 
 # This file is used to prepare the data for the pipeline using zip files
 
-def generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, 
-                     modality, num_subjects_per_file = 1000, retest_suffix = None):
+
+def generate_scripts(
+    pipeline_dir, data_raw_dir, code_dir, out_dir, modality, num_subjects_per_file=1000, retest_suffix=None
+):
     if retest_suffix is None:
         code_step0_dir = os.path.join(code_dir, "prepare_data_visit1")
         out_step0_dir = os.path.join(out_dir, "visit1/")
@@ -52,7 +55,7 @@ def generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir,
     if "sa" in modality:
         sub_sa = os.listdir(short_axis)
         sub_sa = [x.split("_")[0] for x in sub_sa]
-    
+
         sub_total = sub_total + sub_sa
     if "aor" in modality:
         sub_aor = os.listdir(aortic)
@@ -80,13 +83,12 @@ def generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir,
 
         sub_total = sub_total + sub_t1
 
-
     length_total = len(sub_total)
     logger.info(f"Total number of subjects: {length_total}")
     num_files = length_total // num_subjects_per_file + 1
 
     with open(os.path.join(code_step0_dir, "batAll.sh"), "w") as file_submit:
-        file_submit.write("#!/bin/bash\n")        
+        file_submit.write("#!/bin/bash\n")
         for file_i in tqdm(range(num_files)):
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
             with open(os.path.join(code_step0_dir, f"bat{file_i}.pbs"), "w") as file_script:
@@ -129,11 +131,12 @@ def generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir,
                     file_script.write(
                         f"python ./script/prepare_data.py --out_dir={out_step0_dir} --sub_id={sub_id} {option_str}\n"
                     )
-    
+
+
 if __name__ == "__main__":
     pipeline_dir = config.pipeline_dir
     data_raw_dir = config.data_raw_dir
-    out_dir = config.data_out_dir
+    out_dir = config.data_dir
     code_dir = config.code_dir
     modality = config.modality
     retest_suffix = config.retest_suffix
