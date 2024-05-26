@@ -22,6 +22,7 @@ data_failed_visit2_dir = os.path.join(data_failed_dir, 'visit2', 'nii')
 
 # The directory to store all features
 features_dir = '/work/users/y/u/yuukias/Heart_Pipeline/doc/Pipeline_Result/'
+# The final results will be stored in "comprehensive" subfolder
 features_visit1_dir = os.path.join(features_dir, 'visit1')
 features_visit2_dir = os.path.join(features_dir, 'visit2')
 

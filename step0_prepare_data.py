@@ -17,7 +17,7 @@ logging.basicConfig(level=config.logging_level)
 
 
 def generate_scripts(
-    pipeline_dir, data_raw_dir, code_dir, out_dir, modality, num_subjects_per_file=1000, retest_suffix=None
+    pipeline_dir, data_raw_dir, code_dir, out_dir, modality, num_subjects_per_file=100, retest_suffix=None
 ):
     if retest_suffix is None:
         code_step0_dir = os.path.join(code_dir, "prepare_data_visit1")
@@ -84,7 +84,7 @@ def generate_scripts(
         sub_total = sub_total + sub_t1
 
     length_total = len(sub_total)
-    logger.info(f"Total number of subjects: {length_total}")
+    logger.info(f"Total number of zip files: {length_total}")
     num_files = length_total // num_subjects_per_file + 1
 
     with open(os.path.join(code_step0_dir, "batAll.sh"), "w") as file_submit:

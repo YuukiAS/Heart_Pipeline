@@ -81,7 +81,7 @@ class Biobank_Dataset(object):
         lax_4ch_dir = []
         sax_mix_dir = []
         lax_mix_dir = []
-        ao_dir = []
+        aor_dir = []
         lvot_dir = []
         flow_dir = []
         flow_mag_dir = []
@@ -105,7 +105,7 @@ class Biobank_Dataset(object):
             elif re.match('CINE_segmented_LAX$', s):
                 lax_mix_dir = os.path.join(input_dir, s)
             elif re.match('CINE_segmented_Ao_dist$', s):
-                ao_dir = os.path.join(input_dir, s)
+                aor_dir = os.path.join(input_dir, s)
             elif re.match('CINE_segmented_LVOT$', s):
                 lvot_dir = os.path.join(input_dir, s)
             elif re.match('flow_250_tp_AoV_bh_ePAT@c$', s):
@@ -176,8 +176,8 @@ class Biobank_Dataset(object):
             self.subdir['la_3ch'] = [lax_3ch_dir]
         if lax_4ch_dir:
             self.subdir['la_4ch'] = [lax_4ch_dir]
-        if ao_dir:
-            self.subdir['ao'] = [ao_dir]
+        if aor_dir:
+            self.subdir['aor'] = [aor_dir]
         if lvot_dir:
             self.subdir['lvot'] = [lvot_dir]
         if flow_dir:
