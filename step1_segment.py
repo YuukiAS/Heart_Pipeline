@@ -92,14 +92,16 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
                         else:
                             logger.warning(f"{sub_id}: Segmentation for vertical long axis (4chamber) already exists.")
                     if "sa" in modality:
-                        # file_script.write(
-                        #     f"echo ' {sub_id}: Generate segmentation scripts for short axis'\n"
-                        # )
-                        # file_script.write(
-                        #     f"python ./src/segmentation/deploy_network.py --seq_name sa "\
-                        #     f"--data_dir {sub_id_dir} --model_path ./model/FCN_sa\n"
-                        # )
-                        pass
+                        if not check_existing_file(["seg_sa.nii.gz"], sub_id_dir):
+                            file_script.write(
+                                f"echo ' {sub_id}: Generate segmentation scripts for short axis'\n"
+                            )
+                            file_script.write(
+                                f"python ./src/segmentation/deploy_network.py --seq_name sa "
+                                f"--data_dir {sub_id_dir} --model_path ./model/FCN_sa\n"
+                            )
+                        else:
+                            logger.warning(f"{sub_id}: Segmentation for short axis already exists.")
                     if "aor" in modality:
                         # file_script.write(
                         #     f"echo ' {sub_id}: Generate segmentation scripts for aorta'\n"

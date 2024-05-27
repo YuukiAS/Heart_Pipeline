@@ -31,7 +31,7 @@ def calculate_icc(data_1, data_2, eid_name_1, eid_name_2, features_dict):
         icc = pg.intraclass_corr(data=combined_df, targets='Subject', raters='Rater', ratings='Value')
         # https://pingouin-stats.org/build/html/generated/pingouin.intraclass_corr.html
         # We will use ICC3 and ICC3k as raters is a fixed set
-        print(icc.iloc[[3,5]])
+        print(icc.iloc[[2,5]])
 
 
 def _bland_altman_plot(feature1, feature2, *args, **kwargs):
