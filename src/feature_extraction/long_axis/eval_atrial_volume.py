@@ -19,6 +19,8 @@ import pandas as pd
 import nibabel as nib
 import vtk
 import math
+import pickle
+from scipy.signal import find_peaks
 import logging
 import logging.config
 
@@ -27,6 +29,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 from utils.quality_control_utils import atrium_pass_quality_control
 from utils.cardiac_utils import evaluate_atrial_area_length
+from utils.analyze_utils import plot_time_series_double_x
 
 logging.config.fileConfig(config.logging_config)
 logger = logging.getLogger("eval_atrial_volume")
@@ -59,17 +62,20 @@ if __name__ == "__main__":
 
         # Measurements
         # A: area
-        # L: length
+        # L_L: length
         # V: volume
         # lm: landmark, which is the top and bottom of the atrium determined using long_axis
         A = {}
-        L = {}
+        L_L = {}  # longitudinal diameter
+        L_T = {}  # transverse diameter
         V = {}
         lm = {}
 
+        # * Generate basic features from segmentation ---------------------------
+
         # Determine the long-axis from short-axis image
         nim_sa = nib.load(sa_name)
-        # * Refer to biobank_utils.py for more information, used to determine top and bottom of atrium
+        # Refer to biobank_utils.py for more information, used to determine top and bottom of atrium
         long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])
         if long_axis[2] < 0:
             long_axis *= -1  # make sure distance is positive
@@ -86,7 +92,8 @@ if __name__ == "__main__":
                 continue
 
             A["LA_2ch"] = np.zeros(T)
-            L["LA_2ch"] = np.zeros(T)
+            L_L["LA_2ch"] = np.zeros(T)
+            L_T["LA_2ch"] = np.zeros(T)
             V["LA_2ch"] = np.zeros(T)
             lm["2ch"] = {}
             for t in range(T):
@@ -98,7 +105,8 @@ if __name__ == "__main__":
 
                 # record features for each time frame
                 A["LA_2ch"][t] = area[0]  # we use list return here as 4ch view will have both atrium
-                L["LA_2ch"][t] = length[0]
+                L_L["LA_2ch"][t] = length[0]
+                L_T["LA_2ch"][t] = length[1]
                 V["LA_2ch"][t] = 8 / (3 * math.pi) * area[0] * area[0] / length[0]
                 lm["2ch"][t] = landmarks
 
@@ -129,11 +137,13 @@ if __name__ == "__main__":
                 continue
 
             A["LA_4ch"] = np.zeros(T)
-            L["LA_4ch"] = np.zeros(T)
+            L_L["LA_4ch"] = np.zeros(T)
+            L_T["LA_4ch"] = np.zeros(T)
             V["LA_4ch"] = np.zeros(T)
             V["LA_bip"] = np.zeros(T)
             A["RA_4ch"] = np.zeros(T)
-            L["RA_4ch"] = np.zeros(T)
+            L_L["RA_4ch"] = np.zeros(T)
+            L_T["RA_4ch"] = np.zeros(T)
             V["RA_4ch"] = np.zeros(T)
             lm["4ch"] = {}
             for t in range(T):
@@ -143,14 +153,17 @@ if __name__ == "__main__":
                     continue
 
                 A["LA_4ch"][t] = area[0]
-                L["LA_4ch"][t] = length[0]
+                L_L["LA_4ch"][t] = length[0]
+                L_T["LA_4ch"][t] = length[1]
                 V["LA_4ch"][t] = 8 / (3 * math.pi) * area[0] * area[0] / length[0]
-                # * We only report the LA volume calculated using the biplane area-length formula (using both modality)
-                # * Check https://doi.org/10.1038/s41591-020-1009-y
-                V["LA_bip"][t] = 8 / (3 * math.pi) * area[0] * A["LA_2ch"][t] / (0.5 * (length[0] + L["LA_2ch"][t]))
+
+                # We only report the LA volume calculated using the biplane area-length formula (using both modality)
+                # Ref https://doi.org/10.1038/s41591-020-1009-y
+                V["LA_bip"][t] = 8 / (3 * math.pi) * area[0] * A["LA_2ch"][t] / (0.5 * (length[0] + L_L["LA_2ch"][t]))
 
                 A["RA_4ch"][t] = area[1]
-                L["RA_4ch"][t] = length[1]
+                L_L["RA_4ch"][t] = length[2]  # LA and RA are processed sequentially
+                L_T["RA_4ch"][t] = length[3]
                 V["RA_4ch"][t] = 8 / (3 * math.pi) * area[1] * area[1] / length[1]
                 lm["4ch"][t] = landmarks
 
@@ -169,23 +182,147 @@ if __name__ == "__main__":
         else:
             logger.error(f"Segmentation of 4-chamber long axis file for {subject} does not exist.")
             continue
-
-        # -------------------------
-        # * Start to record features
+ 
+        # * Record basic features -----------------------------------------------
         # Left atrial volume: bi-plane estimation
         # Right atrial volume: single plane estimation
         feature_dict = {
             "eid": subject,
-            "LA_max(bip) [mL]": np.max(V["LA_bip"]),
-            "LA_min(bip) [mL]": np.min(V["LA_bip"]),
-            "LA_SV(bip) [mL]": np.max(V["LA_bip"]) - np.min(V["LA_bip"]),
-            "LA_EF(bip) [%]": (np.max(V["LA_bip"]) - np.min(V["LA_bip"])) / np.max(V["LA_bip"]) * 100,
-            # All RA are only determined using 4ch view
-            "RA_max [mL]": np.max(V["RA_4ch"]),
-            "RA_min [mL]": np.min(V["RA_4ch"]),
-            "RA_SV [mL]": np.max(V["RA_4ch"]) - np.min(V["RA_4ch"]),
-            "RA_EF [%]": (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.max(V["RA_4ch"]) * 100,
         }
+
+        LAV_max = np.max(V["LA_bip"])
+        LAV_min = np.min(V["LA_bip"])
+        feature_dict.update({
+            # LA are determined using both 2ch and 4ch view
+            "LA: D_longitudinal(2ch) [cm]": np.max(L_L["LA_2ch"]),
+            "LA: D_longitudinal(4ch) [cm]": np.max(L_L["LA_4ch"]),
+            "LA: A_max(2ch) [mm^2]": np.max(A["LA_2ch"]),
+            "LA: A_min(2ch) [mm^2]": np.min(A["LA_2ch"]),
+            "LA: A_max(4ch) [mm^2]": np.max(A["LA_4ch"]),
+            "LA: A_min(4ch) [mm^2]": np.min(A["LA_4ch"]),
+            "LA: V_max(bip) [mL]": LAV_max,
+            "LA: V_min(bip) [mL]": LAV_min,
+            "LA: Total SV(bip) [mL]": LAV_max - LAV_min,
+            "LA: EF_total [%]": (LAV_max - LAV_min) / LAV_max * 100,
+            "LA: EI [%]": (LAV_max - LAV_min) / LAV_min * 100,  # expansion index
+
+            # All RA are only determined using 4ch view
+            "RA: D_longitudinal [cm]": np.max(L_L["RA_4ch"]),
+            "RA: A_max [mm^2]": np.max(A["RA_4ch"]),
+            "RA: A_min [mm^2]": np.min(A["RA_4ch"]),
+            "RA: V_max [mL]": np.max(V["RA_4ch"]),
+            "RA: V_min [mL]": np.min(V["RA_4ch"]),
+            "RA: Total SV [mL]": np.max(V["RA_4ch"]) - np.min(V["RA_4ch"]),
+            "RA: EF_total [%]": (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.max(V["RA_4ch"]) * 100,
+            "RA: EI [%]": (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.min(V["RA_4ch"]) * 100
+        })
+
+        # Save time series of volume and display the time series of atrial volume
+        os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
+        logger.info(f"Saving time series of atrial volume for {subject}")
+        with open(f"{sub_dir}/timeseries/atrium.pkl", "wb") as time_series_file:
+            pickle.dump({
+                "LA: Volume(bip) [mL]": V["LA_bip"],
+                "RA: Volume(bip) [mL]": V["RA_4ch"]
+            }, time_series_file)
+
+        time_grid_point = np.arange(T)
+        time_grid_real = time_grid_point * nim_2ch.header["pixdim"][4]
+        
+        fig, ax1, ax2 = plot_time_series_double_x(time_grid_point, time_grid_real, V["LA_bip"], 
+                                                  "Time [frame]", "Time [s]", "Volume [mL]",
+                                                  lambda x: x * nim_2ch.header["pixdim"][4],
+                                                  lambda x: x / nim_2ch.header["pixdim"][4])
+        fig.savefig(f"{sub_dir}/timeseries/atrium_volume_raw.png")
+
+
+        # * Implement more advanced features -----------------------------------
+
+        # * Feature1: Indexed volume
+        BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
+        BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
+        feature_dict.update({
+            "LA: D_longitudinal(2ch)/BSA [cm/m^2]": np.max(L_L["LA_2ch"]) / BSA_subject,
+            "LA: D_longitudinal(4ch)/BSA [cm/m^2]": np.max(L_L["LA_4ch"]) / BSA_subject,
+            "LA: A_max(2ch)/BSA [mm^2/m^2]": np.max(A["LA_2ch"]) / BSA_subject,
+            "LA: A_min(2ch)/BSA [mm^2/m^2]": np.min(A["LA_2ch"]) / BSA_subject,
+            "LA: A_max(4ch)/BSA [mm^2/m^2]": np.max(A["LA_4ch"]) / BSA_subject,
+            "LA: A_min(4ch)/BSA [mm^2/m^2]": np.min(A["LA_4ch"]) / BSA_subject,
+            "LA: V_max(bip)/BSA [mL/m^2]": LAV_max / BSA_subject,
+            "LA: V_min(bip)/BSA [mL/m^2]": LAV_min / BSA_subject,
+
+            "RA: V_max(bip)/BSA [mL/m^2]": np.max(V["RA_4ch"]) / BSA_subject,
+            "RA: V_min(bip)/BSA [mL/m^2]": np.min(V["RA_4ch"]) / BSA_subject
+        })
+
+        # * Feature2: Transverse diameter
+        feature_dict.update({
+            "LA: D_transverse(2ch) [cm]": np.max(L_T["LA_2ch"]),
+            "LA: D_transverse(2ch)/BSA [cm/m^2]": np.max(L_T["LA_2ch"]) / BSA_subject,
+            "LA: D_transverse(4ch) [cm]": np.max(L_T["LA_4ch"]),
+            "LA: D_transverse(4ch)/BSA [cm/m^2]": np.max(L_T["LA_4ch"]) / BSA_subject,
+
+            "RA: D_transverse [cm]": np.max(L_T["RA_4ch"])
+        })
+
+        # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
+        # Ref https://www.sciencedirect.com/science/article/pii/S1097664723013455
+
+        # * Feature3: LA Spherical Index
+
+        # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6404907/pdf/JAH3-7-e009793.pdf
+        # Define The maximum LA length is chosen among 2 chamber and 4 chamber view
+
+        LAD_L_max = max(np.max(L_L["LA_2ch"]), np.max(L_L["LA_4ch"]))
+        LAD_T_max = max(np.max(L_T["LA_2ch"]), np.max(L_T["LA_4ch"]))
+        LAD_max = max(LAD_L_max, LAD_T_max)
+
+        V_sphere_max = 4 / 3 * math.pi * (LAD_max / 2) ** 3
+
+        LA_spherical_index = LAV_max / V_sphere_max
+
+        feature_dict.update({
+            "LA: Spherical Index": LA_spherical_index
+        })
+
+        # * Feature4: Volume before atrial contraction and emptying fraction
+        T_max = np.argmax(V["LA_bip"])
+        # 8 is an empirical value and is subject to change
+        peaks, _ = find_peaks(V["LA_bip"], distance = 8)
+
+        # Define We use the peak after maximum as pre-contraction volume
+        peaks_after_max = peaks[peaks > T_max]
+        peaks_value = V["LA_bip"][peaks_after_max]
+        T_pre_a = peaks_after_max[np.argmax(peaks_value)]
+        LAV_pre_a = V["LA_bip"][T_pre_a]
+
+        colors = ['blue'] * len(V["LA_bip"])
+        colors[T_max] = 'red'
+        colors[T_pre_a] = 'orange'
+
+        fig, ax1, ax2 = plot_time_series_double_x(time_grid_point, time_grid_real, V["LA_bip"],
+                                  "Time [frame]", "Time [s]", "Volume [mL]",
+                                  lambda x: x * nim_2ch.header["pixdim"][4],
+                                  lambda x: x / nim_2ch.header["pixdim"][4],
+                                  colors = colors)
+        fig.savefig(f"{sub_dir}/timeseries/atrium_volume.png")
+
+        # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508385/pdf/BMRI2015-765921.pdf
+        # Ref https://pubmed.ncbi.nlm.nih.gov/24291276/
+        feature_dict.update({
+            "LA: V_pre_a [mL]": LAV_pre_a,
+            "LA: Active SV [mL]": LAV_pre_a - LAV_min,
+            "LA: Passive SV [mL]": LAV_max - LAV_pre_a,
+            "LA: EF_booster [%]": (LAV_pre_a - LAV_min) / LAV_pre_a * 100,
+            "LA: EF_conduit [%]": (LAV_max - LAV_pre_a) / LAV_max * 100,  # also called EF_passive
+        })
+        
+        # todo1: Early/Late Peak Emptying Rate -> Diastolic dysfunction evaluated by cardiac magnetic resonance
+        # todo2: IPVT, IPVT Ratio
+        # todo3: LA functional index -> Left Atrial Size and Function
+        # todo4: Average atrial contribution -> The Three Integrated Phases of Left Atrial Macrophysiology
+        # todo5: LA conduit volume, which is defined as LV stroke - LA total stroke
+
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
 

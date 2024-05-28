@@ -17,7 +17,8 @@ import argparse
 import pandas as pd
 import sys
 sys.path.append('../..')
-from utils.cardiac_utils import *
+from utils.quality_control_utils import la_pass_quality_control
+from utils.cardiac_utils import cine_2d_la_motion_and_strain_analysis
 
 
 if __name__ == '__main__':

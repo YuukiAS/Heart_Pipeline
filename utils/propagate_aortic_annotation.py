@@ -14,7 +14,7 @@
 # ==============================================================================
 """
     Propagate manual annotations at ED and ES frames to other time frames using image registration.
-    """
+"""
 import os
 import sys
 import nibabel as nib

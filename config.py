@@ -26,14 +26,18 @@ features_dir = '/work/users/y/u/yuukias/Heart_Pipeline/doc/Pipeline_Result/'
 features_visit1_dir = os.path.join(features_dir, 'visit1')
 features_visit2_dir = os.path.join(features_dir, 'visit2')
 
+# The file to store BSA information, here we use Du Bois formula
+BSA_file = "/work/users/y/u/yuukias/database/UKBiobank/data_field/Personal_Features/BSA.csv"
+# The column name for BSA in the BSA_file
+BSA_col_name = "BSA [m^2]"
+
 # * Configure the parameters for dataset -----------------------------------------
 
 # If set to None, then the pipeline will only makes use of the visit1 data
 retest_suffix = "retest"   # e.g. This will recognize 20208_retest in data_raw_dir
 
 # Modify here to select the modality you want to use
-modality = ["la"]
-# modality = ["la", 'sa']
+modality = ["la", 'sa']
 # modality = ['la', 'sa', 'aor', 'tag', 'lvot', 'blood', 't1']
 
 

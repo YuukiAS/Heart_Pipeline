@@ -1541,6 +1541,9 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         # Get the largest component in case we have a bad segmentation
         label_i = get_largest_cc(label_i)
 
+        # Calculate the area
+        A += [np.sum(label_i) * area_per_pix]
+
         # Go through all the points in the atrium, sort them by the distance along the long-axis.
         points_label = np.nonzero(label_i)
         points = []
@@ -1597,13 +1600,44 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         if len(points) == 0:
             return -1, -1, -1
         points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
-        # todo: Why not multiply pixdim[0]?
-        L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]  # Unit: cm
-
-        # Calculate the area
-        A += [np.sum(label_i) * area_per_pix]
-
+        
         # Landmarks of the intersection points are the top and bottom points along points_line
         landmarks += [points[0]]
         landmarks += [points[-1]]
+        # Longitudinal diameter; Unit: cm
+        L += [np.linalg.norm(points[-1] - points[0]) * 1e-1] # todo: Why not multiply pixdim[0]?
+
+        # Define Transverse diameter is obtained perpendicular to the longitudinal diameter, at the mid level of right atrium
+        # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-29 for example in right atrium
+        mx, my, _ = np.mean(points, axis=0)
+
+        minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
+
+        rx = mx + minor_axis[0] * 100
+        ry = my + minor_axis[1] * 100
+        sx = mx - minor_axis[0] * 100
+        sy = my - minor_axis[1] * 100
+
+        image_line_minor = np.zeros(label_i.shape)
+        cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx),), (1, 0, 0))
+        image_line_minor = label_i & (image_line_minor > 0)
+        points_line_minor = np.nonzero(image_line_minor)
+
+        points_minor = []
+        short_axis = nim.affine[:3, 2] / np.linalg.norm(nim.affine[:3, 2])
+        for j in range(len(points_line_minor[0])):
+            x = points_line_minor[0][j]
+            y = points_line_minor[1][j]
+            # World coordinate
+            point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
+            # Distance along the long-axis
+            points_minor += [np.append(np.append(point, np.dot(point, short_axis)))]
+        points_minor = np.array(points_minor)
+        points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the long-axis
+
+        landmarks += [points_minor[0, ]]
+        landmarks += [points_minor[-1]]
+        # Transverse diameter; Unit: cm
+        L += [np.linalg.norm(points_minor[-1] - points_minor[0]) * 1e-1]
+
     return A, L, landmarks

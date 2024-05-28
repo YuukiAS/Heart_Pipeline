@@ -68,3 +68,41 @@ def bland_altman_plot(data1, data2, eid_name_1, eid_name_2, features_dict, *args
         data_2_feature = data2[data2[eid_name_2].isin(eid_common)][val]
         data_2_feature = np.array(data_2_feature)
         _bland_altman_plot(data_1_feature, data_2_feature, *args, **kwargs)
+
+def plot_time_series_double_x(x1, x2, y, x1_label, x2_label, y_label,
+                              x1_to_x2_func, x2_to_x1_func, colors = None,
+                              display = False):
+    """
+    Plot time series data with two x-axis.
+
+    Parameters:
+    x1: List, x-axis 1 data.
+    x2: List, x-axis 2 data.
+    y: List, y-axis data.
+    x1_label: String, label for x-axis 1.
+    x2_label: String, label for x-axis 2.
+    y_label: String, label for y-axis.
+    colors: List, colors for the plot.
+    x1_to_x2_func: Function, convert x1 to x2.
+    x2_to_x1_func: Function, convert x2 to x1.
+    """
+    assert len(x1) == len(y)
+    assert len(x2) == len(y)
+
+    if colors is None:
+        colors = ['b'] * len(y)
+
+    fig, ax1 = plt.subplots()
+
+    ax1.plot(x1, y)
+    ax1.set_xlabel(x1_label)
+    ax1.set_ylabel(y_label)
+
+    ax2 = ax1.secondary_xaxis('top', functions=(x1_to_x2_func, x2_to_x1_func))
+    ax2.set_xlabel(x2_label)
+
+    if display:
+        plt.scatter(x1, y, c = colors)
+        plt.show()
+
+    return fig, ax1, ax2
