@@ -58,5 +58,7 @@ par
 EasyReg
 NiftyReg
 uniGradICON
+nnUNet
+UUMamba
 tasks/*.ipynb
 src/**/*.ipynb

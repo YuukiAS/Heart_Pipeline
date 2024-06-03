@@ -5,6 +5,7 @@ import logging
 
 # The main directory of the pipeline
 pipeline_dir = "/work/users/y/u/yuukias/Heart_Pipeline"  
+temp_dir = os.path.join(pipeline_dir, 'temp')
 # The directory for slurm scrips
 code_dir = os.path.join(pipeline_dir, 'code')
 
@@ -16,6 +17,8 @@ contour_gt_dir = '/work/users/y/u/yuukias/database/UKBiobank/return/contour_cvi4
 data_dir = '/work/users/y/u/yuukias/Heart_Pipeline/data' # intermedite files will also be generated here
 data_visit1_dir = os.path.join(data_dir, 'visit1', 'nii')
 data_visit2_dir = os.path.join(data_dir, 'visit2', 'nii')
+data_visit1_nnunet_dir = os.path.join(data_dir, 'visit1', 'nii_nnunet')
+data_visit2_nnunet_dir = os.path.join(data_dir, 'visit2', 'nii_nnunet')
 data_failed_dir = os.path.join(os.path.dirname(data_dir), 'data_failed')
 data_failed_visit1_dir = os.path.join(data_failed_dir, 'visit1', 'nii')
 data_failed_visit2_dir = os.path.join(data_failed_dir, 'visit2', 'nii')
