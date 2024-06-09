@@ -17,13 +17,13 @@ logging.basicConfig(level=config.logging_level)
 def generate_scripts(pipeline_dir, data_dir, code_dir, 
                      modality, num_subjects_per_file=500, retest_suffix=None):
     if retest_suffix is None:
-        code_step2_dir = os.path.join(code_dir, "extract_feature_visit1")
+        code_step3_dir = os.path.join(code_dir, "extract_feature_visit1")
     else:
-        code_step2_dir = os.path.join(code_dir, "extract_feature_visit2")
+        code_step3_dir = os.path.join(code_dir, "extract_feature_visit2")
 
-    if os.path.exists(code_step2_dir):
-        shutil.rmtree(code_step2_dir)
-    os.makedirs(code_step2_dir)
+    if os.path.exists(code_step3_dir):
+        shutil.rmtree(code_step3_dir)
+    os.makedirs(code_step3_dir)
 
     sub_total = os.listdir(data_dir)
     length_total = len(sub_total)
@@ -32,8 +32,8 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
 
     retest_str = "" if not retest_suffix else " --retest"
     with (
-        open(os.path.join(code_step2_dir, "batAll.sh"), "w") as file_submit,
-        open(os.path.join(code_step2_dir, "aggregate.pbs"), "w") as file_aggregate,
+        open(os.path.join(code_step3_dir, "batAll.sh"), "w") as file_submit,
+        open(os.path.join(code_step3_dir, "aggregate.pbs"), "w") as file_aggregate,
     ):
         file_submit.write("#!/bin/bash\n")
 
@@ -60,7 +60,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
             sub_file_i_str = " ".join(map(str, sub_file_i))
 
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
-            with open(os.path.join(code_step2_dir, f"bat{file_i}.pbs"), "w") as file_script:
+            with open(os.path.join(code_step3_dir, f"bat{file_i}.pbs"), "w") as file_script:
                 file_script.write("#!/bin/bash\n")
                 file_script.write("#SBATCH --ntasks=1\n")
                 if retest_suffix is None:

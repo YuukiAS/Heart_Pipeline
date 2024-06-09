@@ -101,8 +101,8 @@ def plot_time_series_double_x(x1, x2, y, x1_label, x2_label, y_label,
     ax2 = ax1.secondary_xaxis('top', functions=(x1_to_x2_func, x2_to_x1_func))
     ax2.set_xlabel(x2_label)
 
+    plt.scatter(x1, y, c = colors)
     if display:
-        plt.scatter(x1, y, c = colors)
         plt.show()
 
     return fig, ax1, ax2

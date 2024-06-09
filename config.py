@@ -1,7 +1,7 @@
 import os
 import logging
 
-# * Configure the folders --------------------------------------------
+# * Configure essential paths --------------------------------------------
 
 # The main directory of the pipeline
 pipeline_dir = "/work/users/y/u/yuukias/Heart_Pipeline"  
@@ -31,8 +31,17 @@ features_visit2_dir = os.path.join(features_dir, 'visit2')
 
 # The file to store BSA information, here we use Du Bois formula
 BSA_file = "/work/users/y/u/yuukias/database/UKBiobank/data_field/Personal_Features/BSA.csv"
-# The column name for BSA in the BSA_file
+# The column name for BSA in the BSA_file, should contain column "eid" as identifier
 BSA_col_name = "BSA [m^2]"
+
+# * Configure Python virtual environment paths -----------------------------------
+
+# Please make sure you source this env before running the pipeline
+env = "/work/users/y/u/yuukias/env/bin"
+
+# UUMamba (Step1)
+env_mamba = "/nas/longleaf/home/yuukias/env_mamba/bin"
+
 
 # * Configure the parameters for dataset -----------------------------------------
 
@@ -42,6 +51,9 @@ retest_suffix = "retest"   # e.g. This will recognize 20208_retest in data_raw_d
 # Modify here to select the modality you want to use
 modality = ["la", 'sa']
 # modality = ['la', 'sa', 'aor', 'tag', 'lvot', 'blood', 't1']
+
+# Please also run step1_preaprare_data_ecg.py so that ECG-related features can be generated
+useECG = True
 
 
 # * Configure the parameters for the logging mechanism ---------------------------

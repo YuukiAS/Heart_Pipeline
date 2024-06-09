@@ -12,16 +12,18 @@ from pathlib import Path
 import nibabel as nib
 from tqdm import tqdm
 import pickle
+import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from nnunetv2.dataset_conversion.generate_dataset_json import generate_dataset_json
 import logging
 import logging.config
 import sys
-sys.path.append('..')
+
+sys.path.append("..")
 import config
 
 logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger('prepare_data_nnunet')
+logger = logging.getLogger("prepare_data_nnunet")
 logging.basicConfig(level=config.logging_level)
 
 
@@ -34,6 +36,7 @@ def make_out_dirs(dataset_id: int, task_name="UKBiobank"):
     out_labels_dir = out_dir / "labelsTr"
     out_test_dir = out_dir / "imagesTs"
 
+    logger.info("Removing existing files.")
     shutil.rmtree(out_dir, ignore_errors=True)
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(out_train_dir, exist_ok=True)
@@ -43,8 +46,9 @@ def make_out_dirs(dataset_id: int, task_name="UKBiobank"):
     return out_dir, out_train_dir, out_labels_dir, out_test_dir
 
 
-def copy_files(src_data_folder: Path, modality: str, 
-               train_dir: Path, labels_dir: Path, test_dir: Path, seed = 1234):
+def copy_files(
+    src_data_folder: Path, modality: str, train_dir: Path, labels_dir: Path, test_dir: Path, copyTest=False, seed=1234
+):
     """Copy files from the nii folder to the nii_nnunet folder. Returns the number of training cases."""
 
     subjects_all = os.listdir(src_data_folder)
@@ -70,11 +74,14 @@ def copy_files(src_data_folder: Path, modality: str,
     logger.info(f"Number of subjects with ground truth: {len(subjects_train)}")
     logger.info(f"Number of subjects without ground truth: {len(subjects_test)}")
 
-    def _copy_file(img_file, img_dir, gt_file = None, label_dir = None):
-        subject = img_file.split("/")[-2]        
+    def _copy_file(img_file, img_dir, gt_file=None, label_dir=None):
+        subject = img_file.split("/")[-2]
+
+        cnt = 0  # Number of frames with ground truth
 
         if gt_file is not None and label_dir is not None:
             logger.info(f"Start processing {subject} with ground truth")
+
             img_4D = nib.load(img_file)
             T = img_4D.shape[3]
             header = img_4D.header
@@ -88,9 +95,10 @@ def copy_files(src_data_folder: Path, modality: str,
                 if np.sum(gt) == 0:
                     # skip frame that is not annotated
                     continue
+                cnt += 1
                 if img.shape[2] == 1:
                     # change to 2D image if needed
-                    header['dim'][0] = 2
+                    header["dim"][0] = 2
                     img = np.squeeze(img, axis=2)
                     gt = np.squeeze(gt, axis=2)
                 img = nib.Nifti1Image(img, affine, header)
@@ -111,14 +119,14 @@ def copy_files(src_data_folder: Path, modality: str,
                 img = img_4D[:, :, :, t]
                 if img.shape[2] == 1:
                     # change to 2D image if needed
-                    header['dim'][0] = 2
+                    header["dim"][0] = 2
                     img = np.squeeze(img, axis=2)
                 img = nib.Nifti1Image(img, affine, header)
                 nib.save(img, img_dir / f"{subject}_{t:04d}_0000.nii.gz")
 
-
         logger.info(f"Finished processing {subject}")
 
+        return cnt
 
     num_training_cases = 0
     logger.info("Copying training files and corresponding labels.")
@@ -128,12 +136,16 @@ def copy_files(src_data_folder: Path, modality: str,
         for subject in subjects_train:
             while len(futures) >= 8:
                 for future in as_completed(futures):
-                    future.result()
+                    num_training_cases += future.result()
                     pbar.update(1)
                     futures.remove(future)
-            future = executor.submit(_copy_file,
-                                     os.path.join(subject, f"{modality}.nii.gz"), train_dir,
-                                     os.path.join(subject, f"label_{modality}.nii.gz"), labels_dir)
+            future = executor.submit(
+                _copy_file,
+                os.path.join(subject, f"{modality}.nii.gz"),
+                train_dir,
+                os.path.join(subject, f"label_{modality}.nii.gz"),
+                labels_dir,
+            )
             futures.append(future)
 
         for future in as_completed(futures):
@@ -151,8 +163,7 @@ def copy_files(src_data_folder: Path, modality: str,
                     future.result()
                     pbar.update(1)
                     futures.remove(future)
-            future = executor.submit(_copy_file,
-                                     os.path.join(subject, f"{modality}.nii.gz"), test_dir)
+            future = executor.submit(_copy_file, os.path.join(subject, f"{modality}.nii.gz"), test_dir)
             futures.append(future)
 
         for future in as_completed(futures):
@@ -163,11 +174,9 @@ def copy_files(src_data_folder: Path, modality: str,
     return num_training_cases
 
 
-def convert_ukbiobank(src_data_folder: str, dataset_id, modality: str):
-    out_dir, train_dir, labels_dir, test_dir = make_out_dirs(dataset_id=dataset_id, 
-                                                                             task_name=f"UKBiobank_{modality}")
-    num_training_cases = copy_files(Path(src_data_folder), modality,
-                                    train_dir, labels_dir, test_dir)
+def convert_ukbiobank(src_data_folder: str, dataset_id, modality: str, copyTest=False):
+    out_dir, train_dir, labels_dir, test_dir = make_out_dirs(dataset_id=dataset_id, task_name=f"UKBiobank_{modality}")
+    num_training_cases = copy_files(Path(src_data_folder), modality, train_dir, labels_dir, test_dir, copyTest=copyTest)
 
     if modality == "sa":
         generate_dataset_json(
@@ -216,24 +225,18 @@ def convert_ukbiobank(src_data_folder: str, dataset_id, modality: str):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     # e.g. For visit1 & sa, the dataset id is 100
+    parser.add_argument("-d", "--dataset_id", required=True, type=int, help="nnU-Net Dataset ID, default: 100")
     parser.add_argument(
-        "-d", "--dataset_id", required=True, type=int, help="nnU-Net Dataset ID, default: 100"
-    )
-    parser.add_argument(
-        "-m", "--modality",
+        "-m",
+        "--modality",
         type=str,
         choices=["sa", "la_2ch", "la_4ch"],
         help="The modality of UKBiobank data to be prepared",
     )
-    parser.add_argument(
-        "--retest",
-        action="store_true",
-    )
+    parser.add_argument("--retest", action="store_true")
     args = parser.parse_args()
-    
 
     src_data_folder = config.data_visit1_dir if not args.retest else config.data_visit2_dir
     if not args.retest:
@@ -248,5 +251,6 @@ if __name__ == "__main__":
         os.environ["nnUNet_results"] = os.path.join(config.data_visit2_nnunet_dir, "nnUNet_results")
 
     logger.info("Start Conversion")
-    convert_ukbiobank(src_data_folder, args.dataset_id, args.modality)
+    # Note that there are too many files in visit1, we only make copy of visit2 to save space
+    convert_ukbiobank(src_data_folder, args.dataset_id, args.modality, copyTest=args.retest)
     logger.info("Done!")
