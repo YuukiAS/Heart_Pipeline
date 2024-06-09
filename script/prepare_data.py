@@ -19,8 +19,6 @@ import pandas as pd
 import numpy as np
 import shutil
 import dateutil.parser
-import logging
-import logging.config
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -28,10 +26,8 @@ import config
 from utils.biobank_utils import process_manifest, Biobank_Dataset
 from utils.os_utils import check_existing_file
 import utils.parse_cvi42_xml as parse_cvi42_xml
-
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("prepare_data")
-logging.basicConfig(level=config.logging_level)
+from utils.log_utils import setup_logging
+logger = setup_logging("prepare_data")
 
 contour_gt_dir = config.contour_gt_dir
 

@@ -29,7 +29,8 @@ features_dir = '/work/users/y/u/yuukias/Heart_Pipeline/doc/Pipeline_Result/'
 features_visit1_dir = os.path.join(features_dir, 'visit1')
 features_visit2_dir = os.path.join(features_dir, 'visit2')
 
-# The file to store BSA information, here we use Du Bois formula
+# The file to store BSA information
+# Define We use Du Bois formula: BSA = 0.007184 * weight^0.425 * height^0.725
 BSA_file = "/work/users/y/u/yuukias/database/UKBiobank/data_field/Personal_Features/BSA.csv"
 # The column name for BSA in the BSA_file, should contain column "eid" as identifier
 BSA_col_name = "BSA [m^2]"

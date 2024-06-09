@@ -1,18 +1,14 @@
 import os
 import shutil
 from tqdm import tqdm
-import logging
-import logging.config
 
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 from utils.os_utils import check_existing_file
-
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("main")
-logging.basicConfig(level=config.logging_level)
+from utils.log_utils import setup_logging
+logger = setup_logging("main: segment(baseline)")
 
 
 def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=500, retest_suffix=None):

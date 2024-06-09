@@ -5,17 +5,13 @@ This script is used to prepare the CMR data for the pipeline using zip files
 import os
 import shutil
 from tqdm import tqdm
-import logging
-import logging.config
 
 import sys
-
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("main")
-logging.basicConfig(level=config.logging_level)
+from utils.log_utils import setup_logging
+logger = setup_logging("main: prepare_data_cmr")
 
 def generate_scripts(
     pipeline_dir, data_raw_dir, code_dir, out_dir, modality, num_subjects_per_file=100, retest_suffix=None

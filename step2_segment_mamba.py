@@ -5,12 +5,8 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
-import logging
-import logging.config
-
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("main")
-logging.basicConfig(level=config.logging_level)
+from utils.log_utils import setup_logging
+logger = setup_logging("main: segment(mamba)")
 
 
 def generate_scripts(pipeline_dir, code_dir, modality_dict: dict, retest_suffix=None):

@@ -12,19 +12,14 @@ from pathlib import Path
 import nibabel as nib
 from tqdm import tqdm
 import pickle
-import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from nnunetv2.dataset_conversion.generate_dataset_json import generate_dataset_json
-import logging
-import logging.config
 import sys
 
 sys.path.append("..")
 import config
-
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("prepare_data_nnunet")
-logging.basicConfig(level=config.logging_level)
+from utils.log_utils import setup_logging
+logger = setup_logging("prepare_data(nnUNet)")
 
 
 def make_out_dirs(dataset_id: int, task_name="UKBiobank"):

@@ -7,17 +7,14 @@ For the format of XML file, please refer to https://biobank.ndph.ox.ac.uk/ukb/re
 import os
 import shutil
 from tqdm import tqdm
-import logging
-import logging.config
 
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("main")
-logging.basicConfig(level=config.logging_level)
+from utils.log_utils import setup_logging
+logger = setup_logging("main: prepare_data_ecg")
 
 def prepare_files(pipeline_dir, data_raw_dir, out_dir, retest_suffix=None):
     if retest_suffix is None:
