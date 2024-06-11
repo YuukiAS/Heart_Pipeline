@@ -11,7 +11,7 @@ from utils.log_utils import setup_logging
 logger = setup_logging("main: extract_feature")
 
 def generate_scripts(pipeline_dir, data_dir, code_dir, 
-                     modality, num_subjects_per_file=500, retest_suffix=None):
+                     modality, num_subjects_per_file=200, retest_suffix=None):
     if retest_suffix is None:
         code_step3_dir = os.path.join(code_dir, "extract_feature_visit1")
     else:
@@ -75,7 +75,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
 
 
                 if "la" in modality:
-                    file_script.write("echo 'Generate feature scripts for atrial volume'\n")
+                    file_script.write("echo 'Extract features for atrial volume'\n")
                     file_script.write(
                         f"python -u ./src/feature_extraction/long_axis/eval_atrial_volume.py "\
                         f"{retest_str} --file_name=atrial_volume_{file_i} --data_list {sub_file_i_str} \n"

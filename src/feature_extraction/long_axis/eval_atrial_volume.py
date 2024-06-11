@@ -15,25 +15,28 @@
 import os
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 import nibabel as nib
 import vtk
 import math
 import pickle
-from scipy.signal import find_peaks
-import logging
-import logging.config
+import statsmodels.api as sm
+from tqdm import tqdm
 
 import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from ecg.ecg_processor import ECG_Processor
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
+
 from utils.quality_control_utils import atrium_pass_quality_control
 from utils.cardiac_utils import evaluate_atrial_area_length
 from utils.analyze_utils import plot_time_series_double_x
+from utils.log_utils import setup_logging
 
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("eval_atrial_volume")
-logging.basicConfig(level=config.logging_level)
+logger = setup_logging("eval_atrial_volume")
 
 
 parser = argparse.ArgumentParser()
@@ -48,7 +51,7 @@ if __name__ == "__main__":
 
     df = pd.DataFrame()
 
-    for subject in args.data_list:
+    for subject in tqdm(args.data_list):
         subject = str(subject)
         logger.info(f"Calculating atrial volume features for {subject}")
         sub_dir = os.path.join(data_dir, subject)
@@ -72,7 +75,7 @@ if __name__ == "__main__":
         lm = {}
 
         # * Generate basic features from segmentation ---------------------------
-
+        logger.info(f"{subject}: Process information from segmentation")
         # Determine the long-axis from short-axis image
         nim_sa = nib.load(sa_name)
         # Refer to biobank_utils.py for more information, used to determine top and bottom of atrium
@@ -85,6 +88,7 @@ if __name__ == "__main__":
             nim_2ch = nib.load(seg_la_2ch_name)
             seg_la_2ch = nim_2ch.get_fdata()
             T = nim_2ch.header["dim"][4]  # number of time frames
+            temporal_resolution = nim_2ch.header["pixdim"][4] * 1000 # unit: ms
 
             # Perform quality control for the segmentation
             if not atrium_pass_quality_control(seg_la_2ch, {"LA": 1}):
@@ -97,11 +101,14 @@ if __name__ == "__main__":
             V["LA_2ch"] = np.zeros(T)
             lm["2ch"] = {}
             for t in range(T):
-                area, length, landmarks = evaluate_atrial_area_length(seg_la_2ch[:, :, 0, t], nim_2ch, long_axis)
-                if isinstance(area, int) and area < 0:
-                    # todo: Is there any chance that area will be negative?
-                    logger.warning("Negative area detected, skipping this frame.")
+                try:
+                    area, length, landmarks = evaluate_atrial_area_length(seg_la_2ch[:, :, 0, t], nim_2ch, long_axis)
+                except ValueError as e:
+                    logger.error(f"Error in evaluating atrial area and length for {subject} at time frame {t}: {e}")
                     continue
+
+                if isinstance(area, int) and area < 0:
+                    raise ValueError("Negative area detected.")
 
                 # record features for each time frame
                 A["LA_2ch"][t] = area[0]  # we use list return here as 4ch view will have both atrium
@@ -147,10 +154,13 @@ if __name__ == "__main__":
             V["RA_4ch"] = np.zeros(T)
             lm["4ch"] = {}
             for t in range(T):
-                area, length, landmarks = evaluate_atrial_area_length(seg_la_4ch[:, :, 0, t], nim_4ch, long_axis)
-                if isinstance(area, int) and area < 0:
-                    logger.warning("Negative area detected, skipping this frame.")
+                try:
+                    area, length, landmarks = evaluate_atrial_area_length(seg_la_4ch[:, :, 0, t], nim_4ch, long_axis)
+                except ValueError as e:
+                    logger.error(f"Error in evaluating atrial area and length for {subject} at time frame {t}: {e}")
                     continue
+                if isinstance(area, int) and area < 0:
+                    raise ValueError("Negative area detected.")
 
                 A["LA_4ch"][t] = area[0]
                 L_L["LA_4ch"][t] = length[0]
@@ -186,6 +196,7 @@ if __name__ == "__main__":
         # * Record basic features -----------------------------------------------
         # Left atrial volume: bi-plane estimation
         # Right atrial volume: single plane estimation
+        logger.info(f"{subject}: Record basic features")
         feature_dict = {
             "eid": subject,
         }
@@ -227,18 +238,20 @@ if __name__ == "__main__":
             }, time_series_file)
 
         time_grid_point = np.arange(T)
-        time_grid_real = time_grid_point * nim_2ch.header["pixdim"][4]
+        time_grid_real = time_grid_point * temporal_resolution
         
         fig, ax1, ax2 = plot_time_series_double_x(time_grid_point, time_grid_real, V["LA_bip"], 
-                                                  "Time [frame]", "Time [s]", "Volume [mL]",
-                                                  lambda x: x * nim_2ch.header["pixdim"][4],
-                                                  lambda x: x / nim_2ch.header["pixdim"][4])
+                                                  "Time [frame]", "Time [ms]", "Volume [mL]",
+                                                  lambda x: x * temporal_resolution,
+                                                  lambda x: x / temporal_resolution)
         fig.savefig(f"{sub_dir}/timeseries/atrium_volume_raw.png")
+        plt.close(fig)
 
 
         # * Implement more advanced features -----------------------------------
 
         # * Feature1: Indexed volume
+        logger.info(f"{subject}: Implement indexed volume features")
         BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
         BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
         feature_dict.update({
@@ -256,6 +269,7 @@ if __name__ == "__main__":
         })
 
         # * Feature2: Transverse diameter
+        logger.info(f"{subject}: Implement transverse diameter features")
         feature_dict.update({
             "LA: D_transverse(2ch) [cm]": np.max(L_T["LA_2ch"]),
             "LA: D_transverse(2ch)/BSA [cm/m^2]": np.max(L_T["LA_2ch"]) / BSA_subject,
@@ -269,10 +283,9 @@ if __name__ == "__main__":
         # Ref https://www.sciencedirect.com/science/article/pii/S1097664723013455
 
         # * Feature3: LA Spherical Index
-
+        logger.info(f"{subject}: Implement LA spherical index features")
         # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6404907/pdf/JAH3-7-e009793.pdf
         # Define The maximum LA length is chosen among 2 chamber and 4 chamber view
-
         LAD_L_max = max(np.max(L_L["LA_2ch"]), np.max(L_L["LA_4ch"]))
         LAD_T_max = max(np.max(L_T["LA_2ch"]), np.max(L_T["LA_4ch"]))
         LAD_max = max(LAD_L_max, LAD_T_max)
@@ -286,43 +299,69 @@ if __name__ == "__main__":
         })
 
         # * Feature4: Volume before atrial contraction and emptying fraction
-        T_max = np.argmax(V["LA_bip"])
-        # 8 is an empirical value and is subject to change
-        peaks, _ = find_peaks(V["LA_bip"], distance = 8)
+        logger.info(f"{subject}: Implement volume before atrial contraction features")
+        
+        ecg_processor = ECG_Processor(subject, args.retest)
 
-        # Define We use the peak after maximum as pre-contraction volume
-        peaks_after_max = peaks[peaks > T_max]
-        peaks_value = V["LA_bip"][peaks_after_max]
-        T_pre_a = peaks_after_max[np.argmax(peaks_value)]
-        LAV_pre_a = V["LA_bip"][T_pre_a]
+        if not ecg_processor.check_data():
+            logger.warning(f"{subject}: No ECG data, pre-contraction volume will not be extracted.")
+        else:
+            logger.info(f"{subject}: ECG data exists, extracting pre-contraction volume.")
 
-        colors = ['blue'] * len(V["LA_bip"])
-        colors[T_max] = 'red'
-        colors[T_pre_a] = 'orange'
+            try:
+                time_points_dict = ecg_processor.determine_timepoint_LA()
+                t_max_ecg = time_points_dict["t_max"]
+                T_max_ecg = round(t_max_ecg / temporal_resolution)
+                t_pre_a_ecg = time_points_dict["t_pre_a"]
+                T_pre_a_ecg = round(t_pre_a_ecg / temporal_resolution)
+            except ValueError as e:
+                logger.error(f"{subject}: Error {e} in determining time points using ECG, skipped.")
+                continue
 
-        fig, ax1, ax2 = plot_time_series_double_x(time_grid_point, time_grid_real, V["LA_bip"],
-                                  "Time [frame]", "Time [s]", "Volume [mL]",
-                                  lambda x: x * nim_2ch.header["pixdim"][4],
-                                  lambda x: x / nim_2ch.header["pixdim"][4],
-                                  colors = colors)
-        fig.savefig(f"{sub_dir}/timeseries/atrium_volume.png")
+            if T_pre_a_ecg >= T:
+                logger.error(f"{subject}: Pre-contraction time frame is out of range, skipped.")
+                continue
+            else:
+                T_max = np.argmax(V["LA_bip"])
+
+                colors = ['blue'] * len(V["LA_bip"])
+                colors[T_max] = 'red'
+                colors[T_max_ecg] = 'orange'
+                colors[T_pre_a_ecg] = 'yellow'
+
+                fig, ax1, ax2 = plot_time_series_double_x(time_grid_point, time_grid_real, V["LA_bip"],
+                                        "Time [frame]", "Time [ms]", "Volume [mL]",
+                                        lambda x: x * temporal_resolution,
+                                        lambda x: x / temporal_resolution,
+                                        colors = colors)
+                fig.savefig(f"{sub_dir}/timeseries/atrium_volume.png")
+
+                # * Since the volumes around pre-contraction stage is highly variant, we use smoothing here
+                V_LA = V["LA_bip"]
+                V_LA_lowess = sm.nonparametric.lowess(V_LA, time_grid_real, frac=0.1)
+
+                
+                feature_dict.update({
+                    "LA: V_pre_a [mL]": V["LA_bip"][T_pre_a_ecg],
+                })
+                logger.info(f"{subject}: Pre-contraction volume extracted successfully.")
 
         # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508385/pdf/BMRI2015-765921.pdf
         # Ref https://pubmed.ncbi.nlm.nih.gov/24291276/
-        feature_dict.update({
-            "LA: V_pre_a [mL]": LAV_pre_a,
-            "LA: Active SV [mL]": LAV_pre_a - LAV_min,
-            "LA: Passive SV [mL]": LAV_max - LAV_pre_a,
-            "LA: EF_booster [%]": (LAV_pre_a - LAV_min) / LAV_pre_a * 100,
-            "LA: EF_conduit [%]": (LAV_max - LAV_pre_a) / LAV_max * 100,  # also called EF_passive
-        })
+        # feature_dict.update({
+        #     "LA: V_pre_a [mL]": LAV_pre_a,
+        #     "LA: Active SV [mL]": LAV_pre_a - LAV_min,
+        #     "LA: Passive SV [mL]": LAV_max - LAV_pre_a,
+        #     "LA: EF_booster [%]": (LAV_pre_a - LAV_min) / LAV_pre_a * 100,
+        #     "LA: EF_conduit [%]": (LAV_max - LAV_pre_a) / LAV_max * 100,  # also called EF_passive
+        # })
         
         # todo1: Early/Late Peak Emptying Rate -> Diastolic dysfunction evaluated by cardiac magnetic resonance
         # todo2: IPVT, IPVT Ratio
         # todo3: LA functional index -> Left Atrial Size and Function
         # todo4: Average atrial contribution -> The Three Integrated Phases of Left Atrial Macrophysiology
-        # todo5: LA conduit volume, which is defined as LV stroke - LA total stroke
 
+        # todo5: LA conduit volume, which is defined as LV stroke - LA total stroke
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
 
@@ -330,4 +369,5 @@ if __name__ == "__main__":
     target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
     target_dir = os.path.join(target_dir, "atrium")
     os.makedirs(target_dir, exist_ok=True)
+    df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
     df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"))

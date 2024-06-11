@@ -1,12 +1,15 @@
 """
 This script is based on https://github.com/paubrunet97/CardioSoftECGXMLreader
 """
-
-
 import xmltodict
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
+from utils.log_utils import setup_logging
+logger = setup_logging("ECG-XMLReader")
 
 # Two types of XML in the LongQT Dataset:
 #   (1) XML containing 'StripData' dictionary, fs=500Hz.
@@ -32,7 +35,8 @@ class CardioSoftECGXMLReader:
                         year=int(self.Data['PatientInfo']['BirthDateTime']['Year']),
                         month=int(self.Data['PatientInfo']['BirthDateTime']['Month']),
                         day=int(self.Data['PatientInfo']['BirthDateTime']['Day']))
-                except:
+                except (KeyError, ValueError, TypeError) as e:
+                    logger.warning(e)
                     self.BirthDateTime = False
 
                 self.ObservationDateTime = datetime.datetime(
@@ -51,27 +55,32 @@ class CardioSoftECGXMLReader:
 
                 try:
                     self.Segmentations['Pon'] = int(self.Data['RestingECGMeasurements']['POnset']['#text'])
-                except:
+                except (KeyError, ValueError, TypeError) as e:
+                    logger.warning(e)
                     self.Segmentations['Pon'] = float('NaN')
 
                 try:
                     self.Segmentations['Poff'] = int(self.Data['RestingECGMeasurements']['POffset']['#text'])
-                except:
+                except (KeyError, ValueError, TypeError) as e:
+                    logger.warning(e)
                     self.Segmentations['Poff'] = float('NaN')
 
                 try:
                     self.Segmentations['QRSon'] = int(self.Data['RestingECGMeasurements']['QOnset']['#text'])
-                except:
+                except (KeyError, ValueError, TypeError) as e:
+                    logger.warning(e)
                     self.Segmentations['QRSon'] = float('NaN')
 
                 try:
                     self.Segmentations['QRSoff'] = int(self.Data['RestingECGMeasurements']['QOffset']['#text'])
-                except:
+                except (KeyError, ValueError, TypeError) as e:
+                    logger.warning(e)
                     self.Segmentations['QRSoff'] = float('NaN')
 
                 try:
                     self.Segmentations['Toff'] = int(self.Data['RestingECGMeasurements']['TOffset']['#text'])
-                except:
+                except (KeyError, ValueError, TypeError) as e:
+                    logger.warning(e)
                     self.Segmentations['Toff'] = False
 
 
@@ -87,7 +96,8 @@ class CardioSoftECGXMLReader:
                         year=int(self.Data['PatientInfo']['BirthDateTime']['Year']),
                         month=int(self.Data['PatientInfo']['BirthDateTime']['Month']),
                         day=int(self.Data['PatientInfo']['BirthDateTime']['Day']))
-                except:
+                except (KeyError, ValueError, TypeError) as e:
+                    logger.warning(e)
                     self.BirthDateTime = False
                 self.ObservationDateTime = datetime.datetime(
                     year=int(self.Data['ObservationDateTime']['Year']),

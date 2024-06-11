@@ -35,8 +35,9 @@ def prepare_files(pipeline_dir, data_raw_dir, out_dir, retest_suffix=None):
         else:
             xml_file_target = os.path.join(ecg_dir, f"{sub}_20205_3_0.xml")
 
-        xml_file_dest = os.path.join(out_step1_dir, sub, "ecg_rest.xml")
-        if not os.path.exists(os.path.basename(xml_file_dest)):
+        xml_file_dest_folder = os.path.join(out_step1_dir, sub)
+        xml_file_dest = os.path.join(xml_file_dest_folder, "ecg_rest.xml")
+        if not os.path.exists(xml_file_dest_folder):
             logger.warning(f"Subject {sub} does not have CMR data, skip.")
             continue
         shutil.copy(xml_file_target, xml_file_dest)
@@ -54,6 +55,6 @@ if __name__ == "__main__":
     prepare_files(pipeline_dir, data_raw_dir, out_dir)
     if retest_suffix is not None:
         logger.info("Copying ECG files for visit2 data")
-        prepare_files(pipeline_dir, data_raw_dir, out_dir, retest_suffix=retest_suffix)
+        # prepare_files(pipeline_dir, data_raw_dir, out_dir, retest_suffix=retest_suffix)
     else:
         logger.info("No retest_suffix is provided, only visit1 data will be copied")
