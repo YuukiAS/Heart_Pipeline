@@ -1,27 +1,24 @@
+"""
+This script is used to prepare the CMR data for the pipeline using zip files
+"""
+
 import os
 import shutil
 from tqdm import tqdm
-import logging
-import logging.config
 
 import sys
-
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("main")
-logging.basicConfig(level=config.logging_level)
-
-# This file is used to prepare the data for the pipeline using zip files
-
+from utils.log_utils import setup_logging
+logger = setup_logging("main: prepare_data_cmr")
 
 def generate_scripts(
     pipeline_dir, data_raw_dir, code_dir, out_dir, modality, num_subjects_per_file=100, retest_suffix=None
 ):
     if retest_suffix is None:
-        code_step0_dir = os.path.join(code_dir, "prepare_data_visit1")
-        out_step0_dir = os.path.join(out_dir, "visit1/")
+        code_step1_dir = os.path.join(code_dir, "prepare_data_visit1")
+        out_step1_dir = os.path.join(out_dir, "visit1/")
 
         long_axis = os.path.join(data_raw_dir, "20208/")
         short_axis = os.path.join(data_raw_dir, "20209/")
@@ -31,8 +28,8 @@ def generate_scripts(
         blood_flow = os.path.join(data_raw_dir, "20213/")
         T1 = os.path.join(data_raw_dir, "20214/")
     else:
-        code_step0_dir = os.path.join(code_dir, "prepare_data_visit2")
-        out_step0_dir = os.path.join(out_dir, "visit2/")
+        code_step1_dir = os.path.join(code_dir, "prepare_data_visit2")
+        out_step1_dir = os.path.join(out_dir, "visit2/")
 
         long_axis = os.path.join(data_raw_dir, f"20208_{retest_suffix}/")
         short_axis = os.path.join(data_raw_dir, f"20209_{retest_suffix}/")
@@ -42,9 +39,9 @@ def generate_scripts(
         blood_flow = os.path.join(data_raw_dir, f"20213_{retest_suffix}/")
         T1 = os.path.join(data_raw_dir, f"20214_{retest_suffix}/")
 
-    if os.path.exists(code_step0_dir):
-        shutil.rmtree(code_step0_dir)
-    os.makedirs(code_step0_dir)
+    if os.path.exists(code_step1_dir):
+        shutil.rmtree(code_step1_dir)
+    os.makedirs(code_step1_dir)
 
     sub_total = []
     if "la" in modality:
@@ -87,11 +84,11 @@ def generate_scripts(
     logger.info(f"Total number of zip files: {length_total}")
     num_files = length_total // num_subjects_per_file + 1
 
-    with open(os.path.join(code_step0_dir, "batAll.sh"), "w") as file_submit:
+    with open(os.path.join(code_step1_dir, "batAll.sh"), "w") as file_submit:
         file_submit.write("#!/bin/bash\n")
         for file_i in tqdm(range(num_files)):
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
-            with open(os.path.join(code_step0_dir, f"bat{file_i}.pbs"), "w") as file_script:
+            with open(os.path.join(code_step1_dir, f"bat{file_i}.pbs"), "w") as file_script:
                 file_script.write("#!/bin/bash\n")
                 file_script.write("#SBATCH --ntasks=1\n")
                 if retest_suffix is None:
@@ -129,7 +126,7 @@ def generate_scripts(
                     if "t1" in modality:
                         option_str += " --T1=" + T1
                     file_script.write(
-                        f"python ./script/prepare_data.py --out_dir={out_step0_dir} --sub_id={sub_id} {option_str}\n"
+                        f"python ./script/prepare_data.py --out_dir={out_step1_dir} --sub_id={sub_id} {option_str}\n"
                     )
 
 

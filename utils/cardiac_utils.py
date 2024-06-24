@@ -1557,6 +1557,9 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         points = np.array(points)
         points = points[points[:, 2].argsort()]  # sort by the distance along the long-axis (no removal)
 
+        # Mid level of the atrium, to be used when determining tranverse diameter``
+        mx, my, _ = np.mean(points, axis=0) 
+
         # The centre at the top part of the atrium (top third)
         n_points = len(points)
         top_points = points[int(2 * n_points / 3):]
@@ -1576,9 +1579,8 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         py = cy + major_axis[1] * 100
         qx = cx - major_axis[0] * 100
         qy = cy - major_axis[1] * 100
-
         if np.isnan(px) or np.isnan(py) or np.isnan(qx) or np.isnan(qy):
-            return -1, -1, -1
+            raise ValueError('Major axis can not determined.')
 
         # Note the difference between nifti image index and cv2 image index
         # nifti image index: XY
@@ -1598,32 +1600,33 @@ def evaluate_atrial_area_length(label, nim, long_axis):
             points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
         points = np.array(points)
         if len(points) == 0:
-            return -1, -1, -1
+            raise ValueError('No intersection points found in the atrium.')
         points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
         
         # Landmarks of the intersection points are the top and bottom points along points_line
         landmarks += [points[0]]
         landmarks += [points[-1]]
         # Longitudinal diameter; Unit: cm
-        L += [np.linalg.norm(points[-1] - points[0]) * 1e-1] # todo: Why not multiply pixdim[0]?
+        L += [np.linalg.norm(points[-1] - points[0]) * 1e-1] # Here we have already applied nim.affine, no need to multiply
 
         # Define Transverse diameter is obtained perpendicular to the longitudinal diameter, at the mid level of right atrium
         # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-29 for example in right atrium
-        mx, my, _ = np.mean(points, axis=0)
-
         minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
 
         rx = mx + minor_axis[0] * 100
         ry = my + minor_axis[1] * 100
         sx = mx - minor_axis[0] * 100
         sy = my - minor_axis[1] * 100
+        if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
+            raise ValueError('Minor axis can not determined.')
 
         image_line_minor = np.zeros(label_i.shape)
-        cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx),), (1, 0, 0))
+        cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx)), (1, 0, 0))
         image_line_minor = label_i & (image_line_minor > 0)
-        points_line_minor = np.nonzero(image_line_minor)
 
+        points_line_minor = np.nonzero(image_line_minor)
         points_minor = []
+        # `long_axis` is determined using SA; `short_axis` can be determined using either LA
         short_axis = nim.affine[:3, 2] / np.linalg.norm(nim.affine[:3, 2])
         for j in range(len(points_line_minor[0])):
             x = points_line_minor[0][j]
@@ -1631,11 +1634,11 @@ def evaluate_atrial_area_length(label, nim, long_axis):
             # World coordinate
             point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
             # Distance along the long-axis
-            points_minor += [np.append(np.append(point, np.dot(point, short_axis)))]
+            points_minor += [np.append(point, np.dot(point, short_axis))]
         points_minor = np.array(points_minor)
         points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the long-axis
 
-        landmarks += [points_minor[0, ]]
+        landmarks += [points_minor[0]]
         landmarks += [points_minor[-1]]
         # Transverse diameter; Unit: cm
         L += [np.linalg.norm(points_minor[-1] - points_minor[0]) * 1e-1]

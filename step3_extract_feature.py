@@ -1,39 +1,36 @@
 import os
 import shutil
 from tqdm import tqdm
-import logging
-import logging.config
 
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("main")
-logging.basicConfig(level=config.logging_level)
-
+from utils.log_utils import setup_logging
+logger = setup_logging("main: extract_feature")
 
 def generate_scripts(pipeline_dir, data_dir, code_dir, 
-                     modality, num_subjects_per_file=500, retest_suffix=None):
+                     modality, useECG, num_subjects_per_file=200, retest_suffix=None):
     if retest_suffix is None:
-        code_step2_dir = os.path.join(code_dir, "extract_feature_visit1")
+        code_step3_dir = os.path.join(code_dir, "extract_feature_visit1")
     else:
-        code_step2_dir = os.path.join(code_dir, "extract_feature_visit2")
+        code_step3_dir = os.path.join(code_dir, "extract_feature_visit2")
 
-    if os.path.exists(code_step2_dir):
-        shutil.rmtree(code_step2_dir)
-    os.makedirs(code_step2_dir)
+    if os.path.exists(code_step3_dir):
+        shutil.rmtree(code_step3_dir)
+    os.makedirs(code_step3_dir)
 
     sub_total = os.listdir(data_dir)
     length_total = len(sub_total)
     logger.info(f"Total number of subjects: {length_total}")
     num_files = length_total // num_subjects_per_file + 1
 
-    retest_str = "" if not retest_suffix else " --retest"
+    retest_str = "" if not retest_suffix else " --retest"  # most scripts only accept "--retest"
     with (
-        open(os.path.join(code_step2_dir, "batAll.sh"), "w") as file_submit,
-        open(os.path.join(code_step2_dir, "aggregate.pbs"), "w") as file_aggregate,
+        open(os.path.join(code_step3_dir, "batAll.sh"), "w") as file_submit,
+        open(os.path.join(code_step3_dir, "aggregate.pbs"), "w") as file_aggregate,
+        open(os.path.join(code_step3_dir, "batECG.sh"), "w") as file_ecg   # optional
     ):
         file_submit.write("#!/bin/bash\n")
 
@@ -53,6 +50,26 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
         file_aggregate.write("\n")
         file_aggregate.write(f"cd {pipeline_dir}\n")
 
+        if useECG is True:
+            file_ecg.write("#!/bin/bash\n")
+            file_ecg.write("#SBATCH --ntasks=1\n")
+            if retest_suffix is None:
+                file_ecg.write("#SBATCH --job-name=Heart_ECG\n")
+                file_ecg.write("#SBATCH --output=Heart_ECG.out\n")
+            else:
+                file_ecg.write(f"#SBATCH --job-name=Heart_ECG_{retest_suffix}\n")
+                file_ecg.write(f"#SBATCH --output=Heart_ECG_{retest_suffix}.out\n")
+            file_ecg.write("#SBATCH --cpus-per-task=4\n")
+            file_ecg.write("#SBATCH --mem=8G\n")
+            file_ecg.write("#SBATCH --time=48:00:00\n")
+            file_ecg.write("#SBATCH --partition=general\n")
+            file_ecg.write("\n")
+            file_ecg.write("\n")
+            file_ecg.write(f"cd {pipeline_dir}\n")
+            file_ecg.write("echo 'Extract ECG features'\n")
+            file_ecg.write(f"python -u ./src/feature_extraction/ecg/ecg_neurokit.py {retest_str}\n")
+            file_submit.write("sbatch batECG.sh\n")
+
         for file_i in tqdm(range(num_files)):
             sub_file_i = sub_total[
                 file_i * num_subjects_per_file : min((file_i + 1) * num_subjects_per_file, length_total)
@@ -60,7 +77,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
             sub_file_i_str = " ".join(map(str, sub_file_i))
 
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
-            with open(os.path.join(code_step2_dir, f"bat{file_i}.pbs"), "w") as file_script:
+            with open(os.path.join(code_step3_dir, f"bat{file_i}.pbs"), "w") as file_script:
                 file_script.write("#!/bin/bash\n")
                 file_script.write("#SBATCH --ntasks=1\n")
                 if retest_suffix is None:
@@ -79,7 +96,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
 
 
                 if "la" in modality:
-                    file_script.write("echo 'Generate feature scripts for atrial volume'\n")
+                    file_script.write("echo 'Extract features for atrial volume'\n")
                     file_script.write(
                         f"python -u ./src/feature_extraction/long_axis/eval_atrial_volume.py "\
                         f"{retest_str} --file_name=atrial_volume_{file_i} --data_list {sub_file_i_str} \n"
@@ -120,14 +137,15 @@ if __name__ == "__main__":
     data_visit2_dir = config.data_visit2_dir
     code_dir = config.code_dir
     modality = config.modality
+    useECG = config.useECG
     retest_suffix = config.retest_suffix
 
     os.makedirs(code_dir, exist_ok=True)
 
     logger.info("Generate scripts to extract features for visit1 data")
-    generate_scripts(pipeline_dir, data_visit1_dir, code_dir, modality)
+    generate_scripts(pipeline_dir, data_visit1_dir, code_dir, modality, useECG)
     if retest_suffix is not None:
         logger.info("Generate scripts tp extract features for visit2 data")
-        generate_scripts(pipeline_dir, data_visit2_dir, code_dir, modality, retest_suffix=retest_suffix)
+        generate_scripts(pipeline_dir, data_visit2_dir, code_dir, modality, useECG, retest_suffix=retest_suffix)
     else:
         logger.info("No retest_suffix is provided, only features for visit1 data will be extracted")

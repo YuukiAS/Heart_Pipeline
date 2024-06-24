@@ -1,40 +1,36 @@
 import os
 import shutil
 from tqdm import tqdm
-import logging
-import logging.config
 
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 from utils.os_utils import check_existing_file
-
-logging.config.fileConfig(config.logging_config)
-logger = logging.getLogger("main")
-logging.basicConfig(level=config.logging_level)
+from utils.log_utils import setup_logging
+logger = setup_logging("main: segment(baseline)")
 
 
 def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=500, retest_suffix=None):
     if retest_suffix is None:
-        code_step1_dir = os.path.join(code_dir, "segment_visit1")
+        code_step2_dir = os.path.join(code_dir, "segment_visit1")
     else:
-        code_step1_dir = os.path.join(code_dir, "segment_visit2")
+        code_step2_dir = os.path.join(code_dir, "segment_visit2")
 
-    if os.path.exists(code_step1_dir):
-        shutil.rmtree(code_step1_dir)
-    os.makedirs(code_step1_dir)
+    if os.path.exists(code_step2_dir):
+        shutil.rmtree(code_step2_dir)
+    os.makedirs(code_step2_dir)
 
     sub_total = os.listdir(data_dir)
     length_total = len(sub_total)
     logger.info(f"Total number of subjects: {length_total}")
     num_files = length_total // num_subjects_per_file + 1
 
-    with open(os.path.join(code_step1_dir, "batAll.sh"), "w") as file_submit:
+    with open(os.path.join(code_step2_dir, "batAll.sh"), "w") as file_submit:
         file_submit.write("#!/bin/bash\n")
         for file_i in tqdm(range(num_files)):
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
-            with open(os.path.join(code_step1_dir, f"bat{file_i}.pbs"), "w") as file_script:
+            with open(os.path.join(code_step2_dir, f"bat{file_i}.pbs"), "w") as file_script:
                 file_script.write("#!/bin/bash\n")
                 file_script.write("#SBATCH --ntasks=1\n")
                 if retest_suffix is None:
