@@ -21,8 +21,10 @@ import nibabel as nib
 import vtk
 import math
 import pickle
-import statsmodels.api as sm
 from tqdm import tqdm
+from scipy.signal import find_peaks
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -33,7 +35,7 @@ import config
 
 from utils.quality_control_utils import atrium_pass_quality_control
 from utils.cardiac_utils import evaluate_atrial_area_length
-from utils.analyze_utils import plot_time_series_double_x
+from utils.analyze_utils import plot_time_series_double_x, plot_time_series_double_x_y
 from utils.log_utils import setup_logging
 
 logger = setup_logging("eval_atrial_volume")
@@ -92,7 +94,7 @@ if __name__ == "__main__":
 
             # Perform quality control for the segmentation
             if not atrium_pass_quality_control(seg_la_2ch, {"LA": 1}):
-                logger.warning(f"{subject} seg_la_2ch does not pass atrium_pass_quality_control, skipped.")
+                logger.error(f"{subject} seg_la_2ch does not pass atrium_pass_quality_control, skipped.")
                 continue
 
             A["LA_2ch"] = np.zeros(T)
@@ -140,7 +142,7 @@ if __name__ == "__main__":
 
             # Perform quality control for the segmentation
             if not atrium_pass_quality_control(seg_la_4ch, {"LA": 1, "RA": 2}):
-                print(f"{subject} seg_la_4ch does not pass atrium_pass_quality_control, skipped.")
+                logger.error(f"{subject} seg_la_4ch does not pass atrium_pass_quality_control, skipped.")
                 continue
 
             A["LA_4ch"] = np.zeros(T)
@@ -252,8 +254,12 @@ if __name__ == "__main__":
 
         # * Feature1: Indexed volume
         logger.info(f"{subject}: Implement indexed volume features")
-        BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
-        BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
+        try:
+            BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
+            BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
+        except IndexError:
+            logger.error(f"{subject}: BSA information not found, skipped.")
+            continue
         feature_dict.update({
             "LA: D_longitudinal(2ch)/BSA [cm/m^2]": np.max(L_L["LA_2ch"]) / BSA_subject,
             "LA: D_longitudinal(4ch)/BSA [cm/m^2]": np.max(L_L["LA_4ch"]) / BSA_subject,
@@ -269,6 +275,8 @@ if __name__ == "__main__":
         })
 
         # * Feature2: Transverse diameter
+        # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
+        # Ref https://www.sciencedirect.com/science/article/pii/S1097664723013455
         logger.info(f"{subject}: Implement transverse diameter features")
         feature_dict.update({
             "LA: D_transverse(2ch) [cm]": np.max(L_T["LA_2ch"]),
@@ -278,9 +286,6 @@ if __name__ == "__main__":
 
             "RA: D_transverse [cm]": np.max(L_T["RA_4ch"])
         })
-
-        # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
-        # Ref https://www.sciencedirect.com/science/article/pii/S1097664723013455
 
         # * Feature3: LA Spherical Index
         logger.info(f"{subject}: Implement LA spherical index features")
@@ -295,18 +300,85 @@ if __name__ == "__main__":
         LA_spherical_index = LAV_max / V_sphere_max
 
         feature_dict.update({
-            "LA: Spherical Index": LA_spherical_index
+            "LA: Spherical Index [%]": LA_spherical_index
         })
 
-        # * Feature4: Volume before atrial contraction and emptying fraction
+        # * Feature4: Early/Late Peak Emptying Rate
+        # Ref https://pubmed.ncbi.nlm.nih.gov/30128617/
+        V_LA = V["LA_bip"]
+        # V_LA_lowess = sm.nonparametric.lowess(V_LA, time_grid_real, frac=0.1)
+        # V_LA_lowess_x = V_LA_lowess[:, 0]
+        # V_LA_lowess_y = V_LA_lowess[:, 1]
+        fANCOVA = importr('fANCOVA')
+        x_r = FloatVector(time_grid_real)
+        y_r = FloatVector(V_LA)
+        # * We use the lowess provided by R that has Generalized Cross Validation as its criterion
+        loess_fit = fANCOVA.loess_as(x_r, y_r,degree = 2,criterion = "gcv")
+        V_LA_lowess_x = np.array(loess_fit.rx2('x')).reshape(T,)
+        V_LA_lowess_y = np.array(loess_fit.rx2('fitted'))
+
+        V_LA_diff_y = np.diff(V_LA_lowess_y) / np.diff(V_LA_lowess_x) * 1000 # unit: mL/s
+        V_LA_diff_x = (V_LA_lowess_x[:-1] + V_LA_lowess_x[1:]) / 2
+
+        T_max = np.argmax(V["LA_bip"])
+
+        try:
+            L1 = T_max
+            T_peak_pos_1 = find_peaks(V_LA_diff_y[:T_max], distance = math.ceil(L1 / 3))[0]
+            T_peak_pos_1 = T_peak_pos_1[np.argmax(V_LA_diff_y[T_peak_pos_1])]
+
+            L2 = len(V_LA_diff_y) - T_max
+            T_peak_pos_2 = find_peaks(V_LA_diff_y[T_max:], distance = math.ceil(L2 / 3))[0]
+            T_peak_pos_2 = [peak + T_max for peak in T_peak_pos_2]
+            T_peak_pos_2 = T_peak_pos_2[np.argmax(V_LA_diff_y[T_peak_pos_2])]
+
+            L3 = T_peak_pos_2 - T_max
+            T_peak_neg_1 = find_peaks(-V_LA_diff_y[T_max:T_peak_pos_2], distance = math.ceil(L3 / 3))[0]
+            T_peak_neg_1 = [peak + T_max for peak in T_peak_neg_1]
+            T_peak_neg_1 = T_peak_neg_1[np.argmax(-V_LA_diff_y[T_peak_neg_1])]
+
+            L4 = len(V_LA_diff_y) - T_peak_pos_2
+            T_peak_neg_2 = np.argmax(-V_LA_diff_y[T_peak_pos_2:])
+            T_peak_neg_2 = T_peak_neg_2 + T_peak_pos_2
+        except Exception as e:
+            logger.error(f"{subject}: Error {e} in determining PER, skipped.")
+            continue
+
+        colors = ['blue'] * len(V_LA_diff_x)
+        colors[T_max] = 'red'
+        colors[T_peak_pos_1] = 'orange'
+        colors[T_peak_pos_2] = 'orange'
+        colors[T_peak_neg_1] = 'yellow'
+        colors[T_peak_neg_2] = 'yellow'
+
+
+        plt.subplot(1,2,1)
+        plt.plot(V_LA_lowess_x, V_LA_lowess_y, color='blue')
+        plt.scatter(time_grid_real, V_LA, color='blue')
+        plt.xlabel("Time [ms]")
+        plt.ylabel("Volume [mL]")
+        plt.subplot(1,2,2)
+        plt.plot(V_LA_diff_x, V_LA_diff_y, color='blue')
+        plt.scatter(V_LA_diff_x, V_LA_diff_y, color=colors)
+        plt.xlabel("Time [ms]")
+        plt.ylabel("dV/dt [mL/s]")
+        plt.savefig(f"{sub_dir}/timeseries/atrium_volume_diff.png")
+        plt.close()
+
+        feature_dict.update({
+            "LA: PER-E [mL/s]": -V_LA_diff_y[T_peak_neg_1],  # absolute value
+            "LA: PER-A [mL/s]": -V_LA_diff_y[T_peak_neg_2],
+        })
+
+        # * Feature5: Volume before atrial contraction and emptying fraction
         logger.info(f"{subject}: Implement volume before atrial contraction features")
         
         ecg_processor = ECG_Processor(subject, args.retest)
 
-        if not ecg_processor.check_data():
-            logger.warning(f"{subject}: No ECG data, pre-contraction volume will not be extracted.")
+        if config.useECG and not ecg_processor.check_data_rest():
+            logger.warning(f"{subject}: No ECG rest data, pre-contraction volume will not be extracted.")
         else:
-            logger.info(f"{subject}: ECG data exists, extracting pre-contraction volume.")
+            logger.info(f"{subject}: ECG rest data exists, extracting pre-contraction volume.")
 
             try:
                 time_points_dict = ecg_processor.determine_timepoint_LA()
@@ -321,47 +393,47 @@ if __name__ == "__main__":
             if T_pre_a_ecg >= T:
                 logger.error(f"{subject}: Pre-contraction time frame is out of range, skipped.")
                 continue
+            elif T_pre_a_ecg < T_peak_pos_2 or T_pre_a_ecg > T_peak_neg_2:
+                # The pre-contraction time frame should be in the middle of the 
+                # second positive and the second negative peak
+                logger.warning(f"{subject}: Quality control for pre-contratcion time fails, " \
+                                "no relevant feature will be extracted.")
             else:
-                T_max = np.argmax(V["LA_bip"])
-
                 colors = ['blue'] * len(V["LA_bip"])
                 colors[T_max] = 'red'
                 colors[T_max_ecg] = 'orange'
                 colors[T_pre_a_ecg] = 'yellow'
 
-                fig, ax1, ax2 = plot_time_series_double_x(time_grid_point, time_grid_real, V["LA_bip"],
+                fig, ax1, ax2 = plot_time_series_double_x_y(time_grid_point, time_grid_real, V_LA_lowess_y, V["LA_bip"],
                                         "Time [frame]", "Time [ms]", "Volume [mL]",
                                         lambda x: x * temporal_resolution,
                                         lambda x: x / temporal_resolution,
                                         colors = colors)
                 fig.savefig(f"{sub_dir}/timeseries/atrium_volume.png")
+                plt.close(fig)
 
-                # * Since the volumes around pre-contraction stage is highly variant, we use smoothing here
-                V_LA = V["LA_bip"]
-                V_LA_lowess = sm.nonparametric.lowess(V_LA, time_grid_real, frac=0.1)
+                # Since the volumes around pre-contraction stage is highly variant, 
+                # we use previously-obtained smoothed values
+                LAV_pre_a = V_LA_lowess_y[np.argmin(abs(V_LA_lowess_x - t_pre_a_ecg))]
 
-                
+                # closest time to the pre-contraction time in LOWESS
                 feature_dict.update({
-                    "LA: V_pre_a [mL]": V["LA_bip"][T_pre_a_ecg],
+                    "LA: V_pre_a [mL]": LAV_pre_a,
+                    "LA: V_pre_a/BSA [mL/m^2]": LAV_pre_a / BSA_subject
                 })
                 logger.info(f"{subject}: Pre-contraction volume extracted successfully.")
 
-        # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508385/pdf/BMRI2015-765921.pdf
-        # Ref https://pubmed.ncbi.nlm.nih.gov/24291276/
-        # feature_dict.update({
-        #     "LA: V_pre_a [mL]": LAV_pre_a,
-        #     "LA: Active SV [mL]": LAV_pre_a - LAV_min,
-        #     "LA: Passive SV [mL]": LAV_max - LAV_pre_a,
-        #     "LA: EF_booster [%]": (LAV_pre_a - LAV_min) / LAV_pre_a * 100,
-        #     "LA: EF_conduit [%]": (LAV_max - LAV_pre_a) / LAV_max * 100,  # also called EF_passive
-        # })
-        
-        # todo1: Early/Late Peak Emptying Rate -> Diastolic dysfunction evaluated by cardiac magnetic resonance
-        # todo2: IPVT, IPVT Ratio
-        # todo3: LA functional index -> Left Atrial Size and Function
-        # todo4: Average atrial contribution -> The Three Integrated Phases of Left Atrial Macrophysiology
+                # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508385/pdf/BMRI2015-765921.pdf
+                # Ref https://pubmed.ncbi.nlm.nih.gov/24291276/
+                feature_dict.update({
+                    "LA: V_pre_a [mL]": LAV_pre_a,
+                    "LA: V_pre_a/BSA [mL/m^2]": LAV_pre_a / BSA_subject,
+                    "LA: EF_booster [%]": (LAV_pre_a - LAV_min) / LAV_pre_a * 100,  # also called EF_active
+                    "LA: EF_conduit [%]": (LAV_max - LAV_pre_a) / LAV_max * 100,  # also called EF_passive
+                })
 
-        # todo5: LA conduit volume, which is defined as LV stroke - LA total stroke
+        # todo: IPVT, IPVT Ratio, LA conduit volume, LA functional index, Average atrial contribution
+
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
 

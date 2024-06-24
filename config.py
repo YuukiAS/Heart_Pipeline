@@ -35,15 +35,6 @@ BSA_file = "/work/users/y/u/yuukias/database/UKBiobank/data_field/Personal_Featu
 # The column name for BSA in the BSA_file, should contain column "eid" as identifier
 BSA_col_name = "BSA [m^2]"
 
-# * Configure Python virtual environment paths -----------------------------------
-
-# Please make sure you source this env before running the pipeline
-env = "/work/users/y/u/yuukias/env/bin"
-
-# UUMamba (Step1)
-env_mamba = "/nas/longleaf/home/yuukias/env_mamba/bin"
-
-
 # * Configure the parameters for dataset -----------------------------------------
 
 # If set to None, then the pipeline will only makes use of the visit1 data
@@ -55,7 +46,6 @@ modality = ["la", 'sa']
 
 # Please also run step1_preaprare_data_ecg.py so that ECG-related features can be generated
 useECG = True
-
 
 # * Configure the parameters for the logging mechanism ---------------------------
 
