@@ -20,6 +20,7 @@ import cv2
 import vtk
 import pandas as pd
 import matplotlib.pyplot as plt
+from typing import Tuple
 from vtk.util import numpy_support
 from scipy import interpolate
 import skimage
@@ -942,6 +943,191 @@ def remove_mitral_valve_points(endo_contour, epi_contour, mitral_plane):
     return endo_contour, epi_contour
 
 
+def determine_sa_basal_slice(seg_sa: Tuple[float, float, float]):
+    """
+    Determine the basal slice of the short-axis image for a given timepoint.
+    """
+    # Label class in the segmentation
+    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3}
+
+    _, _, Z = seg_sa.shape
+
+    for z in range(Z):
+        if z > Z/2:
+            # In this case, the slice will be close to apex and should not be considered
+            raise ValueError("The basal slice is not found.")
+
+        seg_z = seg_sa[:, :, z]
+
+        # Criterion 1: The area of LV should be above a threshold
+        pixel_thres = 10
+        if np.sum(seg_z == label['LV']) < pixel_thres:
+            continue
+
+        # Criterion 2: If the myocardium can surround LV perfectly, then we can determine the basal slice.
+        LV_mask = (seg_z == label['LV']).astype(np.uint8)
+        myo_mask = (seg_z == label['Myo']).astype(np.uint8)
+        contours, _ = cv2.findContours(myo_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        next_z = False
+        for i in range(LV_mask.shape[0]):
+            for j in range(LV_mask.shape[1]):
+                if LV_mask[i, j ] == 1:
+                    if all(cv2.pointPolygonTest(contour, (j, i), False) < 0 for contour in contours):
+                        next_z = True
+                        break
+            if next_z:
+                break
+        if next_z:
+            continue
+        return z
+
+def determine_axes(label_i, nim_sa):
+    """
+    Determine the major axis and minor axis using the binary segmentation and 
+    return the axes as well as lines that represents the major/minor axis that entirely covered by the segmentation.
+    """
+    assert len(label_i.shape) == 2, 'The input should be a 2D image.'
+
+    long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])
+
+    points_label = np.nonzero(label_i)
+    points = []
+    for j in range(len(points_label[0])):  # the number of points
+        x = points_label[0][j]
+        y = points_label[1][j]
+        # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
+        # * The third element is the distance along the long-axis, which will be used when calculating L
+        points += [[x, y,
+                    np.dot(np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
+    points = np.array(points)
+    points = points[points[:, 2].argsort()]
+
+    n_points = len(points)
+    top_points = points[int(2 * n_points / 3):]
+    cx, cy, _ = np.mean(top_points, axis=0)
+
+    # The centre at the bottom part (bottom third)
+    bottom_points = points[:int(n_points / 3)]
+    bx, by, _ = np.mean(bottom_points, axis=0)
+
+    # Determine the major axis by connecting the geometric centre and the bottom centre
+    major_axis = np.array([cx - bx, cy - by])  # major_axis is a vector
+    major_axis = major_axis / np.linalg.norm(major_axis)  # normalization
+
+    px = cx + major_axis[0] * 100
+    py = cy + major_axis[1] * 100
+    qx = cx - major_axis[0] * 100
+    qy = cy - major_axis[1] * 100
+
+    image_line_major = np.zeros(label_i.shape)
+    cv2.line(image_line_major, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
+    image_line_major = label_i & (image_line_major > 0)
+
+    minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
+    minor_axis = minor_axis / np.linalg.norm(minor_axis)  # normalization
+
+    # Mid level, to be used when determining tranverse diameter
+    mx, my, _ = np.mean(points, axis=0) 
+
+    rx = mx + minor_axis[0] * 100
+    ry = my + minor_axis[1] * 100
+    sx = mx - minor_axis[0] * 100
+    sy = my - minor_axis[1] * 100
+    if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
+        raise ValueError('Minor axis can not determined.')
+
+    image_line_minor = np.zeros(label_i.shape)
+    cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx)), (1, 0, 0))
+    image_line_minor = label_i & (image_line_minor > 0)
+
+    return major_axis, minor_axis, image_line_major, image_line_minor
+
+def determine_avpd_landmark(seg: Tuple[float, float], major_axis, minor_axis, image_line_major):
+    """
+    Determine the landmark for the atriovetricular (AV) plane so that AVPD can be measured.
+    Currently, we only consider the AV of LV.
+
+    Parameters
+    ----------
+    seg : Tuple[float, float]
+        The binary segmentation of LV in the long-axis image.
+    major_axis : np.array
+        The major axis.
+    minor_axis : np.array
+        The minor axis.
+    image_line_major : np.array
+        The line that represents the major axis in the image, can be obtained using determine_axes().
+    """
+
+    points_label = np.nonzero(seg)
+    points = []
+    for i in range(len(points_label[0])):
+        x = points_label[0][i]
+        y = points_label[1][i]
+        # get the distance along the major axis
+        points += [[x, y, -np.dot([x,y], major_axis)]]
+    points = np.array(points)
+    points = points[points[:,2].argsort()]
+
+    image_line_major_points = np.nonzero(image_line_major)
+    image_line_major_points = np.array(list(zip(image_line_major_points[0], image_line_major_points[1])))
+
+    def _point_line_side(point, line_points):
+        # print(point)
+        # print(line_points)
+        # Calculate the distance from the point to each point on the line
+        distances = np.sum((line_points - point) ** 2, axis=1)
+        # Find the two closest points
+        closest_points = line_points[np.argsort(distances)[:2]]
+        # Calculate the directed distance from the point to the line formed by the two closest points
+        return np.cross(closest_points[1] - closest_points[0], point - closest_points[0]) > 0
+
+    # We take the average of AVPD for two landmarks
+    lm1 = lm2 = None
+    for point in points:
+        x, y, _ = point
+        if lm1 is not None and lm2 is not None:
+            break
+
+        # Determine the side, we need landmarks at both sides
+        if _point_line_side([x,y], image_line_major_points) and lm1 is None:
+            lm1 = [x, y]
+        if not _point_line_side([x,y], image_line_major_points) and lm2 is None:
+            lm2 = [x, y]
+
+    def _get_intersection_point(lm, image_line, image_line_points, major_axis, minor_axis, thickness = (1,1)):
+        # extend through the major axis so that we can determine the intersection point
+        image_line_extended = np.zeros(image_line.shape)
+        cv2.line(image_line_extended,
+                (int(image_line_points[0][1]+100*major_axis[1]), int(image_line_points[0][0]+100*major_axis[0])),
+                (int(image_line_points[0][1]-100*major_axis[1]), int(image_line_points[0][0]-100*major_axis[0])),
+                (1,0,0), thickness[0])
+        image_line_extended = (image_line_extended > 0)
+
+        # Determine the point one image_line_major that using a perpendicular line on lm1 and lm2
+        lm_line = np.zeros(image_line.shape)
+        cv2.line(lm_line, 
+                (int(lm[1] + minor_axis[1] * 100), int(lm[0] + minor_axis[0] * 100)), 
+                (int(lm[1] - minor_axis[1] * 100), int(lm[0] - minor_axis[0] * 100)), 
+                (1,0,0), thickness[1])
+        lm_line = (lm_line > 0)
+
+        intersection_points = np.nonzero(np.logical_and(lm_line, image_line_extended))
+
+        if len(intersection_points[0]) == 0:
+            if thickness == (2,2):
+                # Still cannot find intersection point
+                raise ValueError("No intersection point can be found")
+            intersection_points = _get_intersection_point(lm, image_line, image_line_points, major_axis, minor_axis, 
+                                                        thickness = (2,2))
+        return intersection_points
+
+    lm1_intersect = _get_intersection_point(lm1, image_line_major, image_line_major_points, major_axis, minor_axis)
+    lm1_intersect = (np.mean(lm1_intersect[0]), np.mean(lm1_intersect[1]))
+    lm2_intersect = _get_intersection_point(lm2, image_line_major, image_line_major_points, major_axis, minor_axis)
+    lm2_intersect = (np.mean(lm2_intersect[0]), np.mean(lm2_intersect[1]))
+    return (lm1_intersect[0] + lm2_intersect[0]) / 2, (lm1_intersect[1] + lm2_intersect[1]) / 2
+
 def determine_la_aha_part(seg_la, affine_la, affine_sa):
     """ Extract the mid-line of the left ventricle, record its index
         along the long-axis and determine the part for each index.
@@ -1448,9 +1634,11 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_
 
 
 def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
-    """ Plot the bull's eye plot.
-        data: values for 16 segments
-        """
+    """ 
+    Plot the bull's eye plot.
+    For an example of Bull's eye plot, refer to https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4862218/pdf/40001_2016_Article_216.pdf.
+    data: values for 16 segments
+    """
     if len(data) != 16:
         print('Error: len(data) != 16!')
         exit(0)
@@ -1499,7 +1687,7 @@ def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
     plt.imshow(canvas, cmap=cmap, vmin=vmin, vmax=vmax)
     plt.colorbar()
     plt.axis('off')
-    plt.gca().invert_yaxis()
+    plt.gca().invert_yaxis()  # gca(): get current axes
 
     # Plot the circles
     for r in [R1, R2, R3]:
@@ -1522,8 +1710,140 @@ def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
         y = cy + sz * r1 * np.sin(np.radians(theta1))
         plt.plot([x, x - sz * 0.2], [y, y], color=color_line)
 
+# todo: Use determine_axes() to replace code
+def evaluate_ventricular_length_sax(label: Tuple[float, float, float], nim: nib.nifti1.Nifti1Image, long_axis):
+    """ 
+    Evaluate the ventricular length from short-axis view images. 
 
-def evaluate_atrial_area_length(label, nim, long_axis):
+    Parameters:
+    label: The label of the short-axis view images at certain timepoint
+    nim: The Nifti image of the short-axis view images
+    long_axis: The long-axis direction
+    """
+
+    # End-diastolic diameter should be measured at the plane which contained the basal papillary muscle
+    basal_slice = determine_sa_basal_slice(label)
+
+    label = label[:,:,basal_slice]
+
+    # Go through the label class
+    L = []
+    landmarks = []
+
+    lab = 1 # We are only interested in left ventricle
+    # The binary label map
+    label_i = (label == lab)
+
+    # Get the largest component in case we have a bad segmentation
+    label_i = get_largest_cc(label_i)
+
+    # Go through all the points in the atrium, sort them by the distance along the long-axis.
+    points_label = np.nonzero(label_i)
+    points = []
+    for j in range(len(points_label[0])):  # the number of points
+        x = points_label[0][j]
+        y = points_label[1][j]
+        # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
+        # * The third element is the distance along the long-axis, which will be used when calculating L
+        points += [[x, y,
+                    np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
+    points = np.array(points)
+    points = points[points[:, 2].argsort()]  # sort by the distance along the long-axis (no removal)
+    # * The two extreme points are points[0] and points[-1], notice that we need to swap x and y for plt.scatter()
+
+
+    # Mid level of the atrium, to be used when determining tranverse diameter
+    mx, my, _ = np.mean(points, axis=0) 
+
+    # The centre at the top part of the ventricle (top third)
+    n_points = len(points)
+    top_points = points[int(2 * n_points / 3):]
+    cx, cy, _ = np.mean(top_points, axis=0)
+
+    # The centre at the bottom part of the ventricle (bottom third)
+    bottom_points = points[:int(n_points / 3)]
+    bx, by, _ = np.mean(bottom_points, axis=0)
+
+
+    # Determine the major axis by connecting the geometric centre and the bottom centre
+    major_axis = np.array([cx - bx, cy - by])  # major_axis is a vector
+    major_axis = major_axis / np.linalg.norm(major_axis)  # normalization
+
+    # Get the intersection between the major axis and the ventricle contour
+    # * By introducing (px,py),(qx,qy), we can force the line on the point
+    px = cx + major_axis[0] * 100
+    py = cy + major_axis[1] * 100
+    qx = cx - major_axis[0] * 100
+    qy = cy - major_axis[1] * 100
+    if np.isnan(px) or np.isnan(py) or np.isnan(qx) or np.isnan(qy):
+        raise ValueError('Major axis can not determined.')
+
+    # Note the difference between nifti image index and cv2 image index
+    # nifti image index: XY
+    # cv2 image index: YX (height, width)
+    image_line = np.zeros(label_i.shape)
+    cv2.line(image_line, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
+    image_line = label_i & (image_line > 0)
+
+    points_line = np.nonzero(image_line)
+
+    points = []
+    for j in range(len(points_line[0])):
+        x = points_line[0][j]
+        y = points_line[1][j]
+        # World coordinate
+        point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
+        # Distance along the long-axis
+        points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
+    points = np.array(points)
+    if len(points) == 0:
+        raise ValueError('No intersection points found in the atrium.')
+    points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
+
+    # # Landmarks of the intersection points are the top and bottom points along points_line
+    landmarks += [points[0]]
+    landmarks += [points[-1]]
+    # # Longitudinal diameter; Unit: cm
+    L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]
+
+    minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
+
+    rx = mx + minor_axis[0] * 100
+    ry = my + minor_axis[1] * 100
+    sx = mx - minor_axis[0] * 100
+    sy = my - minor_axis[1] * 100
+    if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
+        raise ValueError('Minor axis can not determined.')
+
+    image_line_minor = np.zeros(label_i.shape)
+    cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx)), (1, 0, 0))
+    image_line_minor = label_i & (image_line_minor > 0)
+
+    points_line_minor = np.nonzero(image_line_minor)
+    points_minor = []
+    # `long_axis` is determined using SA; `short_axis` can be determined using either LA
+    short_axis = nim.affine[:3, 2] / np.linalg.norm(nim.affine[:3, 2])
+    for j in range(len(points_line_minor[0])):
+        x = points_line_minor[0][j]
+        y = points_line_minor[1][j]
+        # World coordinate
+        point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
+        # Distance along the short axis
+        points_minor += [np.append(point, np.dot(point, short_axis))]
+    points_minor = np.array(points_minor)
+    points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the short-axis
+
+    landmarks += [points_minor[0]]
+    landmarks += [points_minor[-1]]
+    # Transverse diameter; Unit: cm
+    L += [np.linalg.norm(points_minor[-1] - points_minor[0]) * 1e-1]
+
+    return np.max(L), landmarks
+
+def evaluate_ventricular_length_lax(label: Tuple[float, float], nim: nib.nifti1.Nifti1Image, long_axis):
+    return
+
+def evaluate_atrial_area_length(label: Tuple[float, float], nim: nib.nifti1.Nifti1Image, long_axis):
     """ Evaluate the atrial area and length from 2 chamber or 4 chamber view images. """
     # Area per pixel
     pixdim = nim.header['pixdim'][1:4]
@@ -1626,17 +1946,17 @@ def evaluate_atrial_area_length(label, nim, long_axis):
 
         points_line_minor = np.nonzero(image_line_minor)
         points_minor = []
-        # `long_axis` is determined using SA; `short_axis` can be determined using either LA
+        # `long_axis` is determined using SA; `short_axis` can be determined using LA
         short_axis = nim.affine[:3, 2] / np.linalg.norm(nim.affine[:3, 2])
         for j in range(len(points_line_minor[0])):
             x = points_line_minor[0][j]
             y = points_line_minor[1][j]
             # World coordinate
             point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
-            # Distance along the long-axis
+            # Distance along the short-axis
             points_minor += [np.append(point, np.dot(point, short_axis))]
         points_minor = np.array(points_minor)
-        points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the long-axis
+        points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the short-axis
 
         landmarks += [points_minor[0]]
         landmarks += [points_minor[-1]]
@@ -1644,3 +1964,29 @@ def evaluate_atrial_area_length(label, nim, long_axis):
         L += [np.linalg.norm(points_minor[-1] - points_minor[0]) * 1e-1]
 
     return A, L, landmarks
+
+def evaluate_AVPD(label: Tuple[float, float, float, float], nim: nib.nifti1.Nifti1Image, long_axis, t_ED, t_ES):
+    """
+    Determine the atrioventricular plane displacement (AVPD).
+    Since the ventricle and atrium are segmented separately in `seg_la_2ch` and `seg_la_4ch` files,
+    only `seg4_la_4ch` files should be used. The result is then the AVPD of anterolateral wall 
+    (https://journals.physiology.org/doi/epdf/10.1152/ajpheart.01148.2006).
+    """
+
+    # * Currently, we follow https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
+    # * only consider AVPD of LV at ED and ES. For time series of AVPD, feature tracking would be better
+
+    labels = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
+    label_LV = (label == labels['LV'])
+
+    major_axis, minor_axis, image_line_major, _ = determine_axes(label_LV[:,:,0,0], nim)
+
+    AV = {}
+
+    # print(determine_avpd_landmark(label_LV[:,:,0,t_ED], major_axis, minor_axis, image_line_major))
+    AV_ED = determine_avpd_landmark(label_LV[:,:,0,t_ED], major_axis, minor_axis, image_line_major)
+    AV["ED"] = np.dot(nim.affine, np.array([AV_ED[0], AV_ED[1], 0, 1]))[:3]
+    AV_ES = determine_avpd_landmark(label_LV[:,:,0,t_ES], major_axis, minor_axis, image_line_major)
+    AV["ES"] = np.dot(nim.affine, np.array([AV_ES[0], AV_ES[1], 0, 1]))[:3]
+
+    return np.linalg.norm(AV["ED"] - AV["ES"]) * 1e-1  # unit: cm
