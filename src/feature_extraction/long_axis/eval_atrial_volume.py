@@ -65,6 +65,16 @@ if __name__ == "__main__":
             logger.error(f"Short axis file for {subject} does not exist.")
             continue
 
+        if not os.path.exists(seg_la_2ch_name) and not os.path.exists(seg_la_4ch_name):
+            logger.error(f"Segmentation of long axis file for {subject} does not exist.")
+            continue
+
+        if not os.path.exists(seg_la_2ch_name):
+            logger.warning(f"Segmentation of 2-chamber long axis file for {subject} does not exist.")
+
+        if not os.path.exists(seg_la_4ch_name):
+            logger.warning(f"Segmentation of 4-chamber long axis file for {subject} does not exist.")
+
         # Measurements
         # A: area
         # L_L: length
@@ -88,13 +98,16 @@ if __name__ == "__main__":
         if os.path.exists(seg_la_2ch_name):
             # Analyse 2 chamber view image
             nim_2ch = nib.load(seg_la_2ch_name)
+            short_axis = nim_2ch.affine[:3, 2] / np.linalg.norm(nim_2ch.affine[:3, 2])
+            if short_axis[2] < 0:
+                short_axis *= -1
             seg_la_2ch = nim_2ch.get_fdata()
             T = nim_2ch.header["dim"][4]  # number of time frames
             temporal_resolution = nim_2ch.header["pixdim"][4] * 1000 # unit: ms
 
             # Perform quality control for the segmentation
             if not atrium_pass_quality_control(seg_la_2ch, {"LA": 1}):
-                logger.error(f"{subject} seg_la_2ch does not pass atrium_pass_quality_control, skipped.")
+                logger.error(f"{subject}: seg_la_2ch does not pass atrium_pass_quality_control, skipped.")
                 continue
 
             A["LA_2ch"] = np.zeros(T)
@@ -104,7 +117,8 @@ if __name__ == "__main__":
             lm["2ch"] = {}
             for t in range(T):
                 try:
-                    area, length, landmarks = evaluate_atrial_area_length(seg_la_2ch[:, :, 0, t], nim_2ch, long_axis)
+                    area, length, landmarks = evaluate_atrial_area_length(seg_la_2ch[:, :, 0, t], nim_2ch, 
+                                                                          long_axis, short_axis)
                 except ValueError as e:
                     logger.error(f"Error in evaluating atrial area and length for {subject} at time frame {t}: {e}")
                     continue
@@ -123,13 +137,13 @@ if __name__ == "__main__":
                     # Write the landmarks to a vtk file
                     points = vtk.vtkPoints()
                     for p in landmarks:
-                        points.InsertNextPoint(p[0], p[1], p[2])
+                        points.InsertNextPoint(p[0], p[1], 0)
                     poly = vtk.vtkPolyData()
                     poly.SetPoints(points)
                     writer = vtk.vtkPolyDataWriter()
                     writer.SetInputData(poly)
                     os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
-                    writer.SetFileName(f"{sub_dir}/landmark/lm_la_2ch_{t:02d}.vtk")
+                    writer.SetFileName(f"{sub_dir}/landmark/atrium_la_2ch_{t:02d}.vtk")
                     writer.Write()
         else:
             logger.error(f"Segmentation of 2-chamber long axis file for {subject} does not exist.")
@@ -138,6 +152,9 @@ if __name__ == "__main__":
         if os.path.exists(seg_la_4ch_name):
             # Analyse 4 chamber view image
             nim_4ch = nib.load(seg_la_4ch_name)
+            short_axis = nim_4ch.affine[:3, 2] / np.linalg.norm(nim_4ch.affine[:3, 2])
+            if short_axis[2] < 0:
+                short_axis *= -1
             seg_la_4ch = nim_4ch.get_fdata()
 
             # Perform quality control for the segmentation
@@ -157,7 +174,8 @@ if __name__ == "__main__":
             lm["4ch"] = {}
             for t in range(T):
                 try:
-                    area, length, landmarks = evaluate_atrial_area_length(seg_la_4ch[:, :, 0, t], nim_4ch, long_axis)
+                    area, length, landmarks = evaluate_atrial_area_length(seg_la_4ch[:, :, 0, t], nim_4ch, 
+                                                                          long_axis, short_axis)
                 except ValueError as e:
                     logger.error(f"Error in evaluating atrial area and length for {subject} at time frame {t}: {e}")
                     continue
@@ -183,13 +201,13 @@ if __name__ == "__main__":
                     # Write the landmarks to a vtk file
                     points = vtk.vtkPoints()
                     for p in landmarks:
-                        points.InsertNextPoint(p[0], p[1], p[2])
+                        points.InsertNextPoint(p[0], p[1], 0)
                     poly = vtk.vtkPolyData()
                     poly.SetPoints(points)
                     writer = vtk.vtkPolyDataWriter()
                     writer.SetInputData(poly)
                     os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
-                    writer.SetFileName(f"{sub_dir}/landmark/lm_la_4ch_{t:02d}.vtk")
+                    writer.SetFileName(f"{sub_dir}/landmark/atrium_la_4ch_{t:02d}.vtk")
                     writer.Write()
         else:
             logger.error(f"Segmentation of 4-chamber long axis file for {subject} does not exist.")
@@ -259,6 +277,7 @@ if __name__ == "__main__":
             BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
         except IndexError:
             logger.error(f"{subject}: BSA information not found, skipped.")
+            # As BSA is a crucial feature, we skip the subject if BSA is not found
             continue
         feature_dict.update({
             "LA: D_longitudinal(2ch)/BSA [cm/m^2]": np.max(L_L["LA_2ch"]) / BSA_subject,
@@ -300,7 +319,7 @@ if __name__ == "__main__":
         LA_spherical_index = LAV_max / V_sphere_max
 
         feature_dict.update({
-            "LA: Spherical Index [%]": LA_spherical_index
+            "LA: Spherical Index": LA_spherical_index
         })
 
         # * Feature4: Early/Late Peak Emptying Rate

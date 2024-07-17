@@ -981,14 +981,13 @@ def determine_sa_basal_slice(seg_sa: Tuple[float, float, float]):
             continue
         return z
 
-def determine_axes(label_i, nim_sa):
+def determine_axes(label_i, nim, long_axis):
     """
     Determine the major axis and minor axis using the binary segmentation and 
     return the axes as well as lines that represents the major/minor axis that entirely covered by the segmentation.
     """
     assert len(label_i.shape) == 2, 'The input should be a 2D image.'
 
-    long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])
 
     points_label = np.nonzero(label_i)
     points = []
@@ -996,9 +995,8 @@ def determine_axes(label_i, nim_sa):
         x = points_label[0][j]
         y = points_label[1][j]
         # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
-        # * The third element is the distance along the long-axis, which will be used when calculating L
         points += [[x, y,
-                    np.dot(np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
+                    np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
     points = np.array(points)
     points = points[points[:, 2].argsort()]
 
@@ -1710,21 +1708,18 @@ def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
         y = cy + sz * r1 * np.sin(np.radians(theta1))
         plt.plot([x, x - sz * 0.2], [y, y], color=color_line)
 
-# todo: Use determine_axes() to replace code
-def evaluate_ventricular_length_sax(label: Tuple[float, float, float], nim: nib.nifti1.Nifti1Image, long_axis):
+def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa: nib.nifti1.Nifti1Image, long_axis, short_axis):
     """ 
     Evaluate the ventricular length from short-axis view images. 
-
-    Parameters:
-    label: The label of the short-axis view images at certain timepoint
-    nim: The Nifti image of the short-axis view images
-    long_axis: The long-axis direction
     """
 
-    # End-diastolic diameter should be measured at the plane which contained the basal papillary muscle
-    basal_slice = determine_sa_basal_slice(label)
+    if len(label_sa.shape) != 3:
+        raise ValueError('The label_sa should be a 3D image.')
 
-    label = label[:,:,basal_slice]
+    # End-diastolic diameter should be measured at the plane which contained the basal papillary muscle
+    basal_slice = determine_sa_basal_slice(label_sa)
+
+    label_sa = label_sa[:,:,basal_slice]
 
     # Go through the label class
     L = []
@@ -1732,131 +1727,129 @@ def evaluate_ventricular_length_sax(label: Tuple[float, float, float], nim: nib.
 
     lab = 1 # We are only interested in left ventricle
     # The binary label map
-    label_i = (label == lab)
+    label_i = (label_sa == lab)
 
     # Get the largest component in case we have a bad segmentation
     label_i = get_largest_cc(label_i)
 
-    # Go through all the points in the atrium, sort them by the distance along the long-axis.
-    points_label = np.nonzero(label_i)
-    points = []
-    for j in range(len(points_label[0])):  # the number of points
-        x = points_label[0][j]
-        y = points_label[1][j]
-        # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
-        # * The third element is the distance along the long-axis, which will be used when calculating L
-        points += [[x, y,
-                    np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
-    points = np.array(points)
-    points = points[points[:, 2].argsort()]  # sort by the distance along the long-axis (no removal)
-    # * The two extreme points are points[0] and points[-1], notice that we need to swap x and y for plt.scatter()
 
-
-    # Mid level of the atrium, to be used when determining tranverse diameter
-    mx, my, _ = np.mean(points, axis=0) 
-
-    # The centre at the top part of the ventricle (top third)
-    n_points = len(points)
-    top_points = points[int(2 * n_points / 3):]
-    cx, cy, _ = np.mean(top_points, axis=0)
-
-    # The centre at the bottom part of the ventricle (bottom third)
-    bottom_points = points[:int(n_points / 3)]
-    bx, by, _ = np.mean(bottom_points, axis=0)
-
-
-    # Determine the major axis by connecting the geometric centre and the bottom centre
-    major_axis = np.array([cx - bx, cy - by])  # major_axis is a vector
-    major_axis = major_axis / np.linalg.norm(major_axis)  # normalization
-
-    # Get the intersection between the major axis and the ventricle contour
-    # * By introducing (px,py),(qx,qy), we can force the line on the point
-    px = cx + major_axis[0] * 100
-    py = cy + major_axis[1] * 100
-    qx = cx - major_axis[0] * 100
-    qy = cy - major_axis[1] * 100
-    if np.isnan(px) or np.isnan(py) or np.isnan(qx) or np.isnan(qy):
-        raise ValueError('Major axis can not determined.')
-
-    # Note the difference between nifti image index and cv2 image index
-    # nifti image index: XY
-    # cv2 image index: YX (height, width)
-    image_line = np.zeros(label_i.shape)
-    cv2.line(image_line, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
-    image_line = label_i & (image_line > 0)
+    major_axis, minor_axis, image_line, image_line_minor = determine_axes(label_i, nim_sa, long_axis)
 
     points_line = np.nonzero(image_line)
 
     points = []
+    points_image = [] # for easier visualization
     for j in range(len(points_line[0])):
         x = points_line[0][j]
         y = points_line[1][j]
         # World coordinate
-        point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
+        point = np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3]
         # Distance along the long-axis
         points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
+        points_image += [np.append((x,y), np.dot(point, long_axis))]
     points = np.array(points)
+    points_image = np.array(points_image)
     if len(points) == 0:
-        raise ValueError('No intersection points found in the atrium.')
+        raise ValueError('No intersection points found in the ventricle.')
     points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
+    points_image = points_image[points_image[:, 2].argsort(), :2]
 
-    # # Landmarks of the intersection points are the top and bottom points along points_line
-    landmarks += [points[0]]
-    landmarks += [points[-1]]
-    # # Longitudinal diameter; Unit: cm
+    # Landmarks of the intersection points are the top and bottom points along points_line
+    landmarks += [points_image[0]]
+    landmarks += [points_image[-1]]
+    # Longitudinal diameter; Unit: cm
     L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]
-
-    minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
-
-    rx = mx + minor_axis[0] * 100
-    ry = my + minor_axis[1] * 100
-    sx = mx - minor_axis[0] * 100
-    sy = my - minor_axis[1] * 100
-    if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
-        raise ValueError('Minor axis can not determined.')
-
-    image_line_minor = np.zeros(label_i.shape)
-    cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx)), (1, 0, 0))
-    image_line_minor = label_i & (image_line_minor > 0)
 
     points_line_minor = np.nonzero(image_line_minor)
     points_minor = []
-    # `long_axis` is determined using SA; `short_axis` can be determined using either LA
-    short_axis = nim.affine[:3, 2] / np.linalg.norm(nim.affine[:3, 2])
+    points_minor_image = []
     for j in range(len(points_line_minor[0])):
         x = points_line_minor[0][j]
         y = points_line_minor[1][j]
         # World coordinate
-        point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
+        point = np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3]
         # Distance along the short axis
         points_minor += [np.append(point, np.dot(point, short_axis))]
+        points_minor_image += [np.append((x,y), np.dot(point, short_axis))]
     points_minor = np.array(points_minor)
+    points_minor_image = np.array(points_minor_image)
     points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the short-axis
+    points_minor_image = points_minor_image[points_minor_image[:, 2].argsort(), :2]
 
-    landmarks += [points_minor[0]]
-    landmarks += [points_minor[-1]]
+    landmarks += [points_minor_image[0]]
+    landmarks += [points_minor_image[-1]]
     # Transverse diameter; Unit: cm
     L += [np.linalg.norm(points_minor[-1] - points_minor[0]) * 1e-1]
 
     return np.max(L), landmarks
 
-def evaluate_ventricular_length_lax(label: Tuple[float, float], nim: nib.nifti1.Nifti1Image, long_axis):
-    return
+def evaluate_ventricular_length_lax(label_la_seg4: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis):
+    """
+    Evaluate the ventricle length from 4 chamber view image.
+    """
 
-def evaluate_atrial_area_length(label: Tuple[float, float], nim: nib.nifti1.Nifti1Image, long_axis):
-    """ Evaluate the atrial area and length from 2 chamber or 4 chamber view images. """
+    if len(label_la_seg4.shape) != 2:
+        raise ValueError('The label_la should be a 2D image.')
+    if len(np.unique(label_la_seg4)) != 6:
+        raise ValueError('The label_la should have segmentation for all four chambers.')
+
+    # Go through the label class
+    landmarks = []
+
+    labels = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
+    label_LV = (label_la_seg4 == labels['LV'])
+
+    # Get the largest component in case we have a bad segmentation
+    label_LV = get_largest_cc(label_LV)
+
+    major_axis, minor_axis, image_line, image_line_minor = determine_axes(label_LV, nim_la, long_axis)
+
+    points_line = np.nonzero(image_line)
+    points = []
+    points_image = [] # for easier visualization
+    for j in range(len(points_line[0])):
+        x = points_line[0][j]
+        y = points_line[1][j]
+        # World coordinate
+        point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
+        # Distance along the long-axis
+        points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
+        points_image += [np.append((x,y), np.dot(point, long_axis))]
+    points = np.array(points)
+    points_image = np.array(points_image)
+    if len(points) == 0:
+        raise ValueError('No intersection points found in the ventricle.')
+    points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
+    points_image = points_image[points_image[:, 2].argsort(), :2]
+    
+    # Landmarks of the intersection points are the top and bottom points along points_line
+    landmarks += [points_image[0]]
+    landmarks += [points_image[-1]]
+    # Longitudinal diameter; Unit: cm
+    L = np.linalg.norm(points[-1] - points[0]) * 1e-1 # Here we have already applied nim.affine, no need to multiply
+
+    return np.max(L), landmarks
+
+def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis):
+    """ 
+    Evaluate the atrial area and length from 2 chamber or 4 chamber view images.
+    """
+
+    if len(label_la.shape) != 2:
+        raise ValueError('The label_la should be a 2D image.')
+
     # Area per pixel
-    pixdim = nim.header['pixdim'][1:4]
+    pixdim = nim_la.header['pixdim'][1:4]
     area_per_pix = pixdim[0] * pixdim[1] * 1e-2  # Unit: cm^2
 
     # Go through the label class
     L = []
     A = []
     landmarks = []
-    labs = np.sort(list(set(np.unique(label)) - set([0])))
-    for i in labs:
+    labels = np.sort(list(set(np.unique(label_la)) - set([0])))
+    for i in labels:
         # The binary label map
-        label_i = (label == i)
+        label_i = (label_la == i)
 
         # Get the largest component in case we have a bad segmentation
         label_i = get_largest_cc(label_i)
@@ -1864,108 +1857,59 @@ def evaluate_atrial_area_length(label: Tuple[float, float], nim: nib.nifti1.Nift
         # Calculate the area
         A += [np.sum(label_i) * area_per_pix]
 
-        # Go through all the points in the atrium, sort them by the distance along the long-axis.
-        points_label = np.nonzero(label_i)
-        points = []
-        for j in range(len(points_label[0])):  # the number of points
-            x = points_label[0][j]
-            y = points_label[1][j]
-            # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
-            # * The third element is the distance along the long-axis, which will be used when calculating L
-            points += [[x, y,
-                        np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
-        points = np.array(points)
-        points = points[points[:, 2].argsort()]  # sort by the distance along the long-axis (no removal)
 
-        # Mid level of the atrium, to be used when determining tranverse diameter``
-        mx, my, _ = np.mean(points, axis=0) 
-
-        # The centre at the top part of the atrium (top third)
-        n_points = len(points)
-        top_points = points[int(2 * n_points / 3):]
-        cx, cy, _ = np.mean(top_points, axis=0)
-
-        # The centre at the bottom part of the atrium (bottom third)
-        bottom_points = points[:int(n_points / 3)]
-        bx, by, _ = np.mean(bottom_points, axis=0)
-
-        # Determine the major axis by connecting the geometric centre and the bottom centre
-        major_axis = np.array([cx - bx, cy - by])  # major_axis is a vector
-        major_axis = major_axis / np.linalg.norm(major_axis)  # normalization
-
-        # Get the intersection between the major axis and the atrium contour
-        # * By introducing (px,py),(qx,qy), we can force the line on the point
-        px = cx + major_axis[0] * 100
-        py = cy + major_axis[1] * 100
-        qx = cx - major_axis[0] * 100
-        qy = cy - major_axis[1] * 100
-        if np.isnan(px) or np.isnan(py) or np.isnan(qx) or np.isnan(qy):
-            raise ValueError('Major axis can not determined.')
-
-        # Note the difference between nifti image index and cv2 image index
-        # nifti image index: XY
-        # cv2 image index: YX (height, width)
-        image_line = np.zeros(label_i.shape)
-        cv2.line(image_line, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
-        image_line = label_i & (image_line > 0)
+        major_axis, minor_axis, image_line, image_line_minor = determine_axes(label_i, nim_la, long_axis)
 
         points_line = np.nonzero(image_line)
         points = []
+        points_image = [] # for easier visualization
         for j in range(len(points_line[0])):
             x = points_line[0][j]
             y = points_line[1][j]
             # World coordinate
-            point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
+            point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
             # Distance along the long-axis
             points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
+            points_image += [np.append((x,y), np.dot(point, long_axis))]
         points = np.array(points)
+        points_image = np.array(points_image)
         if len(points) == 0:
             raise ValueError('No intersection points found in the atrium.')
         points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
+        points_image = points_image[points_image[:, 2].argsort(), :2]
         
         # Landmarks of the intersection points are the top and bottom points along points_line
-        landmarks += [points[0]]
-        landmarks += [points[-1]]
+        landmarks += [points_image[0]]
+        landmarks += [points_image[-1]]
         # Longitudinal diameter; Unit: cm
         L += [np.linalg.norm(points[-1] - points[0]) * 1e-1] # Here we have already applied nim.affine, no need to multiply
 
         # Define Transverse diameter is obtained perpendicular to the longitudinal diameter, at the mid level of right atrium
         # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-29 for example in right atrium
-        minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
-
-        rx = mx + minor_axis[0] * 100
-        ry = my + minor_axis[1] * 100
-        sx = mx - minor_axis[0] * 100
-        sy = my - minor_axis[1] * 100
-        if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
-            raise ValueError('Minor axis can not determined.')
-
-        image_line_minor = np.zeros(label_i.shape)
-        cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx)), (1, 0, 0))
-        image_line_minor = label_i & (image_line_minor > 0)
 
         points_line_minor = np.nonzero(image_line_minor)
         points_minor = []
-        # `long_axis` is determined using SA; `short_axis` can be determined using LA
-        short_axis = nim.affine[:3, 2] / np.linalg.norm(nim.affine[:3, 2])
+        points_minor_image = [] # for easier visualization
         for j in range(len(points_line_minor[0])):
             x = points_line_minor[0][j]
             y = points_line_minor[1][j]
             # World coordinate
-            point = np.dot(nim.affine, np.array([x, y, 0, 1]))[:3]
+            point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
             # Distance along the short-axis
             points_minor += [np.append(point, np.dot(point, short_axis))]
+            points_minor_image += [np.append((x,y), np.dot(point, short_axis))]
         points_minor = np.array(points_minor)
+        points_minor_image = np.array(points_minor_image)
         points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the short-axis
-
-        landmarks += [points_minor[0]]
-        landmarks += [points_minor[-1]]
+        points_minor_image = points_minor_image[points_minor_image[:, 2].argsort(), :2]
+        landmarks += [points_minor_image[0]]
+        landmarks += [points_minor_image[-1]]
         # Transverse diameter; Unit: cm
         L += [np.linalg.norm(points_minor[-1] - points_minor[0]) * 1e-1]
 
     return A, L, landmarks
 
-def evaluate_AVPD(label: Tuple[float, float, float, float], nim: nib.nifti1.Nifti1Image, long_axis, t_ED, t_ES):
+def evaluate_AVPD(label_la_seg4: Tuple[float, float, float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, t_ED, t_ES):
     """
     Determine the atrioventricular plane displacement (AVPD).
     Since the ventricle and atrium are segmented separately in `seg_la_2ch` and `seg_la_4ch` files,
@@ -1976,17 +1920,24 @@ def evaluate_AVPD(label: Tuple[float, float, float, float], nim: nib.nifti1.Nift
     # * Currently, we follow https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
     # * only consider AVPD of LV at ED and ES. For time series of AVPD, feature tracking would be better
 
+    if len(label_la_seg4.shape) != 4:
+        raise ValueError('The label_la should be a 4D image.')
+    if len(np.unique(label_la_seg4)) != 6:
+        raise ValueError('The label_la_seg4 should have segmentation for all four chambers.')
+
     labels = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
     label_LV = (label == labels['LV'])
 
-    major_axis, minor_axis, image_line_major, _ = determine_axes(label_LV[:,:,0,0], nim)
+    major_axis, minor_axis, image_line_major, _ = determine_axes(label_LV[:,:,0,0], nim_la, long_axis)
+
+    label_LV_ED = label_LV[:,:,0,t_ED]
+    label_LV_ES = label_LV[:,:,0,t_ES]
 
     AV = {}
 
-    # print(determine_avpd_landmark(label_LV[:,:,0,t_ED], major_axis, minor_axis, image_line_major))
-    AV_ED = determine_avpd_landmark(label_LV[:,:,0,t_ED], major_axis, minor_axis, image_line_major)
+    AV_ED = determine_avpd_landmark(label_LV_ED, major_axis, minor_axis, image_line_major)
     AV["ED"] = np.dot(nim.affine, np.array([AV_ED[0], AV_ED[1], 0, 1]))[:3]
-    AV_ES = determine_avpd_landmark(label_LV[:,:,0,t_ES], major_axis, minor_axis, image_line_major)
+    AV_ES = determine_avpd_landmark(label_LV_ES, major_axis, minor_axis, image_line_major)
     AV["ES"] = np.dot(nim.affine, np.array([AV_ES[0], AV_ES[1], 0, 1]))[:3]
 
     return np.linalg.norm(AV["ED"] - AV["ES"]) * 1e-1  # unit: cm

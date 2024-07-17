@@ -3,10 +3,10 @@ import numpy as np
 import skimage.measure
 from .image_utils import *
 
-def sa_pass_quality_control(seg_sa_name):
-    """ Quality control for short-axis image segmentation """
+def sa_pass_quality_control(seg_sa_name, t = 0):
+    """ Quality control for short-axis image segmentation at certain timepoint t"""
     nim = nib.load(seg_sa_name)
-    seg_sa = nim.get_fdata()
+    seg_sa = nim.get_fdata()[:,:,:,t]
     X, Y, Z = seg_sa.shape[:3]
 
     # Label class in the segmentation
@@ -64,10 +64,10 @@ def sa_pass_quality_control(seg_sa_name):
         return False
     return True
 
-def la_pass_quality_control(seg_la_name):
-    """ Quality control for long-axis image segmentation """
+def la_pass_quality_control(seg_la_name, t = 0):
+    """ Quality control for long-axis image segmentation at certain timepoint (should not be 3D+t)"""
     nim = nib.load(seg_la_name)
-    seg = nim.get_fdata()
+    seg = nim.get_fdata()[:,:,:,t]
     X, Y, Z = seg.shape[:3]
     seg_z = seg[:, :, 0]
 
@@ -100,13 +100,14 @@ def la_pass_quality_control(seg_la_name):
 def atrium_pass_quality_control(label, label_dict):
     """ Quality control for atrial volume estimation """
     for l_name, l in label_dict.items():
-        # Criterion: the atrium does not disappear at any time point so that we can
+        # Criterion: the atrium does not disappear (above a threshold) at any time point so that we can
         # measure the area and length.
         T = label.shape[3]
+        pixel_thres = 3
         for t in range(T):
             label_t = label[:, :, 0, t]
             area = np.sum(label_t == l)
-            if area == 0:
+            if area < pixel_thres:
                 print('The area of {0} is 0 at time frame {1}.'.format(l_name, t))
                 return False
     return True
