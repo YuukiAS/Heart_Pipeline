@@ -45,43 +45,58 @@ if __name__ == "__main__":
         df_rest_row = pd.DataFrame()
         try:
             voltages_rest = ecg_processor.get_voltages_rest()
-            logger.info(f"{subject}: Generate features for ECG rest data")
 
-            for lead_name, lead_voltages in voltages_rest.keys():
-                df_rest, info_rest = nk.ecg_process(lead_voltages, sampling_rate=SAMPLING_RATE)
-                features_rest_time = nk.hrv_time(df_rest, sampling_rate=SAMPLING_RATE)
-                features_rest_time.add_prefix(f"{lead_name}_")
+            for lead_name, lead_voltages in voltages_rest.items():
+                data_rest, info_rest = nk.ecg_process(lead_voltages, sampling_rate=SAMPLING_RATE)
+                features_rest_time = nk.hrv_time(data_rest, sampling_rate=SAMPLING_RATE)
+                features_rest_time = features_rest_time.add_prefix(f"lead{lead_name}_")
 
                 # concate each one to one row
                 df_rest_row = pd.concat([df_rest_row, features_rest_time], axis=1)
 
-            df_rest_row["subject"] = subject
+            logger.info(f"{subject}: Generate features for ECG rest data")
+            df_rest_row["eid"] = subject
             df_rest = pd.concat([df_rest, df_rest_row], ignore_index=True)
 
-        except ValueError:
-            logger.warning(f"ECG rest data does not exist for the subject {subject}")
+        except (ValueError, TypeError, IndexError, ZeroDivisionError) as e:
+            logger.warning(f"{subject}: Fail to extract rest features: {e}")
 
         df_exercise_row = pd.DataFrame()
         try:
-            voltages_rest = ecg_processor.get_voltages_exercise()
-            logger.info("{subject}: Generate features for ECG exercise data")
+            voltages_divided = ecg_processor.get_voltages_exercise()
+            phases = ["pretest", "exercise_constant", "exercise_ramping", "rest"]
 
-            for lead_name, lead_voltages in voltages_rest.keys():
-                df_exercise, info_exercise = nk.ecg_process(lead_voltages, sampling_rate=SAMPLING_RATE)
-                features_exercise_time = nk.hrv_time(df_exercise, sampling_rate=SAMPLING_RATE)
-                features_exercise_time.add_prefix(f"{lead_name}_")
+            for phase, voltages in zip(phases, voltages_divided):
+                for lead_name, lead_voltages in voltages.items():
+                    data_exercise, info = nk.ecg_process(lead_voltages, sampling_rate=SAMPLING_RATE)
+                    features_time = nk.hrv_time(data_exercise, sampling_rate=SAMPLING_RATE)
+                    features_time = features_time.add_prefix(f"{phase}_lead{lead_name}_")
+                    df_exercise_row = pd.concat([df_exercise_row, features_time], axis=1)
 
-                # concate each one to one row
-                df_exercise_row = pd.concat([df_exercise_row, features_exercise_time], axis=1)
+                    features_frequency = nk.hrv_frequency(data_exercise, sampling_rate=SAMPLING_RATE)
+                    features_frequency = features_frequency.add_prefix(f"{phase}_lead{lead_name}_")
+                    df_exercise_row = pd.concat([df_exercise_row, features_frequency], axis=1)
 
-            df_exercise_row["subject"] = subject
+                    if phase not in ["pretest", "rest"]:
+                        features_nonlinear = nk.hrv_nonlinear(data_exercise, sampling_rate=SAMPLING_RATE)
+                        features_nonlinear = features_nonlinear.add_prefix(f"{phase}_lead{lead_name}_")
+                        df_exercise_row = pd.concat([df_exercise_row, features_nonlinear], axis=1)
+            
+            logger.info(f"{subject}: Generate features for ECG exercise data")
+            df_exercise_row["eid"] = subject
             df_exercise = pd.concat([df_exercise, df_exercise_row], ignore_index=True)
 
-        except ValueError:
-            logger.warning(f"ECG exercise data does not exist for the subject {subject}")
+        except (ValueError, TypeError, IndexError, ZeroDivisionError) as e:
+            logger.warning(f"{subject}: Fail to extract exercise features: {e}")
 
+    # Clean data
+    df_rest.dropna(axis=1, how="all", inplace=True)
+    df_rest = df_rest.loc[:, df_rest.nunique() > 1]
     df_rest.sort_index(axis=1, inplace=True)
+    df_exercise.dropna(axis=1, how="all", inplace=True)
+    df_exercise = df_exercise.loc[:, df_exercise.nunique() > 1]
     df_exercise.sort_index(axis=1, inplace=True)
+
     os.makedirs(os.path.dirname(file_rest_name), exist_ok=True)
-    df_rest.to_csv(file_rest_name)
-    df_exercise.to_csv(file_exercise_name)
+    df_rest.to_csv(file_rest_name, index=False)
+    df_exercise.to_csv(file_exercise_name, index=False)

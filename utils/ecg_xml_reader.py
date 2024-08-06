@@ -16,10 +16,12 @@ from utils.log_utils import setup_logging
 
 logger = setup_logging("ECG-XMLReader")
 
+
 class CardioSoftECGXMLReader:
     """Extract voltage data from a CardioSoftECG XML file"""
 
     def __init__(self, path, ecg_type, encoding="ISO8859-1"):
+        self.path = path
         # UKBiobank category 104
         if ecg_type == "rest":
             self.type = "rest"
@@ -90,7 +92,8 @@ class CardioSoftECGXMLReader:
                         self.Segmentations["Toff"] = False
 
                 self.LeadVoltages = self._makeLeadVoltages()
-        # UKBiobnak category 100012
+
+        # UKBiobnak category 100012, data field 6025
         elif ecg_type == "exercise":
             self.type = "exercise"
             logger.info("Processing exercise ECG XML file")
@@ -108,8 +111,8 @@ class CardioSoftECGXMLReader:
                         day=int(self.Data["PatientInfo"]["BirthDateTime"]["Day"]),
                     )
                 except (KeyError, ValueError, TypeError) as e:
-                        logger.warning(e)
-                        self.BirthDateTime = False
+                    logger.warning(e)
+                    self.BirthDateTime = False
 
                 self.ObservationDateTime = datetime.datetime(
                     year=int(self.Data["ObservationDateTime"]["Year"]),
@@ -127,12 +130,16 @@ class CardioSoftECGXMLReader:
                 if "FullDisclosure" in self.Data:
                     self.StripData = False
                     self.FullDisclosure = self.Data["FullDisclosure"]
-                    self.StartTime = self.FullDisclosure["StartTime"]
-                    self.StartTime = float(self.StartTime["Minute"]) * 60 + float(self.StartTime["Second"])
-                    self.SamplingRate = int(self.FullDisclosure["SampleRate"]["#text"])
-                    self.NumLeads = int(self.FullDisclosure["NumberOfChannels"])
-                    self.FullDisclosureData = self.FullDisclosure["FullDisclosureData"]
-
+                    try:
+                        self.StartTime = self.FullDisclosure["StartTime"]
+                        self.StartTime = float(self.StartTime["Minute"]) * 60 + float(self.StartTime["Second"])
+                        self.SamplingRate = int(self.FullDisclosure["SampleRate"]["#text"])
+                        self.NumLeads = int(self.FullDisclosure["NumberOfChannels"])
+                        self.FullDisclosureData = self.FullDisclosure["FullDisclosureData"]
+                    except TypeError:
+                        # * for some subjects like 1009128, there is error in the field and we cannot extract features
+                        raise ValueError("FullDisclosure in exercise XML file is not in correct format.")
+ 
                 self.LeadVoltages = self._makeLeadVoltages()
 
                 voltages = self._divideLeadVoltages()
@@ -147,15 +154,17 @@ class CardioSoftECGXMLReader:
         leads = {}
 
         if not self.FullDisclosure:
+            assert self.type == "rest", "FullDisclosure should be False for rest ECG"
             for lead in self.WaveformData:
                 lead_name = lead["@lead"]
                 lead_voltages = np.array([int(volt) for volt in lead["#text"].split(",")])
                 leads[lead_name] = lead_voltages
 
         elif not self.StripData:
+            assert self.type == "exercise", "StripData should be False for exercise ECG"
             LeadOrder = self.FullDisclosure["LeadOrder"].split(",")
 
-            root = et.parse("/work/users/y/u/yuukias/Heart_Pipeline/test/demo_ecg/sub_6025_2_0.xml").getroot()
+            root = et.parse(self.path).getroot()
             leads = {}
             for lead in LeadOrder:
                 leads[lead] = []
@@ -195,10 +204,14 @@ class CardioSoftECGXMLReader:
         len_phase2 = 2 * 60 * self.SamplingRate
         len_phase3 = 4 * 60 * self.SamplingRate
         len_phase4 = leads_lengths[0] - len_phase1 - len_phase2 - len_phase3
-        logger.info(f"Phase1 has length {len_phase1}")
-        logger.info(f"Phase2 has length {len_phase2}")
-        logger.info(f"Phase3 has length {len_phase3}")
-        logger.info(f"Phase4 has length {len_phase4}")
+        if len_phase4 < 0:
+            raise ValueError("Cannot determine length of each phase as length of phase 4 is negative.")
+        logger.info(
+            f"Phase1 has length {len_phase1}, "
+            f"Phase2 has length {len_phase2}, "
+            f"Phase3 has length {len_phase3}, "
+            f"Phase4 has length {len_phase4}"
+        )
 
         leads_phase1 = {}
         leads_phase2 = {}
@@ -208,7 +221,7 @@ class CardioSoftECGXMLReader:
             leads_phase1[key] = voltages[:len_phase1]
             leads_phase2[key] = voltages[len_phase1 : len_phase1 + len_phase2]
             leads_phase3[key] = voltages[len_phase1 + len_phase2 : len_phase1 + len_phase2 + len_phase3]
-            leads_phase4[key] = voltages[(leads_lengths[0]-len_phase4):]
+            leads_phase4[key] = voltages[(leads_lengths[0] - len_phase4) :]
         return (leads_phase1, leads_phase2, leads_phase3, leads_phase4)
 
     def getLeads(self):

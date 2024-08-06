@@ -1,5 +1,5 @@
 """
-This file defines an ECG processor class that is used to process the ECG data from the UK Biobank dataset.
+This file defines an ECG processor class that can be used to process the ECG data from the UK Biobank dataset.
 """
 
 import os
@@ -7,6 +7,7 @@ import numpy as np
 import neurokit2 as nk
 
 import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 from utils.log_utils import setup_logging
@@ -14,16 +15,20 @@ from utils.ecg_xml_reader import CardioSoftECGXMLReader as XMLReader
 
 logger = setup_logging("ecg_processor")
 
+
 class ECG_Processor:
     def __init__(self, subject, retest=False):
+        if type(subject) is not str:
+            raise TypeError("Subject must be a string")
         self.subject = subject
         self.retest = retest
-        
+
         self.voltages_rest = None
         self.voltages_exercise = None
         if self.check_data_rest():
             self.voltages_rest = self._load_data_rest()
         if self.check_data_exercise():
+            # define Consist of four stages: pretest, exercise(constant), exercise(rampling) and rest
             self.voltages_exercise = self._load_data_exercise()
 
     def check_data_rest(self):
@@ -47,9 +52,13 @@ class ECG_Processor:
         else:
             xml_file = os.path.join(config.data_visit2_dir, self.subject, "ecg_rest.xml")
 
-        data_reader = XMLReader(xml_file, ecg_type = "rest")
-        leads = data_reader.getVoltages()
-        return leads
+        try:
+            data_reader = XMLReader(xml_file, ecg_type="rest")
+            voltages = data_reader.getVoltages()
+        except ValueError as e:
+            logger.error(f"While processing rest XML file for subject {self.subject}: Error {e}")
+            voltages = None
+        return voltages
 
     def _load_data_exercise(self):
         if not self.check_data_exercise():
@@ -60,20 +69,23 @@ class ECG_Processor:
         else:
             xml_file = os.path.join(config.data_visit2_dir, self.subject, "ecg_exercise.xml")
 
-        data_reader = XMLReader(xml_file, ecg_type = "exercise")
-        leads = data_reader.getVoltages()
-        return leads
+        try:
+            data_reader = XMLReader(xml_file, ecg_type="exercise")
+            voltages_divided = data_reader.getDividedVoltages()
+        except ValueError as e:
+            logger.error(f"While processing exercise XML file for subject {self.subject}: Error {e}")
+            voltages_divided = None
+        return voltages_divided
 
     def get_voltages_rest(self):
         if self.voltages_rest is None:
-            raise ValueError("No ECG rest data available for the subject")
+            raise ValueError(f"ECG rest data is not available for the subject {self.subject}")
         return self.voltages_rest
 
     def get_voltages_exercise(self):
         if self.voltages_exercise is None:
-            raise ValueError("No ECG exercise data available for the subject")
+            raise ValueError(f"ECG exercise data is not available for the subject {self.subject}")
         return self.voltages_exercise
-    
 
     def determine_timepoint_LA(
         self, methods=["neurokit", "pantompkins1985", "hamilton2002", "elgendi2010", "engzeemod2012"], log=False
@@ -87,8 +99,8 @@ class ECG_Processor:
 
         for lead in self.voltages_rest:
             # Ref https://link.springer.com/10.1007/978-3-319-22141-0_9
-            # Define t_pre_a is the peak of P wave
-            # Define t_max is the end of T wave
+            # define t_pre_a is the peak of P wave
+            # define t_max is the end of T wave
             # * We will only make use of certain precordial leads as indicated by fig9.2
             if lead in ["V3", "V4", "V5"]:
                 ecg_signal = self.voltages_rest[lead]
@@ -126,7 +138,6 @@ class ECG_Processor:
                         continue
                     t_pre_a_mean = np.nanmean(t_pre_a_values)
                     t_pre_a_lead.append(t_pre_a_mean)
-
 
                 if len(t_max_lead) == 0 or len(t_pre_a_lead) == 0:
                     logger.error(f"All methods failed for lead {lead}!")

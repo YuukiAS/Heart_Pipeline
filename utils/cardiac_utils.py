@@ -23,26 +23,34 @@ import matplotlib.pyplot as plt
 from typing import Tuple
 from vtk.util import numpy_support
 from scipy import interpolate
-import skimage
 import skimage.measure
-from .image_utils import *
+from .image_utils import (
+    get_largest_cc, 
+    remove_small_cc, 
+    padding, 
+    split_volume,
+    split_sequence,
+    np_categorical_dice,
+    make_sequence,
+    auto_crop_image
+)
 
 
 def approximate_contour(contour, factor=4, smooth=0.05, periodic=False):
-    """ Approximate a contour.
+    """Approximate a contour.
 
-        contour: input contour
-        factor: upsampling factor for the contour
-        smooth: smoothing factor for controling the number of spline knots.
-                Number of knots will be increased until the smoothing
-                condition is satisfied:
-                sum((w[i] * (y[i]-spl(x[i])))**2, axis=0) <= s
-                which means the larger s is, the fewer knots will be used,
-                thus the contour will be smoother but also deviating more
-                from the input contour.
-        periodic: set to True if this is a closed contour, otherwise False.
+    contour: input contour
+    factor: upsampling factor for the contour
+    smooth: smoothing factor for controling the number of spline knots.
+            Number of knots will be increased until the smoothing
+            condition is satisfied:
+            sum((w[i] * (y[i]-spl(x[i])))**2, axis=0) <= s
+            which means the larger s is, the fewer knots will be used,
+            thus the contour will be smoother but also deviating more
+            from the input contour.
+    periodic: set to True if this is a closed contour, otherwise False.
 
-        return the upsampled and smoothed contour
+    return the upsampled and smoothed contour
     """
     # The input contour
     N = len(contour)
@@ -74,38 +82,46 @@ def approximate_contour(contour, factor=4, smooth=0.05, periodic=False):
     contour2 = np.stack((x2, y2), axis=1)
     return contour2
 
+
 def determine_aha_coordinate_system(seg_sa, affine_sa):
-    """ Determine the AHA coordinate system using the mid-cavity slice
-        of the short-axis image segmentation.
-        """
+    """
+    Determine the AHA coordinate system using the mid-cavity slice
+    of the short-axis image segmentation.
+    """
+    
+    if seg_sa.ndim != 3:
+        raise ValueError("The input segmentation should be 3D.")
+
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3}
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Find the mid-cavity slice
-    _, _, cz = [np.mean(x) for x in np.nonzero(seg_sa == label['LV'])]  # only uses the z coordinate
+    _, _, cz = [np.mean(x) for x in np.nonzero(seg_sa == labels["LV"])]  # only uses the z coordinate
     z = int(round(cz))
     seg_z = seg_sa[:, :, z]
 
-    endo = (seg_z == label['LV']).astype(np.uint8)
+    endo = (seg_z == labels["LV"]).astype(np.uint8)
     endo = get_largest_cc(endo).astype(np.uint8)
-    myo = (seg_z == label['Myo']).astype(np.uint8)
+    myo = (seg_z == labels["Myo"]).astype(np.uint8)
     myo = remove_small_cc(myo).astype(np.uint8)
     epi = (endo | myo).astype(np.uint8)
     epi = get_largest_cc(epi).astype(np.uint8)
-    rv = (seg_z == label['RV']).astype(np.uint8)
+    rv = (seg_z == labels["RV"]).astype(np.uint8)
     rv = get_largest_cc(rv).astype(np.uint8)
 
     # Extract epicardial contour
     contours, _ = cv2.findContours(cv2.inRange(epi, 1, 1), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     epi_contour = contours[0][:, 0, :]
 
-    # Find the septum, which is the intersection between LV and RV
+    # define Septum is the intersection between LV and RV
     septum = []
     dilate_iter = 1
     while len(septum) == 0:
         # Dilate the RV till it intersects with LV epicardium.
         # Normally, this is fulfilled after just one iteration.
         rv_dilate = cv2.dilate(rv, np.ones((3, 3), dtype=np.uint8), iterations=dilate_iter)
+        if dilate_iter > 10:
+            raise ValueError("Dilate_iter reaches ceiling, cannot find the septum!")
         dilate_iter += 1
         for y, x in epi_contour:
             if rv_dilate[x, y] == 1:
@@ -121,20 +137,20 @@ def determine_aha_coordinate_system(seg_sa, affine_sa):
 
     # Determine the AHA coordinate system
     axis = {}
-    axis['lv_to_sep'] = point_septum - point_cavity  # distance from the cavity centre to the septum
-    axis['lv_to_sep'] /= np.linalg.norm(axis['lv_to_sep'])
-    axis['apex_to_base'] = np.copy(affine_sa[:3, 2]) # distance from the apex to the base
-    axis['apex_to_base'] /= np.linalg.norm(axis['apex_to_base'])
-    if axis['apex_to_base'][2] < 0:  # make sure z-axis is positive
-        axis['apex_to_base'] *= -1
-    axis['inf_to_ant'] = np.cross(axis['apex_to_base'], axis['lv_to_sep'])  # from inferior wall to anterior wall
+    axis["lv_to_sep"] = point_septum - point_cavity  # distance from the cavity centre to the septum
+    axis["lv_to_sep"] /= np.linalg.norm(axis["lv_to_sep"])
+    axis["apex_to_base"] = np.copy(affine_sa[:3, 2])  # distance from the apex to the base
+    axis["apex_to_base"] /= np.linalg.norm(axis["apex_to_base"])
+    if axis["apex_to_base"][2] < 0:  # make sure z-axis is positive
+        axis["apex_to_base"] *= -1
+    axis["inf_to_ant"] = np.cross(axis["apex_to_base"], axis["lv_to_sep"])  # from inferior wall to anterior wall
     return axis
 
 
 def determine_aha_part(seg_sa, affine_sa, three_slices=False):
-    """ Determine the AHA part for each slice. """
+    """Determine the AHA part for each slice."""
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3}
+    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Sort the z-axis positions of the slices with both endo and epicardium
     # segmentations
@@ -142,8 +158,8 @@ def determine_aha_part(seg_sa, affine_sa, three_slices=False):
     z_pos = []
     for z in range(Z):
         seg_z = seg_sa[:, :, z]
-        endo = (seg_z == label['LV']).astype(np.uint8)  # doesn't include myocardium
-        myo = (seg_z == label['Myo']).astype(np.uint8)
+        endo = (seg_z == label["LV"]).astype(np.uint8)  # doesn't include myocardium
+        myo = (seg_z == label["Myo"]).astype(np.uint8)
         pixel_thres = 10
         if (np.sum(endo) < pixel_thres) or (np.sum(myo) < pixel_thres):
             continue
@@ -170,17 +186,17 @@ def determine_aha_part(seg_sa, affine_sa, three_slices=False):
         # will move out of plane at ES due to longitudinal motion, which will
         # be a problem for 2D in-plane motion tracking.
         z = int(round((n_slice - 1) * 0.25))
-        part_z[z_pos[z][0]] = 'basal'
+        part_z[z_pos[z][0]] = "basal"
 
         # Use the central slice.
         z = int(round((n_slice - 1) * 0.5))
-        part_z[z_pos[z][0]] = 'mid'
+        part_z[z_pos[z][0]] = "mid"
 
         # Use the slice at 75% location from base to apex.
         # In the most apical slices, the myocardium looks blurry and
         # may not be suitable for motion tracking.
         z = int(round((n_slice - 1) * 0.75))
-        part_z[z_pos[z][0]] = 'apical'
+        part_z[z_pos[z][0]] = "apical"
     else:
         # Use all the slices
         i1 = int(math.ceil(n_slice / 3.0))
@@ -188,27 +204,27 @@ def determine_aha_part(seg_sa, affine_sa, three_slices=False):
         i3 = n_slice
 
         for i in range(0, i1):
-            part_z[z_pos[i][0]] = 'basal'
+            part_z[z_pos[i][0]] = "basal"
 
         for i in range(i1, i2):
-            part_z[z_pos[i][0]] = 'mid'
+            part_z[z_pos[i][0]] = "mid"
 
         for i in range(i2, i3):
-            part_z[z_pos[i][0]] = 'apical'
+            part_z[z_pos[i][0]] = "apical"
     return part_z
 
 
 def determine_aha_segment_id(point, lv_centre, aha_axis, part):
-    """ Determine the AHA segment ID given a point,
-        the LV cavity center and the coordinate system.
-        """
+    """Determine the AHA segment ID given a point,
+    the LV cavity center and the coordinate system.
+    """
     d = point - lv_centre
-    x = np.dot(d, aha_axis['inf_to_ant'])
-    y = np.dot(d, aha_axis['lv_to_sep'])
+    x = np.dot(d, aha_axis["inf_to_ant"])
+    y = np.dot(d, aha_axis["lv_to_sep"])
     deg = math.degrees(math.atan2(y, x))
     seg_id = 0
 
-    if part == 'basal':
+    if part == "basal":
         if (deg >= -30) and (deg < 30):
             seg_id = 1
         elif (deg >= 30) and (deg < 90):
@@ -222,9 +238,9 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
         elif (deg >= -90) and (deg < -30):
             seg_id = 6
         else:
-            print('Error: wrong degree {0}!'.format(deg))
+            print("Error: wrong degree {0}!".format(deg))
             exit(0)
-    elif part == 'mid':
+    elif part == "mid":
         if (deg >= -30) and (deg < 30):
             seg_id = 7
         elif (deg >= 30) and (deg < 90):
@@ -238,9 +254,9 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
         elif (deg >= -90) and (deg < -30):
             seg_id = 12
         else:
-            print('Error: wrong degree {0}!'.format(deg))
+            print("Error: wrong degree {0}!".format(deg))
             exit(0)
-    elif part == 'apical':
+    elif part == "apical":
         if (deg >= -45) and (deg < 45):
             seg_id = 13
         elif (deg >= 45) and (deg < 135):
@@ -250,26 +266,28 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
         elif (deg >= -135) and (deg < -45):
             seg_id = 16
         else:
-            print('Error: wrong degree {0}!'.format(deg))
+            print("Error: wrong degree {0}!".format(deg))
             exit(0)
-    elif part == 'apex':
+    elif part == "apex":
         seg_id = 17
     else:
-        print('Error: unknown part {0}!'.format(part))
+        print("Error: unknown part {0}!".format(part))
         exit(0)
     return seg_id
 
 
-def evaluate_wall_thickness(seg_name, output_name_stem, part=None):
-    """ Evaluate myocardial wall thickness. """
+def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
+    """Evaluate myocardial wall thickness."""
     # Read the segmentation image
-    nim = nib.load(seg_name)
-    Z = nim.header['dim'][3]
-    affine = nim.affine
-    seg = nim.get_fdata()
+    
+    if seg.ndim != 3:
+        raise ValueError("The input segmentation should be 3D.")
+
+    affine = nim_sa.affine
+    Z = nim_sa.header["dim"][3]
 
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3}
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Determine the AHA coordinate system using the mid-cavity slice
     aha_axis = determine_aha_coordinate_system(seg, affine)
@@ -284,18 +302,17 @@ def evaluate_wall_thickness(seg_name, output_name_stem, part=None):
     # Construct the points set to represent the endocardial contours
     endo_points = vtk.vtkPoints()
     thickness = vtk.vtkDoubleArray()
-    thickness.SetName('Thickness')
+    thickness.SetName("Thickness")
     points_aha = vtk.vtkIntArray()
-    points_aha.SetName('Segment ID')
+    points_aha.SetName("Segment ID")
     point_id = 0
     lines = vtk.vtkCellArray()
 
     # Save epicardial contour for debug and demonstration purposes
-    save_epi_contour = False
     if save_epi_contour:
         epi_points = vtk.vtkPoints()
         points_epi_aha = vtk.vtkIntArray()
-        points_epi_aha.SetName('Segment ID')
+        points_epi_aha.SetName("Segment ID")
         point_epi_id = 0
         lines_epi = vtk.vtkCellArray()
 
@@ -305,9 +322,9 @@ def evaluate_wall_thickness(seg_name, output_name_stem, part=None):
         # e.g. a single pixel, which either means the structure is missing or
         # causes problem in contour interpolation.
         seg_z = seg[:, :, z]
-        endo = (seg_z == label['LV']).astype(np.uint8)
+        endo = (seg_z == labels["LV"]).astype(np.uint8)
         endo = get_largest_cc(endo).astype(np.uint8)
-        myo = (seg_z == label['Myo']).astype(np.uint8)
+        myo = (seg_z == labels["Myo"]).astype(np.uint8)
         myo = remove_small_cc(myo).astype(np.uint8)
         epi = (endo | myo).astype(np.uint8)
         epi = get_largest_cc(epi).astype(np.uint8)
@@ -347,7 +364,7 @@ def evaluate_wall_thickness(seg_name, output_name_stem, part=None):
         locator.SetDataSet(epi_poly_z)
         locator.BuildLocator()
 
-        # For each point on endocardium, find the closest point on epicardium
+        # * For each point on endocardium, find the closest point on epicardium
         N = endo_contour.shape[0]
         for i in range(N):
             y, x = endo_contour[i]
@@ -412,11 +429,11 @@ def evaluate_wall_thickness(seg_name, output_name_stem, part=None):
     endo_poly.GetPointData().AddArray(points_aha)
     endo_poly.SetLines(lines)
 
-    writer = vtk.vtkPolyDataWriter()
-    output_name = '{0}.vtk'.format(output_name_stem)
-    writer.SetFileName(output_name)
-    writer.SetInputData(endo_poly)
-    writer.Write()
+    # writer = vtk.vtkPolyDataWriter()
+    # output_name = "{0}.vtk".format(output_name_stem)
+    # writer.SetFileName(output_name)
+    # writer.SetInputData(endo_poly)
+    # writer.Write()
 
     if save_epi_contour:
         epi_poly = vtk.vtkPolyData()
@@ -424,11 +441,13 @@ def evaluate_wall_thickness(seg_name, output_name_stem, part=None):
         epi_poly.GetPointData().AddArray(points_epi_aha)
         epi_poly.SetLines(lines_epi)
 
-        writer = vtk.vtkPolyDataWriter()
-        output_name = '{0}_epi.vtk'.format(output_name_stem)
-        writer.SetFileName(output_name)
-        writer.SetInputData(epi_poly)
-        writer.Write()
+        # writer = vtk.vtkPolyDataWriter()
+        # output_name = "{0}_epi.vtk".format(output_name_stem)
+        # writer.SetFileName(output_name)
+        # writer.SetInputData(epi_poly)
+        # writer.Write()
+    else:
+        epi_poly = None
 
     # Evaluate the wall thickness per AHA segment and save to a csv file
     table_thickness = np.zeros(17)
@@ -442,30 +461,32 @@ def evaluate_wall_thickness(seg_name, output_name_stem, part=None):
     table_thickness[-1] = np.mean(np_thickness)
     table_thickness_max[-1] = np.max(np_thickness)
 
-    index = [str(x) for x in np.arange(1, 17)] + ['Global']
-    df = pd.DataFrame(table_thickness, index=index, columns=['Thickness'])
-    df.to_csv('{0}.csv'.format(output_name_stem))
+    index = [str(x) for x in np.arange(1, 17)] + ["Global"]
+    # df = pd.DataFrame(table_thickness, index=index, columns=["Thickness"])
+    # df.to_csv("{0}.csv".format(output_name_stem))
 
-    df = pd.DataFrame(table_thickness_max, index=index, columns=['Thickness_Max'])
-    df.to_csv('{0}_max.csv'.format(output_name_stem))
+    # df = pd.DataFrame(table_thickness_max, index=index, columns=["Thickness_Max"])
+    # df.to_csv("{0}_max.csv".format(output_name_stem))
+
+    return endo_poly, epi_poly, index, table_thickness, table_thickness_max
 
 
 def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_slices=False):
-    """ Extract the myocardial contours, including both endo and epicardial contours.
-        Determine the AHA segment ID for all the contour points.
+    """Extract the myocardial contours, including both endo and epicardial contours.
+    Determine the AHA segment ID for all the contour points.
 
-        By default, part is None. This function will automatically determine the part
-        for each slice (basal, mid or apical).
-        If part is given, this function will use the given part for the image slice.
-        """
+    By default, part is None. This function will automatically determine the part
+    for each slice (basal, mid or apical).
+    If part is given, this function will use the given part for the image slice.
+    """
     # Read the segmentation image
     nim = nib.load(seg_name)
-    X, Y, Z = nim.header['dim'][1:4]
+    X, Y, Z = nim.header["dim"][1:4]
     affine = nim.affine
     seg = nim.get_fdata()
 
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3}
+    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Determine the AHA coordinate system using the mid-cavity slice
     aha_axis = determine_aha_coordinate_system(seg, affine)
@@ -481,9 +502,9 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
     for z in range(Z):
         # Check whether there is the endocardial segmentation
         seg_z = seg[:, :, z]
-        endo = (seg_z == label['LV']).astype(np.uint8)
+        endo = (seg_z == label["LV"]).astype(np.uint8)
         endo = get_largest_cc(endo).astype(np.uint8)
-        myo = (seg_z == label['Myo']).astype(np.uint8)
+        myo = (seg_z == label["Myo"]).astype(np.uint8)
         myo = remove_small_cc(myo).astype(np.uint8)
         epi = (endo | myo).astype(np.uint8)
         epi = get_largest_cc(epi).astype(np.uint8)
@@ -498,19 +519,19 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
         # Construct the points set and data arrays to represent both endo and epicardial contours
         points = vtk.vtkPoints()
         points_radial = vtk.vtkFloatArray()
-        points_radial.SetName('Direction_Radial')
+        points_radial.SetName("Direction_Radial")
         points_radial.SetNumberOfComponents(3)
         points_label = vtk.vtkIntArray()
-        points_label.SetName('Label')
+        points_label.SetName("Label")
         points_aha = vtk.vtkIntArray()
-        points_aha.SetName('Segment ID')
+        points_aha.SetName("Segment ID")
         point_id = 0
 
         lines = vtk.vtkCellArray()
         lines_aha = vtk.vtkIntArray()
-        lines_aha.SetName('Segment ID')
+        lines_aha.SetName("Segment ID")
         lines_dir = vtk.vtkIntArray()
-        lines_dir.SetName('Direction ID')
+        lines_dir.SetName("Direction ID")
 
         # Calculate the centre of the LV cavity
         # Get the largest component in case we have a bad segmentation
@@ -625,7 +646,7 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
                 for j in range(n_ids):
                     q = epi_points.GetPoint(ids.GetId(j))
                     d = (q - lv_centre) / np.linalg.norm(q - lv_centre)
-                    val += [np.dot(d, d_rad)] 
+                    val += [np.dot(d, d_rad)]
                 val = np.array(val)
                 epi_point_id = ids.GetId(np.argmax(val))
 
@@ -650,7 +671,7 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
         poly.GetCellData().AddArray(lines_dir)
 
         writer = vtk.vtkPolyDataWriter()
-        contour_name = '{0}{1:02d}.vtk'.format(contour_name_stem, z)
+        contour_name = "{0}{1:02d}.vtk".format(contour_name_stem, z)
         writer.SetFileName(contour_name)
         writer.SetInputData(poly)
         writer.Write()
@@ -658,20 +679,20 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
 
 
 def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
-    """ Calculate the strain based on the line length """
+    """Calculate the strain based on the line length"""
     # Read the polydata at the first time frame (ED frame)
     fr = 0
     # read poly from vtk file that represents transformed myocardial contours
     reader = vtk.vtkPolyDataReader()
-    reader.SetFileName('{0}{1:02d}.vtk'.format(contour_name_stem, fr))
+    reader.SetFileName("{0}{1:02d}.vtk".format(contour_name_stem, fr))
     reader.Update()
     poly = reader.GetOutput()
     points = poly.GetPoints()
 
     # Calculate the length of each line
     lines = poly.GetLines()
-    lines_aha = poly.GetCellData().GetArray('Segment ID')
-    lines_dir = poly.GetCellData().GetArray('Direction ID')
+    lines_aha = poly.GetCellData().GetArray("Segment ID")
+    lines_dir = poly.GetCellData().GetArray("Direction ID")
     n_lines = lines.GetNumberOfCells()
     length_ED = np.zeros(n_lines)
     seg_id = np.zeros(n_lines)
@@ -691,13 +712,13 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
 
     # For each time frame, calculate the strain, i.e. change of length
     table_strain = {}
-    table_strain['radial'] = np.zeros((17, T))
-    table_strain['circum'] = np.zeros((17, T))
+    table_strain["radial"] = np.zeros((17, T))
+    table_strain["circum"] = np.zeros((17, T))
 
     for fr in range(0, T):
         # Read the polydata
         reader = vtk.vtkPolyDataReader()
-        filename = '{0}{1:02d}.vtk'.format(contour_name_stem, fr)
+        filename = "{0}{1:02d}.vtk".format(contour_name_stem, fr)
         reader.SetFileName(filename)
         reader.Update()
         poly = reader.GetOutput()
@@ -708,7 +729,7 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
         n_lines = lines.GetNumberOfCells()
         strain = np.zeros(n_lines)
         vtk_strain = vtk.vtkFloatArray()
-        vtk_strain.SetName('Strain')
+        vtk_strain.SetName("Strain")
         lines.InitTraversal()
         for i in range(n_lines):
             ids = vtk.vtkIdList()
@@ -731,178 +752,206 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
 
         # Calculate the segmental and global strains
         for i in range(0, 16):
-            table_strain['radial'][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 1)])
-            table_strain['circum'][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 2)])
-        table_strain['radial'][-1, fr] = np.mean(strain[dir_id == 1])
-        table_strain['circum'][-1, fr] = np.mean(strain[dir_id == 2])
+            table_strain["radial"][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 1)])
+            table_strain["circum"][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 2)])
+        table_strain["radial"][-1, fr] = np.mean(strain[dir_id == 1])
+        table_strain["circum"][-1, fr] = np.mean(strain[dir_id == 2])
 
-    for c in ['radial', 'circum']:
+    for c in ["radial", "circum"]:
         # Save into csv files
-        index = [str(x) for x in np.arange(1, 17)] + ['Global']
+        index = [str(x) for x in np.arange(1, 17)] + ["Global"]
         column = np.arange(0, T) * dt * 1e3
         df = pd.DataFrame(table_strain[c], index=index, columns=column)
-        df.to_csv('{0}_{1}.csv'.format(output_name_stem, c))
+        df.to_csv("{0}_{1}.csv".format(output_name_stem, c))
 
 
 def cine_2d_sa_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_name_stem):
-    """ Perform motion tracking and strain analysis for cine MR images. """
+    """Perform motion tracking and strain analysis for cine MR images."""
     # Crop the image to save computation for image registration
     # Focus on the left ventricle so that motion tracking is less affected by
     # the movement of RV and LV outflow tract
-    padding('{0}/seg_sa_ED.nii.gz'.format(data_dir),
-            '{0}/seg_sa_ED.nii.gz'.format(data_dir),
-            '{0}/seg_sa_lv_ED.nii.gz'.format(output_dir), 3, 0)
-    auto_crop_image('{0}/seg_sa_lv_ED.nii.gz'.format(output_dir),
-                    '{0}/seg_sa_lv_crop_ED.nii.gz'.format(output_dir), 20)
-    os.system('mirtk transform-image {0}/sa.nii.gz {1}/sa_crop.nii.gz '
-              '-target {1}/seg_sa_lv_crop_ED.nii.gz'.format(data_dir, output_dir))
-    os.system('mirtk transform-image {0}/seg_sa.nii.gz {1}/seg_sa_crop.nii.gz '
-              '-target {1}/seg_sa_lv_crop_ED.nii.gz'.format(data_dir, output_dir))
+    padding(
+        "{0}/seg_sa_ED.nii.gz".format(data_dir),
+        "{0}/seg_sa_ED.nii.gz".format(data_dir),
+        "{0}/seg_sa_lv_ED.nii.gz".format(output_dir),
+        3,
+        0,
+    )
+    auto_crop_image("{0}/seg_sa_lv_ED.nii.gz".format(output_dir), "{0}/seg_sa_lv_crop_ED.nii.gz".format(output_dir), 20)
+    os.system(
+        "mirtk transform-image {0}/sa.nii.gz {1}/sa_crop.nii.gz " "-target {1}/seg_sa_lv_crop_ED.nii.gz".format(
+            data_dir, output_dir
+        )
+    )
+    os.system(
+        "mirtk transform-image {0}/seg_sa.nii.gz {1}/seg_sa_crop.nii.gz " "-target {1}/seg_sa_lv_crop_ED.nii.gz".format(
+            data_dir, output_dir
+        )
+    )
 
     # Extract the myocardial contours for three slices, respectively basal, mid-cavity and apical
-    extract_myocardial_contour('{0}/seg_sa_ED.nii.gz'.format(data_dir),
-                               '{0}/myo_contour_ED_z'.format(output_dir),
-                               three_slices=True)
+    extract_myocardial_contour(
+        "{0}/seg_sa_ED.nii.gz".format(data_dir), "{0}/myo_contour_ED_z".format(output_dir), three_slices=True
+    )
 
     # Split the volume into slices
-    split_volume('{0}/sa_crop.nii.gz'.format(output_dir), '{0}/sa_crop_z'.format(output_dir))
-    split_volume('{0}/seg_sa_crop.nii.gz'.format(output_dir), '{0}/seg_sa_crop_z'.format(output_dir))
+    split_volume("{0}/sa_crop.nii.gz".format(output_dir), "{0}/sa_crop_z".format(output_dir))
+    split_volume("{0}/seg_sa_crop.nii.gz".format(output_dir), "{0}/seg_sa_crop_z".format(output_dir))
 
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3}
+    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Inter-frame motion estimation
-    nim = nib.load('{0}/sa_crop.nii.gz'.format(output_dir))
-    Z = nim.header['dim'][3]
-    T = nim.header['dim'][4]
-    dt = nim.header['pixdim'][4]
+    nim = nib.load("{0}/sa_crop.nii.gz".format(output_dir))
+    Z = nim.header["dim"][3]
+    T = nim.header["dim"][4]
+    dt = nim.header["pixdim"][4]
     dice_lv_myo = []
     for z in range(Z):
-        if not os.path.exists('{0}/myo_contour_ED_z{1:02d}.vtk'.format(output_dir, z)):
+        if not os.path.exists("{0}/myo_contour_ED_z{1:02d}.vtk".format(output_dir, z)):
             continue
 
         # Split the cine sequence for this slice
-        split_sequence('{0}/sa_crop_z{1:02d}.nii.gz'.format(output_dir, z),
-                       '{0}/sa_crop_z{1:02d}_fr'.format(output_dir, z))
+        split_sequence(
+            "{0}/sa_crop_z{1:02d}.nii.gz".format(output_dir, z), "{0}/sa_crop_z{1:02d}_fr".format(output_dir, z)
+        )
 
         # Forward image registration
         for fr in range(1, T):
             target_fr = fr - 1
-            source_fr = fr  
-            target = '{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz'.format(output_dir, z, target_fr)
-            source = '{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz'.format(output_dir, z, source_fr)
-            par = '{0}/ffd_cine_2d_motion.cfg'.format(par_dir)  # Parameter file for 2D cine image registration
-            dof = '{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz'.format(output_dir, z, target_fr, source_fr)  # Output transformation field
-            os.system('mirtk register {0} {1} -parin {2} -dofout {3}'.format(target, source, par, dof))
+            source_fr = fr
+            target = "{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, target_fr)
+            source = "{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, source_fr)
+            par = "{0}/ffd_cine_2d_motion.cfg".format(par_dir)  # Parameter file for 2D cine image registration
+            dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(
+                output_dir, z, target_fr, source_fr
+            )  # Output transformation field
+            os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
 
         # Compose forward inter-frame transformation fields
         # for the first frame, directly copy the transformation
-        os.system('cp {0}/ffd_z{1:02d}_pair_00_to_01.dof.gz '
-                  '{0}/ffd_z{1:02d}_forward_00_to_01.dof.gz'.format(output_dir, z))
+        os.system(
+            "cp {0}/ffd_z{1:02d}_pair_00_to_01.dof.gz " "{0}/ffd_z{1:02d}_forward_00_to_01.dof.gz".format(output_dir, z)
+        )
         # for the rest frames, compose the transformation fields
         for fr in range(2, T):
-            dofs = ''
+            dofs = ""
             for k in range(1, fr + 1):
-                dof = '{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz'.format(output_dir, z, k - 1, k)
-                dofs += dof + ' '
-            dof_out = '{0}/ffd_z{1:02d}_forward_00_to_{2:02d}.dof.gz'.format(output_dir, z, fr)
-            os.system('mirtk compose-dofs {0} {1} -approximate'.format(dofs, dof_out))
+                dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(output_dir, z, k - 1, k)
+                dofs += dof + " "
+            dof_out = "{0}/ffd_z{1:02d}_forward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
+            os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
 
         # Backward image registration
         for fr in range(T - 1, 0, -1):
             target_fr = (fr + 1) % T
             source_fr = fr
-            target = '{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz'.format(output_dir, z, target_fr)
-            source = '{0}/sa _crop_z{1:02d}_fr{2:02d}.nii.gz'.format(output_dir, z, source_fr)
-            par = '{0}/ffd_cine_2d_motion.cfg'.format(par_dir)
-            dof = '{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz'.format(output_dir, z, target_fr, source_fr)
-            os.system('mirtk register {0} {1} -parin {2} -dofout {3}'.format(target, source, par, dof))
+            target = "{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, target_fr)
+            source = "{0}/sa _crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, source_fr)
+            par = "{0}/ffd_cine_2d_motion.cfg".format(par_dir)
+            dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(output_dir, z, target_fr, source_fr)
+            os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
 
         # Compose backward inter-frame transformation fields
-        os.system('cp {0}/ffd_z{1:02d}_pair_00_to_{2:02d}.dof.gz '
-                  '{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz'.format(output_dir, z, T - 1))
+        os.system(
+            "cp {0}/ffd_z{1:02d}_pair_00_to_{2:02d}.dof.gz " "{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz".format(
+                output_dir, z, T - 1
+            )
+        )
         for fr in range(T - 2, 0, -1):
-            dofs = ''
+            dofs = ""
             for k in range(T - 1, fr - 1, -1):
-                dof = '{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz'.format(output_dir, z,
-                                                                               (k + 1) % T, k)
-                dofs += dof + ' '
-            dof_out = '{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz'.format(output_dir, z, fr)
-            os.system('mirtk compose-dofs {0} {1} -approximate'.format(dofs, dof_out))
+                dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(output_dir, z, (k + 1) % T, k)
+                dofs += dof + " "
+            dof_out = "{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
+            os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
 
         # Average the forward and backward transformations
-        os.system('mirtk init-dof {0}/ffd_z{1:02d}_forward_00_to_00.dof.gz'.format(output_dir, z))  # Identity (affine) transformation
-        os.system('mirtk init-dof {0}/ffd_z{1:02d}_backward_00_to_00.dof.gz'.format(output_dir, z))
-        os.system('mirtk init-dof {0}/ffd_z{1:02d}_00_to_00.dof.gz'.format(output_dir, z))
+        os.system(
+            "mirtk init-dof {0}/ffd_z{1:02d}_forward_00_to_00.dof.gz".format(output_dir, z)
+        )  # Identity (affine) transformation
+        os.system("mirtk init-dof {0}/ffd_z{1:02d}_backward_00_to_00.dof.gz".format(output_dir, z))
+        os.system("mirtk init-dof {0}/ffd_z{1:02d}_00_to_00.dof.gz".format(output_dir, z))
         # For a frame at early stage of a cardiac cycle (small fr), the forward displacement field will have a higher
         for fr in range(1, T):
-            dof_forward = '{0}/ffd_z{1:02d}_forward_00_to_{2:02d}.dof.gz'.format(output_dir, z, fr)
+            dof_forward = "{0}/ffd_z{1:02d}_forward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
             weight_forward = float(T - fr) / T
-            dof_backward = '{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz'.format(output_dir, z, fr)
+            dof_backward = "{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
             weight_backward = float(fr) / T
-            dof_combine = '{0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz'.format(output_dir, z, fr)
-            os.system('average_3d_ffd 2 {0} {1} {2} {3} {4}'.format(dof_forward, weight_forward,
-                                                                    dof_backward, weight_backward,
-                                                                    dof_combine))
+            dof_combine = "{0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
+            os.system(
+                "average_3d_ffd 2 {0} {1} {2} {3} {4}".format(
+                    dof_forward, weight_forward, dof_backward, weight_backward, dof_combine
+                )
+            )
 
         # Transform the contours
         for fr in range(0, T):
-            os.system('mirtk transform-points {0}/myo_contour_ED_z{1:02d}.vtk '
-                      '{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk '
-                      '-dofin {0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz'.format(output_dir, z, fr))
+            os.system(
+                "mirtk transform-points {0}/myo_contour_ED_z{1:02d}.vtk "
+                "{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk "
+                "-dofin {0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
+            )
 
         # Transform the segmentation and evaluate the Dice metric
         eval_dice = False
         if eval_dice:
-            split_sequence('{0}/seg_sa_crop_z{1:02d}.nii.gz'.format(output_dir, z),
-                           '{0}/seg_sa_crop_z{1:02d}_fr'.format(output_dir, z))
+            split_sequence(
+                "{0}/seg_sa_crop_z{1:02d}.nii.gz".format(output_dir, z),
+                "{0}/seg_sa_crop_z{1:02d}_fr".format(output_dir, z),
+            )
 
             image_names = []
             for fr in range(0, T):
-                os.system('mirtk transform-image {0}/seg_sa_crop_z{1:02d}_fr{2:02d}.nii.gz '
-                          '{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz '
-                          '-dofin {0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz '
-                          '-target {0}/seg_sa_crop_z{1:02d}_fr00.nii.gz'.format(output_dir, z, fr))
-                image_A = nib.load('{0}/seg_sa_crop_z{1:02d}_fr00.nii.gz'.format(output_dir, z)).get_fdata()  # target image
-                image_B = nib.load('{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz'.format(output_dir, z, fr)).get_fdata()  # warped target image
+                os.system(
+                    "mirtk transform-image {0}/seg_sa_crop_z{1:02d}_fr{2:02d}.nii.gz "
+                    "{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz "
+                    "-dofin {0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz "
+                    "-target {0}/seg_sa_crop_z{1:02d}_fr00.nii.gz".format(output_dir, z, fr)
+                )
+                image_A = nib.load(
+                    "{0}/seg_sa_crop_z{1:02d}_fr00.nii.gz".format(output_dir, z)
+                ).get_fdata()  # target image
+                image_B = nib.load(
+                    "{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, fr)
+                ).get_fdata()  # warped target image
                 # evaluate dice metric on the warped segmentation and the target segmentation
-                dice_lv_myo += [[np_categorical_dice(image_A, image_B, 1),
-                                 np_categorical_dice(image_A, image_B, 2)]]
-                image_names += ['{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz'.format(output_dir, z, fr)]
-            combine_name = '{0}/seg_sa_crop_warp_ffd_z{1:02d}.nii.gz'.format(output_dir, z) # a sequence to be made
+                dice_lv_myo += [[np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)]]
+                image_names += ["{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, fr)]
+            combine_name = "{0}/seg_sa_crop_warp_ffd_z{1:02d}.nii.gz".format(output_dir, z)  # a sequence to be made
             make_sequence(image_names, dt, combine_name)
 
     if eval_dice:
         print(np.mean(dice_lv_myo, axis=0))
         df_dice = pd.DataFrame(dice_lv_myo)
-        df_dice.to_csv('{0}/dice_cine_warp_ffd.csv'.format(output_dir), index=None, header=None)
+        df_dice.to_csv("{0}/dice_cine_warp_ffd.csv".format(output_dir), index=None, header=None)
 
     # Merge the 2D tracked contours from all the slice
     for fr in range(0, T):
         append = vtk.vtkAppendPolyData()
         reader = {}
         for z in range(Z):
-            if not os.path.exists('{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk'.format(output_dir, z, fr)):
+            if not os.path.exists("{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk".format(output_dir, z, fr)):
                 continue
             reader[z] = vtk.vtkPolyDataReader()
-            reader[z].SetFileName('{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk'.format(output_dir, z, fr))
+            reader[z].SetFileName("{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk".format(output_dir, z, fr))
             reader[z].Update()
             append.AddInputData(reader[z].GetOutput())
         append.Update()
         writer = vtk.vtkPolyDataWriter()
-        writer.SetFileName('{0}/myo_contour_fr{1:02d}.vtk'.format(output_dir, fr))
+        writer.SetFileName("{0}/myo_contour_fr{1:02d}.vtk".format(output_dir, fr))
         writer.SetInputData(append.GetOutput())
         writer.Write()
 
     # Calculate the strain based on the line length
-    evaluate_strain_by_length('{0}/myo_contour_fr'.format(output_dir), T, dt, output_name_stem)
+    evaluate_strain_by_length("{0}/myo_contour_fr".format(output_dir), T, dt, output_name_stem)
 
 
 def remove_mitral_valve_points(endo_contour, epi_contour, mitral_plane):
-    """ Remove the mitral valve points from the contours and
-        start the contours from the point next to the mitral valve plane.
-        So connecting the lines will be easier in the next step.
-        """
+    """Remove the mitral valve points from the contours and
+    start the contours from the point next to the mitral valve plane.
+    So connecting the lines will be easier in the next step.
+    """
     N = endo_contour.shape[0]
     start_i = 0
     for i in range(N):
@@ -948,12 +997,12 @@ def determine_sa_basal_slice(seg_sa: Tuple[float, float, float]):
     Determine the basal slice of the short-axis image for a given timepoint.
     """
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3}
+    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     _, _, Z = seg_sa.shape
 
     for z in range(Z):
-        if z > Z/2:
+        if z > Z / 2:
             # In this case, the slice will be close to apex and should not be considered
             raise ValueError("The basal slice is not found.")
 
@@ -961,17 +1010,17 @@ def determine_sa_basal_slice(seg_sa: Tuple[float, float, float]):
 
         # Criterion 1: The area of LV should be above a threshold
         pixel_thres = 10
-        if np.sum(seg_z == label['LV']) < pixel_thres:
+        if np.sum(seg_z == label["LV"]) < pixel_thres:
             continue
 
         # Criterion 2: If the myocardium can surround LV perfectly, then we can determine the basal slice.
-        LV_mask = (seg_z == label['LV']).astype(np.uint8)
-        myo_mask = (seg_z == label['Myo']).astype(np.uint8)
+        LV_mask = (seg_z == label["LV"]).astype(np.uint8)
+        myo_mask = (seg_z == label["Myo"]).astype(np.uint8)
         contours, _ = cv2.findContours(myo_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         next_z = False
         for i in range(LV_mask.shape[0]):
             for j in range(LV_mask.shape[1]):
-                if LV_mask[i, j ] == 1:
+                if LV_mask[i, j] == 1:
                     if all(cv2.pointPolygonTest(contour, (j, i), False) < 0 for contour in contours):
                         next_z = True
                         break
@@ -981,13 +1030,14 @@ def determine_sa_basal_slice(seg_sa: Tuple[float, float, float]):
             continue
         return z
 
+
 def determine_axes(label_i, nim, long_axis):
     """
-    Determine the major axis and minor axis using the binary segmentation and 
+    Determine the major axis and minor axis using the binary segmentation and
     return the axes as well as lines that represents the major/minor axis that entirely covered by the segmentation.
     """
-    assert len(label_i.shape) == 2, 'The input should be a 2D image.'
-
+    if label_i.ndim != 2:
+        raise ValueError("The input should be a 2D image.")
 
     points_label = np.nonzero(label_i)
     points = []
@@ -995,17 +1045,16 @@ def determine_axes(label_i, nim, long_axis):
         x = points_label[0][j]
         y = points_label[1][j]
         # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
-        points += [[x, y,
-                    np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
+        points += [[x, y, np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
     points = np.array(points)
     points = points[points[:, 2].argsort()]
 
     n_points = len(points)
-    top_points = points[int(2 * n_points / 3):]
+    top_points = points[int(2 * n_points / 3) :]
     cx, cy, _ = np.mean(top_points, axis=0)
 
     # The centre at the bottom part (bottom third)
-    bottom_points = points[:int(n_points / 3)]
+    bottom_points = points[: int(n_points / 3)]
     bx, by, _ = np.mean(bottom_points, axis=0)
 
     # Determine the major axis by connecting the geometric centre and the bottom centre
@@ -1025,14 +1074,14 @@ def determine_axes(label_i, nim, long_axis):
     minor_axis = minor_axis / np.linalg.norm(minor_axis)  # normalization
 
     # Mid level, to be used when determining tranverse diameter
-    mx, my, _ = np.mean(points, axis=0) 
+    mx, my, _ = np.mean(points, axis=0)
 
     rx = mx + minor_axis[0] * 100
     ry = my + minor_axis[1] * 100
     sx = mx - minor_axis[0] * 100
     sy = my - minor_axis[1] * 100
     if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
-        raise ValueError('Minor axis can not determined.')
+        raise ValueError("Minor axis can not determined.")
 
     image_line_minor = np.zeros(label_i.shape)
     cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx)), (1, 0, 0))
@@ -1040,7 +1089,8 @@ def determine_axes(label_i, nim, long_axis):
 
     return major_axis, minor_axis, image_line_major, image_line_minor
 
-def determine_avpd_landmark(seg: Tuple[float, float], major_axis, minor_axis, image_line_major):
+
+def determine_avpd_landmark(seg4: Tuple[float, float], major_axis, image_line_major):
     """
     Determine the landmark for the atriovetricular (AV) plane so that AVPD can be measured.
     Currently, we only consider the AV of LV.
@@ -1048,90 +1098,120 @@ def determine_avpd_landmark(seg: Tuple[float, float], major_axis, minor_axis, im
     Parameters
     ----------
     seg : Tuple[float, float]
-        The binary segmentation of LV in the long-axis image.
+        The segmentation of all four chambers and myocardium in the long-axis image.
     major_axis : np.array
         The major axis.
-    minor_axis : np.array
-        The minor axis.
     image_line_major : np.array
         The line that represents the major axis in the image, can be obtained using determine_axes().
     """
 
-    points_label = np.nonzero(seg)
-    points = []
-    for i in range(len(points_label[0])):
-        x = points_label[0][i]
-        y = points_label[1][i]
-        # get the distance along the major axis
-        points += [[x, y, -np.dot([x,y], major_axis)]]
-    points = np.array(points)
-    points = points[points[:,2].argsort()]
+    # seg_LV = seg4 == 1
+    seg_Myo = seg4 == 2
+    seg_RV = seg4 == 3
 
-    image_line_major_points = np.nonzero(image_line_major)
-    image_line_major_points = np.array(list(zip(image_line_major_points[0], image_line_major_points[1])))
+    # image_line_LV = image_line_major * seg_LV
+    image_line_LV = image_line_major
+    points_line_LV = np.nonzero(image_line_LV)
+    points_line_LV = np.array(list(zip(points_line_LV[0], points_line_LV[1])))
+
+    points_Myo_raw = np.nonzero(seg_Myo)  # We need two points from Myo
+
+    points_RV_raw = np.nonzero(seg_RV)  # We need two point from RV
+    barycenter_RV = np.mean(points_RV_raw, axis=1)
+    # make a parallel line to the major axis based on barycenter
+    image_line_RV_p1 = (int(barycenter_RV[1] + 30 * major_axis[1]), int(barycenter_RV[0] + 30 * major_axis[0]))
+    image_line_RV_p2 = (int(barycenter_RV[1] - 30 * major_axis[1]), int(barycenter_RV[0] - 30 * major_axis[0]))
+
+    image_line_RV = np.zeros_like(seg4, dtype=np.uint8)
+    image_line_RV = np.ascontiguousarray(image_line_RV)
+    image_line_RV = cv2.line(image_line_RV, image_line_RV_p1, image_line_RV_p2, 255, 1)
+    # image_line_RV = image_line_RV * seg_RV
+    points_line_RV = np.nonzero(image_line_RV)
+    points_line_RV = np.array(list(zip(points_line_RV[0], points_line_RV[1])))
+
+    points_RV = []
+    points_Myo = []
+
+    for i in range(len(points_RV_raw[0])):
+        x = points_RV_raw[0][i]
+        y = points_RV_raw[1][i]
+        points_RV.append((x, y, np.dot([x, y], major_axis)))
+    points_RV = np.array(points_RV)
+    points_RV = points_RV[points_RV[:, 2].argsort()][:, :2]
+
+    for i in range(len(points_Myo_raw[0])):
+        x = points_Myo_raw[0][i]
+        y = points_Myo_raw[1][i]
+        points_Myo.append((x, y, np.dot([x, y], major_axis)))
+    points_Myo = np.array(points_Myo)
+    points_Myo = points_Myo[points_Myo[:, 2].argsort()][:, :2]
+
+    # def _point_line_side(point, line_points):
+    #     """
+    #     Determine which side of a line a point is on. We can then determine two points by different signs.
+    #     """
+    #     if point.shape != (2,):
+    #         raise ValueError("point should be in shape (2,)")
+    #     if line_points.shape[1] != 2:
+    #         raise ValueError("line_points should be in shape (n,2)")
+    #     # Calculate the distance from the point to each point on the line
+    #     distances = np.sum((line_points - point) ** 2, axis=1)
+    #     # Find the two closest points
+    #     closest_points = line_points[np.argsort(distances)[:2]]
+    #     # Calculate the directed distance from the point to the line formed by the two closest points
+    #     return np.cross(closest_points[1] - closest_points[0], point - closest_points[0]) > 0
+
+    def _fit_line(line_points):    
+        # Fit line y = mx + c
+        x = line_points[:, 0]
+        y = line_points[:, 1]
+        slope, intercept = np.polyfit(x, y, 1)
+        return slope, intercept
 
     def _point_line_side(point, line_points):
-        # print(point)
-        # print(line_points)
-        # Calculate the distance from the point to each point on the line
-        distances = np.sum((line_points - point) ** 2, axis=1)
-        # Find the two closest points
-        closest_points = line_points[np.argsort(distances)[:2]]
-        # Calculate the directed distance from the point to the line formed by the two closest points
-        return np.cross(closest_points[1] - closest_points[0], point - closest_points[0]) > 0
+        """
+        Fit a line to the given points and determine which side of the line the point is on.
+        """
+        if point.shape != (2,):
+            raise ValueError("point should be in shape (2,)")
+        if line_points.ndim != 2:
+            raise ValueError("line_points should be in shape (n,2)")
+        if line_points.shape[1] != 2:
+            raise ValueError("line_points should be in shape (n,2)")
+        if line_points.shape[0] < 8:
+            raise ValueError("line_points contain too few points")
+        slope, intercept = _fit_line(line_points)
+        x, y = point
+        # Calculate the y value on the line at the given x
+        line_y = slope * x + intercept
+        # If point's y is greater than line_y, it's above the line; otherwise, it's below
+        return y > line_y
 
-    # We take the average of AVPD for two landmarks
-    lm1 = lm2 = None
-    for point in points:
-        x, y, _ = point
+    lm1 = lm2 = lm3 = lm4 = None
+    for i in range(points_RV.shape[0]):
         if lm1 is not None and lm2 is not None:
             break
+        if _point_line_side(points_RV[i], points_line_RV) and lm1 is None:
+            lm1 = points_RV[i]
+        elif not _point_line_side(points_RV[i], points_line_RV) and lm2 is None:
+            lm2 = points_RV[i]
+    for i in range(points_Myo.shape[0]):
+        if lm3 is not None and lm4 is not None:
+            break
+        if _point_line_side(points_Myo[i], points_line_LV) and lm3 is None:
+            lm3 = points_Myo[i]
+        elif not _point_line_side(points_Myo[i], points_line_LV) and lm4 is None:
+            lm4 = points_Myo[i]
 
-        # Determine the side, we need landmarks at both sides
-        if _point_line_side([x,y], image_line_major_points) and lm1 is None:
-            lm1 = [x, y]
-        if not _point_line_side([x,y], image_line_major_points) and lm2 is None:
-            lm2 = [x, y]
+    return ([lm1, lm2, lm3, lm4], points_line_LV, points_line_RV)
 
-    def _get_intersection_point(lm, image_line, image_line_points, major_axis, minor_axis, thickness = (1,1)):
-        # extend through the major axis so that we can determine the intersection point
-        image_line_extended = np.zeros(image_line.shape)
-        cv2.line(image_line_extended,
-                (int(image_line_points[0][1]+100*major_axis[1]), int(image_line_points[0][0]+100*major_axis[0])),
-                (int(image_line_points[0][1]-100*major_axis[1]), int(image_line_points[0][0]-100*major_axis[0])),
-                (1,0,0), thickness[0])
-        image_line_extended = (image_line_extended > 0)
-
-        # Determine the point one image_line_major that using a perpendicular line on lm1 and lm2
-        lm_line = np.zeros(image_line.shape)
-        cv2.line(lm_line, 
-                (int(lm[1] + minor_axis[1] * 100), int(lm[0] + minor_axis[0] * 100)), 
-                (int(lm[1] - minor_axis[1] * 100), int(lm[0] - minor_axis[0] * 100)), 
-                (1,0,0), thickness[1])
-        lm_line = (lm_line > 0)
-
-        intersection_points = np.nonzero(np.logical_and(lm_line, image_line_extended))
-
-        if len(intersection_points[0]) == 0:
-            if thickness == (2,2):
-                # Still cannot find intersection point
-                raise ValueError("No intersection point can be found")
-            intersection_points = _get_intersection_point(lm, image_line, image_line_points, major_axis, minor_axis, 
-                                                        thickness = (2,2))
-        return intersection_points
-
-    lm1_intersect = _get_intersection_point(lm1, image_line_major, image_line_major_points, major_axis, minor_axis)
-    lm1_intersect = (np.mean(lm1_intersect[0]), np.mean(lm1_intersect[1]))
-    lm2_intersect = _get_intersection_point(lm2, image_line_major, image_line_major_points, major_axis, minor_axis)
-    lm2_intersect = (np.mean(lm2_intersect[0]), np.mean(lm2_intersect[1]))
-    return (lm1_intersect[0] + lm2_intersect[0]) / 2, (lm1_intersect[1] + lm2_intersect[1]) / 2
 
 def determine_la_aha_part(seg_la, affine_la, affine_sa):
-    """ Extract the mid-line of the left ventricle, record its index
-        along the long-axis and determine the part for each index.
+    """Extract the mid-line of the left ventricle, record its index
+    along the long-axis and determine the part for each index.
     """
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
+    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
     # Sort the left ventricle and myocardium points according to their long-axis locations
     lv_myo_points = []
@@ -1139,7 +1219,7 @@ def determine_la_aha_part(seg_la, affine_la, affine_sa):
     z = 0
     for y in range(Y):
         for x in range(X):
-            if seg_la[x, y] == label['LV'] or seg_la[x, y] == label['Myo']:
+            if seg_la[x, y] == label["LV"] or seg_la[x, y] == label["Myo"]:
                 z_sa = np.dot(np.linalg.inv(affine_sa), np.dot(affine_la, np.array([x, y, z, 1])))[2]
                 la_idx = int(round(z_sa * 2))
                 lv_myo_points += [[x, y, la_idx]]
@@ -1160,13 +1240,13 @@ def determine_la_aha_part(seg_la, affine_la, affine_sa):
 
     part_z = {}
     for i in range(0, i1):
-        part_z[la_idx[i]] = 'basal'
+        part_z[la_idx[i]] = "basal"
 
     for i in range(i1, i2):
-        part_z[la_idx[i]] = 'mid'
+        part_z[la_idx[i]] = "mid"
 
     for i in range(i2, i3):
-        part_z[la_idx[i]] = 'apical'
+        part_z[la_idx[i]] = "apical"
 
     # Extract the mid-line of left ventricle endocardium.
     # Only use the endocardium points so that it would not be affected by
@@ -1176,7 +1256,7 @@ def determine_la_aha_part(seg_la, affine_la, affine_sa):
     z = 0
     for y in range(Y):
         for x in range(X):
-            if seg_la[x, y] == label['LV']:
+            if seg_la[x, y] == label["LV"]:
                 z_sa = np.dot(np.linalg.inv(affine_sa), np.dot(affine_la, np.array([x, y, z, 1])))[2]
                 la_idx = int(round(z_sa * 2))
                 lv_points += [[x, y, la_idx]]
@@ -1198,50 +1278,49 @@ def determine_la_aha_part(seg_la, affine_la, affine_sa):
 
 
 def determine_la_aha_segment_id(point, la_idx, axis, mid_line, part_z):
-    """ Determine the AHA segment ID given a point on long-axis images.
-        """
+    """Determine the AHA segment ID given a point on long-axis images."""
     # The mid-point at this position
     mid_point = mid_line[la_idx]
 
     # The line from the mid-point to the contour point
     vec = point - mid_point
-    if np.dot(vec, axis['lv_to_sep']) > 0:
+    if np.dot(vec, axis["lv_to_sep"]) > 0:
         # This is spetum
-        if part_z[la_idx] == 'basal':
+        if part_z[la_idx] == "basal":
             # basal septal
             seg_id = 1
-        elif part_z[la_idx] == 'mid':
+        elif part_z[la_idx] == "mid":
             # mid septal
             seg_id = 3
-        elif part_z[la_idx] == 'apical':
+        elif part_z[la_idx] == "apical":
             # apical septal
             seg_id = 5
     else:
         # This is lateral
-        if part_z[la_idx] == 'basal':
+        if part_z[la_idx] == "basal":
             # basal lateral
             seg_id = 2
-        elif part_z[la_idx] == 'mid':
+        elif part_z[la_idx] == "mid":
             # mid lateral
             seg_id = 4
-        elif part_z[la_idx] == 'apical':
+        elif part_z[la_idx] == "apical":
             # apical lateral
             seg_id = 6
     return seg_id
 
 
 def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
-    """ Extract the myocardial contours on long-axis images.
-        Also, determine the AHA segment ID for all the contour points.
-        """
+    """Extract the myocardial contours on long-axis images.
+    Also, determine the AHA segment ID for all the contour points.
+    """
     # Read the segmentation image
     nim = nib.load(seg_la_name)
-    X, Y, Z = nim.header['dim'][1:4]
+    X, Y, Z = nim.header["dim"][1:4]
     affine = nim.affine
     seg = nim.get_fdata()
 
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
+    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
     # Determine the AHA coordinate system using the mid-cavity slice of short-axis images
     nim_sa = nib.load(seg_sa_name)
@@ -1252,29 +1331,29 @@ def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
     # Construct the points set and data arrays to represent both endo and epicardial contours
     points = vtk.vtkPoints()
     points_radial = vtk.vtkFloatArray()
-    points_radial.SetName('Direction_Radial')
+    points_radial.SetName("Direction_Radial")
     points_radial.SetNumberOfComponents(3)
     points_label = vtk.vtkIntArray()
-    points_label.SetName('Label')
+    points_label.SetName("Label")
     points_aha = vtk.vtkIntArray()
-    points_aha.SetName('Segment ID')
+    points_aha.SetName("Segment ID")
     point_id = 0
     lines = vtk.vtkCellArray()
     lines_aha = vtk.vtkIntArray()
-    lines_aha.SetName('Segment ID')
+    lines_aha.SetName("Segment ID")
     lines_dir = vtk.vtkIntArray()
-    lines_dir.SetName('Direction ID')  # to be used when calculating the strain, need to be saved in vtk file
+    lines_dir.SetName("Direction ID")  # to be used when calculating the strain, need to be saved in vtk file
 
     # Check whether there is the endocardial segmentation
     # Only keep the largest connected component
     z = 0
     seg_z = seg[:, :, z]
-    endo = (seg_z == label['LV']).astype(np.uint8)
+    endo = (seg_z == label["LV"]).astype(np.uint8)
     endo = get_largest_cc(endo).astype(np.uint8)
     # The myocardium may be split to two parts due to the very thin apex.
     # So we do not apply get_largest_cc() to it. However, we remove small pieces, which
     # may cause problems in determining the contours.
-    myo = (seg_z == label['Myo']).astype(np.uint8)
+    myo = (seg_z == label["Myo"]).astype(np.uint8)
     myo = remove_small_cc(myo).astype(np.uint8)
     epi = (endo | myo).astype(np.uint8)
     epi = get_largest_cc(epi).astype(np.uint8)
@@ -1417,19 +1496,19 @@ def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
 
 
 def evaluate_la_strain_by_length(contour_name_stem, T, dt, output_name_stem):
-    """ Calculate the strain based on the line length """
+    """Calculate the strain based on the line length"""
     # Read the polydata at the first time frame (ED frame)
     fr = 0
     reader = vtk.vtkPolyDataReader()
-    reader.SetFileName('{0}{1:02d}.vtk'.format(contour_name_stem, fr))
+    reader.SetFileName("{0}{1:02d}.vtk".format(contour_name_stem, fr))
     reader.Update()
     poly = reader.GetOutput()
     points = poly.GetPoints()
 
     # Calculate the length of each line
     lines = poly.GetLines()
-    lines_aha = poly.GetCellData().GetArray('Segment ID')
-    lines_dir = poly.GetCellData().GetArray('Direction ID')
+    lines_aha = poly.GetCellData().GetArray("Segment ID")
+    lines_dir = poly.GetCellData().GetArray("Direction ID")
     n_lines = lines.GetNumberOfCells()
     length_ED = np.zeros(n_lines)
     seg_id = np.zeros(n_lines)  # define 6 segments
@@ -1448,12 +1527,12 @@ def evaluate_la_strain_by_length(contour_name_stem, T, dt, output_name_stem):
 
     # For each time frame, calculate the strain, i.e. change of length
     table_strain = {}
-    table_strain['longit'] = np.zeros((7, T))
+    table_strain["longit"] = np.zeros((7, T))
 
     for fr in range(0, T):
         # Read the polydata
         reader = vtk.vtkPolyDataReader()
-        filename = '{0}{1:02d}.vtk'.format(contour_name_stem, fr)
+        filename = "{0}{1:02d}.vtk".format(contour_name_stem, fr)
         reader.SetFileName(filename)
         reader.Update()
         poly = reader.GetOutput()
@@ -1464,7 +1543,7 @@ def evaluate_la_strain_by_length(contour_name_stem, T, dt, output_name_stem):
         n_lines = lines.GetNumberOfCells()
         strain = np.zeros(n_lines)
         vtk_strain = vtk.vtkFloatArray()
-        vtk_strain.SetName('Strain')
+        vtk_strain.SetName("Strain")
         lines.InitTraversal()
         for i in range(n_lines):
             ids = vtk.vtkIdList()
@@ -1487,158 +1566,185 @@ def evaluate_la_strain_by_length(contour_name_stem, T, dt, output_name_stem):
 
         # Calculate the segmental and global strains
         for i in range(6):
-            table_strain['longit'][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 3)])
-        table_strain['longit'][-1, fr] = np.mean(strain[dir_id == 3])  # global
+            table_strain["longit"][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 3)])
+        table_strain["longit"][-1, fr] = np.mean(strain[dir_id == 3])  # global
 
-    for c in ['longit']:
+    for c in ["longit"]:
         # Save into csv files
-        index = [str(x) for x in np.arange(1, 7)] + ['Global']
+        index = [str(x) for x in np.arange(1, 7)] + ["Global"]
         column = np.arange(0, T) * dt * 1e3
         df = pd.DataFrame(table_strain[c], index=index, columns=column)
-        df.to_csv('{0}_{1}.csv'.format(output_name_stem, c))  # used in eval_strain_lax.py
+        df.to_csv("{0}_{1}.csv".format(output_name_stem, c))  # used in eval_strain_lax.py
 
 
 def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_name_stem):
-    """ Perform motion tracking and strain analysis for cine MR images. """
+    """Perform motion tracking and strain analysis for cine MR images."""
     # Crop the image to save computation for image registration
     # Focus on the left ventricle so that motion tracking is less affected by
     # the movement of RV and LV outflow tract
-    padding('{0}/seg4_la_4ch_ED.nii.gz'.format(data_dir),
-            '{0}/seg4_la_4ch_ED.nii.gz'.format(data_dir),
-            '{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir), 2, 1)
-    padding('{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir),
-            '{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir),
-            '{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir), 3, 0)
-    padding('{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir),
-            '{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir),
-            '{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir), 4, 0)
-    padding('{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir),
-            '{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir),
-            '{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir), 5, 0)
-    auto_crop_image('{0}/seg4_la_4ch_lv_ED.nii.gz'.format(output_dir),
-                    '{0}/seg4_la_4ch_lv_crop_ED.nii.gz'.format(output_dir), 20)
-    os.system('mirtk transform-image {0}/la_4ch.nii.gz {1}/la_4ch_crop.nii.gz '
-              '-target {1}/seg4_la_4ch_lv_crop_ED.nii.gz'.format(data_dir, output_dir))
-    os.system('mirtk transform-image {0}/seg4_la_4ch.nii.gz {1}/seg4_la_4ch_crop.nii.gz '
-              '-target {1}/seg4_la_4ch_lv_crop_ED.nii.gz'.format(data_dir, output_dir))
+    padding(
+        "{0}/seg4_la_4ch_ED.nii.gz".format(data_dir),
+        "{0}/seg4_la_4ch_ED.nii.gz".format(data_dir),
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        2,
+        1,
+    )
+    padding(
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        3,
+        0,
+    )
+    padding(
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        4,
+        0,
+    )
+    padding(
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
+        5,
+        0,
+    )
+    auto_crop_image(
+        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir), "{0}/seg4_la_4ch_lv_crop_ED.nii.gz".format(output_dir), 20
+    )
+    os.system(
+        "mirtk transform-image {0}/la_4ch.nii.gz {1}/la_4ch_crop.nii.gz "
+        "-target {1}/seg4_la_4ch_lv_crop_ED.nii.gz".format(data_dir, output_dir)
+    )
+    os.system(
+        "mirtk transform-image {0}/seg4_la_4ch.nii.gz {1}/seg4_la_4ch_crop.nii.gz "
+        "-target {1}/seg4_la_4ch_lv_crop_ED.nii.gz".format(data_dir, output_dir)
+    )
 
     # Extract the myocardial contour
-    extract_la_myocardial_contour('{0}/seg4_la_4ch_ED.nii.gz'.format(data_dir),
-                                  '{0}/seg_sa_ED.nii.gz'.format(data_dir),
-                                  '{0}/la_4ch_myo_contour_ED.vtk'.format(output_dir))
+    extract_la_myocardial_contour(
+        "{0}/seg4_la_4ch_ED.nii.gz".format(data_dir),
+        "{0}/seg_sa_ED.nii.gz".format(data_dir),
+        "{0}/la_4ch_myo_contour_ED.vtk".format(output_dir),
+    )
 
     # Inter-frame motion estimation
-    nim = nib.load('{0}/la_4ch_crop.nii.gz'.format(output_dir))
-    T = nim.header['dim'][4]
-    dt = nim.header['pixdim'][4]
+    nim = nib.load("{0}/la_4ch_crop.nii.gz".format(output_dir))
+    T = nim.header["dim"][4]
+    dt = nim.header["pixdim"][4]
 
     # Label class in the segmentation
-    label = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
+    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
     # Split the cine sequence
-    split_sequence('{0}/la_4ch_crop.nii.gz'.format(output_dir),
-                   '{0}/la_4ch_crop_fr'.format(output_dir))
+    split_sequence("{0}/la_4ch_crop.nii.gz".format(output_dir), "{0}/la_4ch_crop_fr".format(output_dir))
 
     # Forward image registration
     for fr in range(1, T):
         target_fr = fr - 1
         source_fr = fr
-        target = '{0}/la_4ch_crop_fr{1:02d}.nii.gz'.format(output_dir, target_fr)
-        source = '{0}/la_4ch_crop_fr{1:02d}.nii.gz'.format(output_dir, source_fr)
-        par = '{0}/ffd_cine_la_2d_motion.cfg'.format(par_dir)
-        dof = '{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz'.format(output_dir, target_fr, source_fr)
-        os.system('mirtk register {0} {1} -parin {2} -dofout {3}'.format(target, source, par, dof))
+        target = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, target_fr)
+        source = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, source_fr)
+        par = "{0}/ffd_cine_la_2d_motion.cfg".format(par_dir)
+        dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, target_fr, source_fr)
+        os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
 
     # Compose forward inter-frame transformation fields
-    os.system('cp {0}/ffd_la_4ch_pair_00_to_01.dof.gz '
-              '{0}/ffd_la_4ch_forward_00_to_01.dof.gz'.format(output_dir))
+    os.system("cp {0}/ffd_la_4ch_pair_00_to_01.dof.gz " "{0}/ffd_la_4ch_forward_00_to_01.dof.gz".format(output_dir))
     for fr in range(2, T):
-        dofs = ''
+        dofs = ""
         for k in range(1, fr + 1):
-            dof = '{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz'.format(output_dir, k - 1, k)
-            dofs += dof + ' '
-        dof_out = '{0}/ffd_la_4ch_forward_00_to_{1:02d}.dof.gz'.format(output_dir, fr)
-        os.system('mirtk compose-dofs {0} {1} -approximate'.format(dofs, dof_out))
+            dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, k - 1, k)
+            dofs += dof + " "
+        dof_out = "{0}/ffd_la_4ch_forward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+        os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
 
     # Backward image registration
     for fr in range(T - 1, 0, -1):
         target_fr = (fr + 1) % T
         source_fr = fr
-        target = '{0}/la_4ch_crop_fr{1:02d}.nii.gz'.format(output_dir, target_fr)
-        source = '{0}/la_4ch_crop_fr{1:02d}.nii.gz'.format(output_dir, source_fr)
-        par = '{0}/ffd_cine_la_2d_motion.cfg'.format(par_dir)
-        dof = '{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz'.format(output_dir, target_fr, source_fr)
-        os.system('mirtk register {0} {1} -parin {2} -dofout {3}'.format(target, source, par, dof))
+        target = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, target_fr)
+        source = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, source_fr)
+        par = "{0}/ffd_cine_la_2d_motion.cfg".format(par_dir)
+        dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, target_fr, source_fr)
+        os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
 
     # Compose backward inter-frame transformation fields
-    os.system('cp {0}/ffd_la_4ch_pair_00_to_{1:02d}.dof.gz '
-              '{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz'.format(output_dir, T - 1))
+    os.system(
+        "cp {0}/ffd_la_4ch_pair_00_to_{1:02d}.dof.gz " "{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz".format(
+            output_dir, T - 1
+        )
+    )
     for fr in range(T - 2, 0, -1):
-        dofs = ''
+        dofs = ""
         for k in range(T - 1, fr - 1, -1):
-            dof = '{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz'.format(output_dir, (k + 1) % T, k)
-            dofs += dof + ' '
-        dof_out = '{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz'.format(output_dir, fr)
-        os.system('mirtk compose-dofs {0} {1} -approximate'.format(dofs, dof_out))
+            dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, (k + 1) % T, k)
+            dofs += dof + " "
+        dof_out = "{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+        os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
 
     # Average the forward and backward transformations
-    os.system('mirtk init-dof {0}/ffd_la_4ch_forward_00_to_00.dof.gz'.format(output_dir))
-    os.system('mirtk init-dof {0}/ffd_la_4ch_backward_00_to_00.dof.gz'.format(output_dir))
-    os.system('mirtk init-dof {0}/ffd_la_4ch_00_to_00.dof.gz'.format(output_dir))
+    os.system("mirtk init-dof {0}/ffd_la_4ch_forward_00_to_00.dof.gz".format(output_dir))
+    os.system("mirtk init-dof {0}/ffd_la_4ch_backward_00_to_00.dof.gz".format(output_dir))
+    os.system("mirtk init-dof {0}/ffd_la_4ch_00_to_00.dof.gz".format(output_dir))
     for fr in range(1, T):
-        dof_forward = '{0}/ffd_la_4ch_forward_00_to_{1:02d}.dof.gz'.format(output_dir, fr)
+        dof_forward = "{0}/ffd_la_4ch_forward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
         weight_forward = float(T - fr) / T
-        dof_backward = '{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz'.format(output_dir, fr)
+        dof_backward = "{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
         weight_backward = float(fr) / T
-        dof_combine = '{0}/ffd_la_4ch_00_to_{1:02d}.dof.gz'.format(output_dir, fr)
-        os.system('average_3d_ffd 2 {0} {1} {2} {3} {4}'.format(dof_forward, weight_forward,
-                                                              dof_backward, weight_backward,
-                                                              dof_combine))
+        dof_combine = "{0}/ffd_la_4ch_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+        os.system(
+            "average_3d_ffd 2 {0} {1} {2} {3} {4}".format(
+                dof_forward, weight_forward, dof_backward, weight_backward, dof_combine
+            )
+        )
 
     # Transform the contours and calculate the strain
     for fr in range(0, T):
-        os.system('mirtk transform-points {0}/la_4ch_myo_contour_ED.vtk '
-                  '{0}/la_4ch_myo_contour_fr{1:02d}.vtk '
-                  '-dofin {0}/ffd_la_4ch_00_to_{1:02d}.dof.gz'.format(output_dir, fr))
+        os.system(
+            "mirtk transform-points {0}/la_4ch_myo_contour_ED.vtk "
+            "{0}/la_4ch_myo_contour_fr{1:02d}.vtk "
+            "-dofin {0}/ffd_la_4ch_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+        )
 
     # Calculate the strain based on the line length
-    evaluate_la_strain_by_length('{0}/la_4ch_myo_contour_fr'.format(output_dir),
-                                 T, dt, output_name_stem)
+    evaluate_la_strain_by_length("{0}/la_4ch_myo_contour_fr".format(output_dir), T, dt, output_name_stem)
 
     # Transform the segmentation and evaluate the Dice metric
     eval_dice = False
     if eval_dice:
-        split_sequence('{0}/seg4_la_4ch_crop.nii.gz'.format(output_dir),
-                       '{0}/seg4_la_4ch_crop_fr'.format(output_dir))
+        split_sequence("{0}/seg4_la_4ch_crop.nii.gz".format(output_dir), "{0}/seg4_la_4ch_crop_fr".format(output_dir))
         dice_lv_myo = []
 
         image_names = []
         for fr in range(0, T):
-            os.system('mirtk transform-image {0}/seg4_la_4ch_crop_fr{1:02d}.nii.gz '
-                      '{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz '
-                      '-dofin {0}/ffd_la_4ch_00_to_{1:02d}.dof.gz '
-                      '-target {0}/seg4_la_4ch_crop_fr00.nii.gz'.format(output_dir, fr))
-            image_A = nib.load('{0}/seg4_la_4ch_crop_fr00.nii.gz'.format(output_dir)).get_fdata()
-            image_B = nib.load('{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz'.format(output_dir, fr)).get_fdata()
-            dice_lv_myo += [[np_categorical_dice(image_A, image_B, 1),
-                             np_categorical_dice(image_A, image_B, 2)]]
-            image_names += ['{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz'.format(output_dir, fr)]
-        combine_name = '{0}/seg4_la_4ch_crop_warp_ffd.nii.gz'.format(output_dir)
+            os.system(
+                "mirtk transform-image {0}/seg4_la_4ch_crop_fr{1:02d}.nii.gz "
+                "{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz "
+                "-dofin {0}/ffd_la_4ch_00_to_{1:02d}.dof.gz "
+                "-target {0}/seg4_la_4ch_crop_fr00.nii.gz".format(output_dir, fr)
+            )
+            image_A = nib.load("{0}/seg4_la_4ch_crop_fr00.nii.gz".format(output_dir)).get_fdata()
+            image_B = nib.load("{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz".format(output_dir, fr)).get_fdata()
+            dice_lv_myo += [[np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)]]
+            image_names += ["{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz".format(output_dir, fr)]
+        combine_name = "{0}/seg4_la_4ch_crop_warp_ffd.nii.gz".format(output_dir)
         make_sequence(image_names, dt, combine_name)
 
         print(np.mean(dice_lv_myo, axis=0))
         df_dice = pd.DataFrame(dice_lv_myo)
-        df_dice.to_csv('{0}/dice_cine_la_4ch_warp_ffd.csv'.format(output_dir), index=None, header=None)
+        df_dice.to_csv("{0}/dice_cine_la_4ch_warp_ffd.csv".format(output_dir), index=None, header=None)
 
 
-def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
-    """ 
+def plot_bulls_eye(data, vmin, vmax, cmap="Reds", color_line="black"):
+    """
     Plot the bull's eye plot.
     For an example of Bull's eye plot, refer to https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4862218/pdf/40001_2016_Article_216.pdf.
     data: values for 16 segments
     """
     if len(data) != 16:
-        print('Error: len(data) != 16!')
+        print("Error: len(data) != 16!")
         exit(0)
 
     # The cartesian coordinate and the polar coordinate
@@ -1666,7 +1772,7 @@ def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
         13: (R3, R4, 45, 135),
         14: (R3, R4, 135, -135),
         15: (R3, R4, -135, -45),
-        16: (R3, R4, -45, 45)
+        16: (R3, R4, -45, 45),
     }
 
     # Plot the segments
@@ -1684,7 +1790,7 @@ def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
         canvas[mask] = val
     plt.imshow(canvas, cmap=cmap, vmin=vmin, vmax=vmax)
     plt.colorbar()
-    plt.axis('off')
+    plt.axis("off")
     plt.gca().invert_yaxis()  # gca(): get current axes
 
     # Plot the circles
@@ -1708,37 +1814,39 @@ def plot_bulls_eye(data, vmin, vmax, cmap='Reds', color_line='black'):
         y = cy + sz * r1 * np.sin(np.radians(theta1))
         plt.plot([x, x - sz * 0.2], [y, y], color=color_line)
 
-def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa: nib.nifti1.Nifti1Image, long_axis, short_axis):
-    """ 
-    Evaluate the ventricular length from short-axis view images. 
+
+def evaluate_ventricular_length_sax(
+    label_sa: Tuple[float, float, float], nim_sa: nib.nifti1.Nifti1Image, long_axis, short_axis
+):
+    """
+    Evaluate the ventricular length from short-axis view images.
     """
 
-    if len(label_sa.shape) != 3:
-        raise ValueError('The label_sa should be a 3D image.')
+    if label_sa.ndim != 3:
+        raise ValueError("The label_sa should be a 3D image.")
 
     # End-diastolic diameter should be measured at the plane which contained the basal papillary muscle
     basal_slice = determine_sa_basal_slice(label_sa)
 
-    label_sa = label_sa[:,:,basal_slice]
+    label_sa = label_sa[:, :, basal_slice]
 
     # Go through the label class
     L = []
     landmarks = []
 
-    lab = 1 # We are only interested in left ventricle
+    lab = 1  # We are only interested in left ventricle
     # The binary label map
-    label_i = (label_sa == lab)
+    label_i = label_sa == lab
 
     # Get the largest component in case we have a bad segmentation
     label_i = get_largest_cc(label_i)
 
-
-    major_axis, minor_axis, image_line, image_line_minor = determine_axes(label_i, nim_sa, long_axis)
+    _, _, image_line, image_line_minor = determine_axes(label_i, nim_sa, long_axis)
 
     points_line = np.nonzero(image_line)
 
     points = []
-    points_image = [] # for easier visualization
+    points_image = []  # for easier visualization
     for j in range(len(points_line[0])):
         x = points_line[0][j]
         y = points_line[1][j]
@@ -1746,11 +1854,11 @@ def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa
         point = np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3]
         # Distance along the long-axis
         points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
-        points_image += [np.append((x,y), np.dot(point, long_axis))]
+        points_image += [np.append((x, y), np.dot(point, long_axis))]
     points = np.array(points)
     points_image = np.array(points_image)
     if len(points) == 0:
-        raise ValueError('No intersection points found in the ventricle.')
+        raise ValueError("No intersection points found in the ventricle.")
     points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
     points_image = points_image[points_image[:, 2].argsort(), :2]
 
@@ -1770,7 +1878,7 @@ def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa
         point = np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3]
         # Distance along the short axis
         points_minor += [np.append(point, np.dot(point, short_axis))]
-        points_minor_image += [np.append((x,y), np.dot(point, short_axis))]
+        points_minor_image += [np.append((x, y), np.dot(point, short_axis))]
     points_minor = np.array(points_minor)
     points_minor_image = np.array(points_minor_image)
     points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the short-axis
@@ -1783,30 +1891,33 @@ def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa
 
     return np.max(L), landmarks
 
-def evaluate_ventricular_length_lax(label_la_seg4: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis):
+
+def evaluate_ventricular_length_lax(
+    label_la_seg4: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis
+):
     """
     Evaluate the ventricle length from 4 chamber view image.
     """
 
-    if len(label_la_seg4.shape) != 2:
-        raise ValueError('The label_la should be a 2D image.')
+    if label_la_seg4.ndim != 2:
+        raise ValueError("The label_la should be a 2D image.")
     if len(np.unique(label_la_seg4)) != 6:
-        raise ValueError('The label_la should have segmentation for all four chambers.')
+        raise ValueError("The label_la should have segmentation for all four chambers.")
 
     # Go through the label class
     landmarks = []
 
-    labels = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
-    label_LV = (label_la_seg4 == labels['LV'])
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
+    label_LV = label_la_seg4 == labels["LV"]
 
     # Get the largest component in case we have a bad segmentation
     label_LV = get_largest_cc(label_LV)
 
-    major_axis, minor_axis, image_line, image_line_minor = determine_axes(label_LV, nim_la, long_axis)
+    _, _, image_line, _ = determine_axes(label_LV, nim_la, long_axis)
 
     points_line = np.nonzero(image_line)
     points = []
-    points_image = [] # for easier visualization
+    points_image = []  # for easier visualization
     for j in range(len(points_line[0])):
         x = points_line[0][j]
         y = points_line[1][j]
@@ -1814,32 +1925,33 @@ def evaluate_ventricular_length_lax(label_la_seg4: Tuple[float, float], nim_la: 
         point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
         # Distance along the long-axis
         points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
-        points_image += [np.append((x,y), np.dot(point, long_axis))]
+        points_image += [np.append((x, y), np.dot(point, long_axis))]
     points = np.array(points)
     points_image = np.array(points_image)
     if len(points) == 0:
-        raise ValueError('No intersection points found in the ventricle.')
+        raise ValueError("No intersection points found in the ventricle.")
     points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
     points_image = points_image[points_image[:, 2].argsort(), :2]
-    
+
     # Landmarks of the intersection points are the top and bottom points along points_line
     landmarks += [points_image[0]]
     landmarks += [points_image[-1]]
     # Longitudinal diameter; Unit: cm
-    L = np.linalg.norm(points[-1] - points[0]) * 1e-1 # Here we have already applied nim.affine, no need to multiply
+    L = np.linalg.norm(points[-1] - points[0]) * 1e-1  # Here we have already applied nim.affine, no need to multiply
 
     return np.max(L), landmarks
 
+
 def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis):
-    """ 
+    """
     Evaluate the atrial area and length from 2 chamber or 4 chamber view images.
     """
 
-    if len(label_la.shape) != 2:
-        raise ValueError('The label_la should be a 2D image.')
+    if label_la.ndim != 2:
+        raise ValueError("The label_la should be a 2D image.")
 
     # Area per pixel
-    pixdim = nim_la.header['pixdim'][1:4]
+    pixdim = nim_la.header["pixdim"][1:4]
     area_per_pix = pixdim[0] * pixdim[1] * 1e-2  # Unit: cm^2
 
     # Go through the label class
@@ -1849,7 +1961,7 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
     labels = np.sort(list(set(np.unique(label_la)) - set([0])))
     for i in labels:
         # The binary label map
-        label_i = (label_la == i)
+        label_i = label_la == i
 
         # Get the largest component in case we have a bad segmentation
         label_i = get_largest_cc(label_i)
@@ -1857,12 +1969,11 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
         # Calculate the area
         A += [np.sum(label_i) * area_per_pix]
 
-
-        major_axis, minor_axis, image_line, image_line_minor = determine_axes(label_i, nim_la, long_axis)
+        _, _, image_line, image_line_minor = determine_axes(label_i, nim_la, long_axis)
 
         points_line = np.nonzero(image_line)
         points = []
-        points_image = [] # for easier visualization
+        points_image = []  # for easier visualization
         for j in range(len(points_line[0])):
             x = points_line[0][j]
             y = points_line[1][j]
@@ -1870,26 +1981,28 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
             point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
             # Distance along the long-axis
             points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
-            points_image += [np.append((x,y), np.dot(point, long_axis))]
+            points_image += [np.append((x, y), np.dot(point, long_axis))]
         points = np.array(points)
         points_image = np.array(points_image)
         if len(points) == 0:
-            raise ValueError('No intersection points found in the atrium.')
+            raise ValueError("No intersection points found in the atrium.")
         points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
         points_image = points_image[points_image[:, 2].argsort(), :2]
-        
+
         # Landmarks of the intersection points are the top and bottom points along points_line
         landmarks += [points_image[0]]
         landmarks += [points_image[-1]]
         # Longitudinal diameter; Unit: cm
-        L += [np.linalg.norm(points[-1] - points[0]) * 1e-1] # Here we have already applied nim.affine, no need to multiply
+        L += [
+            np.linalg.norm(points[-1] - points[0]) * 1e-1
+        ]  # Here we have already applied nim.affine, no need to multiply
 
-        # Define Transverse diameter is obtained perpendicular to the longitudinal diameter, at the mid level of right atrium
+        # Define Transverse diameter is obtained perpendicular to longitudinal diameter, at the mid level of atrium
         # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-29 for example in right atrium
 
         points_line_minor = np.nonzero(image_line_minor)
         points_minor = []
-        points_minor_image = [] # for easier visualization
+        points_minor_image = []  # for easier visualization
         for j in range(len(points_line_minor[0])):
             x = points_line_minor[0][j]
             y = points_line_minor[1][j]
@@ -1897,7 +2010,7 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
             point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
             # Distance along the short-axis
             points_minor += [np.append(point, np.dot(point, short_axis))]
-            points_minor_image += [np.append((x,y), np.dot(point, short_axis))]
+            points_minor_image += [np.append((x, y), np.dot(point, short_axis))]
         points_minor = np.array(points_minor)
         points_minor_image = np.array(points_minor_image)
         points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the short-axis
@@ -1909,35 +2022,77 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
 
     return A, L, landmarks
 
-def evaluate_AVPD(label_la_seg4: Tuple[float, float, float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, t_ED, t_ES):
+
+def evaluate_AVPD(
+    label_la_seg4: Tuple[float, float, float, float],
+    nim_la: nib.nifti1.Nifti1Image,
+    long_axis,
+    t_ED,
+    t_ES,
+    display=False,
+):
     """
     Determine the atrioventricular plane displacement (AVPD).
     Since the ventricle and atrium are segmented separately in `seg_la_2ch` and `seg_la_4ch` files,
-    only `seg4_la_4ch` files should be used. The result is then the AVPD of anterolateral wall 
+    only `seg4_la_4ch` files should be used. The result is then the AVPD of anterolateral wall
     (https://journals.physiology.org/doi/epdf/10.1152/ajpheart.01148.2006).
     """
 
     # * Currently, we follow https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
     # * only consider AVPD of LV at ED and ES. For time series of AVPD, feature tracking would be better
 
-    if len(label_la_seg4.shape) != 4:
-        raise ValueError('The label_la should be a 4D image.')
+    if label_la_seg4.ndim != 4:
+        raise ValueError("The label_la should be a 4D image.")
     if len(np.unique(label_la_seg4)) != 6:
-        raise ValueError('The label_la_seg4 should have segmentation for all four chambers.')
+        raise ValueError("The label_la_seg4 should have segmentation for all four chambers.")
 
-    labels = {'BG': 0, 'LV': 1, 'Myo': 2, 'RV': 3, 'LA': 4, 'RA': 5}
-    label_LV = (label == labels['LV'])
+    major_axis, _, image_line_major, _ = determine_axes(label_la_seg4[:, :, 0, 0], nim_la, long_axis)
 
-    major_axis, minor_axis, image_line_major, _ = determine_axes(label_LV[:,:,0,0], nim_la, long_axis)
+    label_ED = label_la_seg4[:, :, 0, t_ED]
+    label_ES = label_la_seg4[:, :, 0, t_ES]
 
-    label_LV_ED = label_LV[:,:,0,t_ED]
-    label_LV_ES = label_LV[:,:,0,t_ES]
+    AV = {"ED": None, "ES": None}
+    lm_ED = determine_avpd_landmark(label_ED, major_axis, image_line_major)[0]  # (lm1, lm2, lm3, lm4)
+    points_line_LV_ED = determine_avpd_landmark(label_ED, major_axis, image_line_major)[1]
+    points_line_RV_ED = determine_avpd_landmark(label_ED, major_axis, image_line_major)[2]
+    lm_ES = determine_avpd_landmark(label_ES, major_axis, image_line_major)[0]
+    points_line_LV_ES = determine_avpd_landmark(label_ES, major_axis, image_line_major)[1]
+    points_line_RV_ES = determine_avpd_landmark(label_ES, major_axis, image_line_major)[2]
 
-    AV = {}
+    # For some cases, we will fail to detemine landmark
+    if any(lm is None for lm in lm_ED) or any(lm is None for lm in lm_ES):
+        raise ValueError("Some landmarks are failed to be determined and thus missing.")
 
-    AV_ED = determine_avpd_landmark(label_LV_ED, major_axis, minor_axis, image_line_major)
-    AV["ED"] = np.dot(nim.affine, np.array([AV_ED[0], AV_ED[1], 0, 1]))[:3]
-    AV_ES = determine_avpd_landmark(label_LV_ES, major_axis, minor_axis, image_line_major)
-    AV["ES"] = np.dot(nim.affine, np.array([AV_ES[0], AV_ES[1], 0, 1]))[:3]
+    AV["ED"] = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], lm_ED))
+    AV["ES"] = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], lm_ES))
 
-    return np.linalg.norm(AV["ED"] - AV["ES"]) * 1e-1  # unit: cm
+    if display is True:
+        plt.subplot(1, 2, 1)
+        plt.title("Landmark at ED")
+        plt.imshow(label_ED, cmap='gray')
+        plt.scatter(lm_ED[0][1], lm_ED[0][0], c='red')
+        plt.scatter(lm_ED[1][1], lm_ED[1][0], c='yellow')
+        plt.scatter(lm_ED[2][1], lm_ED[2][0], c='blue')
+        plt.scatter(lm_ED[3][1], lm_ED[3][0], c='purple')
+        for i in range(len(points_line_LV_ED)):
+            plt.scatter(points_line_LV_ED[i][1], points_line_LV_ED[i][0], c='green', s=2)
+        for i in range(len(points_line_RV_ED)):
+            plt.scatter(points_line_RV_ED[i][1], points_line_RV_ED[i][0], c='green', s=2)
+
+        plt.subplot(1, 2, 2)
+        plt.title("Landmark at ES")
+        plt.imshow(label_ES, cmap='gray')
+        plt.scatter(lm_ES[0][1], lm_ES[0][0], c='red')
+        plt.scatter(lm_ES[1][1], lm_ES[1][0], c='yellow')
+        plt.scatter(lm_ES[2][1], lm_ES[2][0], c='blue')
+        plt.scatter(lm_ES[3][1], lm_ES[3][0], c='purple')
+        for i in range(len(points_line_LV_ES)):
+            plt.scatter(points_line_LV_ES[i][1], points_line_LV_ES[i][0], c='green', s=2)
+        for i in range(len(points_line_RV_ES)):
+            plt.scatter(points_line_RV_ES[i][1], points_line_RV_ES[i][0], c='green', s=2)
+
+    # remove maximum and minimum
+    AV_displacement = np.linalg.norm(np.array(AV["ED"]) - np.array(AV["ES"]), axis=1)
+    AV_displacement = np.sort(AV_displacement)
+    AV_displacement = AV_displacement[1:-1]
+    return np.mean(AV_displacement) * 1e-1  # unit: cm

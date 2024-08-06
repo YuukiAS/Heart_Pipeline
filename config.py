@@ -14,7 +14,7 @@ data_raw_dir = '/work/users/y/u/yuukias/database/UKBiobank/data_field'
 # (Optional) Directory for ground truth contours
 contour_gt_dir = '/work/users/y/u/yuukias/database/UKBiobank/return/contour_cvi42'  
 # Directory to store all files
-data_dir = '/work/users/y/u/yuukias/Heart_Pipeline/data' # intermedite files will also be generated here
+data_dir = '/work/users/y/u/yuukias/Heart_Pipeline/data'  # intermedite files will also be generated here
 data_visit1_dir = os.path.join(data_dir, 'visit1', 'nii')
 data_visit2_dir = os.path.join(data_dir, 'visit2', 'nii')
 data_visit1_nnunet_dir = os.path.join(data_dir, 'visit1', 'nii_nnunet')

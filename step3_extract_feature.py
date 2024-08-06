@@ -8,10 +8,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
 from utils.log_utils import setup_logging
+
 logger = setup_logging("main: extract_feature_basic")
 
-def generate_scripts(pipeline_dir, data_dir, code_dir, 
-                     modality, useECG, num_subjects_per_file=200, retest_suffix=None):
+
+def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_subjects_per_file=200, retest_suffix=None):
     if retest_suffix is None:
         code_step3_dir = os.path.join(code_dir, "extract_feature_visit1")
     else:
@@ -30,7 +31,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
     with (
         open(os.path.join(code_step3_dir, "batAll.sh"), "w") as file_submit,
         open(os.path.join(code_step3_dir, "aggregate.pbs"), "w") as file_aggregate,
-        open(os.path.join(code_step3_dir, "batECG.sh"), "w") as file_ecg   # optional
+        open(os.path.join(code_step3_dir, "batECG.sh"), "w") as file_ecg,  # optional
     ):
         file_submit.write("#!/bin/bash\n")
 
@@ -68,11 +69,12 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
             file_ecg.write(f"cd {pipeline_dir}\n")
             file_ecg.write("echo 'Extract ECG features'\n")
             file_ecg.write(f"python -u ./src/feature_extraction/ecg/ecg_neurokit.py {retest_str}\n")
+            file_ecg.write("echo 'Done!'\n")
             file_submit.write("sbatch batECG.sh\n")
 
-        for file_i in tqdm(range(num_files)):
+        for file_i in tqdm(range(1, num_files + 1)):  # start from 1
             sub_file_i = sub_total[
-                file_i * num_subjects_per_file : min((file_i + 1) * num_subjects_per_file, length_total)
+                (file_i - 1) * num_subjects_per_file : min(file_i * num_subjects_per_file, length_total)
             ]
             sub_file_i_str = " ".join(map(str, sub_file_i))
 
@@ -94,47 +96,50 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
                 file_script.write("\n")
                 file_script.write(f"cd {pipeline_dir}\n")
 
-
                 if "la" in modality:
                     file_script.write("echo 'Extract features for atrial volume'\n")
                     file_script.write(
-                        f"python -u ./src/feature_extraction/long_axis/eval_atrial_volume.py "\
+                        f"python -u ./src/feature_extraction/long_axis/eval_atrial_volume.py "
                         f"{retest_str} --file_name=atrial_volume_{file_i} --data_list {sub_file_i_str} \n"
                     )
                     # Script for aggregating separate feature files
-                    if file_i == 0:
+                    if file_i == 1:
                         if retest_suffix is None:
                             file_aggregate.write(
-                                "python ./script/aggregate_csv.py "\
-                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'atrium')} "\
-                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "\
-                                "--prefix=atrial_volume\n")
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'atrium')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                "--prefix=atrial_volume\n"
+                            )
                         else:
                             file_aggregate.write(
-                                "python ./script/aggregate_csv.py "\
-                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'atrium')} "\
-                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "\
-                                "--prefix=atrial_volume\n")
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'atrium')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                "--prefix=atrial_volume\n"
+                            )
                 if "sa" in modality:
                     file_script.write("echo 'Extract features for ventricular volume'\n")
                     file_script.write(
-                        f"python -u ./src/feature_extraction/short_axis/eval_ventricular_volume.py "\
+                        f"python -u ./src/feature_extraction/short_axis/eval_ventricular_volume.py "
                         f"{retest_str} --file_name=ventricular_volume_{file_i} --data_list {sub_file_i_str} \n"
                     )
                     # Script for aggregating separate feature files
-                    if file_i == 0:
+                    if file_i == 1:
                         if retest_suffix is None:
                             file_aggregate.write(
-                                "python ./script/aggregate_csv.py "\
-                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'ventricle')} "\
-                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "\
-                                "--prefix=ventricular_volume\n")
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'ventricle')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                "--prefix=ventricular_volume\n"
+                            )
                         else:
                             file_aggregate.write(
-                                "python ./script/aggregate_csv.py "\
-                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'ventricle')} "\
-                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "\
-                                "--prefix=ventricular_volume\n")
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'ventricle')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                "--prefix=ventricular_volume\n"
+                            )
                 if "aor" in modality:
                     pass
                 if "tag" in modality:
@@ -150,9 +155,10 @@ def generate_scripts(pipeline_dir, data_dir, code_dir,
 
         file_aggregate.write("echo 'Done!'\n")
 
+
 if __name__ == "__main__":
     pipeline_dir = config.pipeline_dir
-    data_visit1_dir = config.data_visit1_dir 
+    data_visit1_dir = config.data_visit1_dir
     data_visit2_dir = config.data_visit2_dir
     code_dir = config.code_dir
     modality = config.modality

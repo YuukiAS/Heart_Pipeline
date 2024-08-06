@@ -1,7 +1,10 @@
 [tool.ruff]
 line-length = 120
-lint.select = ["E", "F"]  # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default
-lint.extend-select = ["E501"]
+
+[tool.ruff.lint]
+preview = true  # so that some rules can be enabled
+select = ["E", "F"]  # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default
+extend-select = ["W391"]
 
 # todo 'common','util' and 'src' need to be completed in the future
 exclude = [
@@ -9,7 +12,6 @@ exclude = [
     "utils",
     "src/segmentation/",
     "src/feature_extraction/aortic/",    
-    "src/feature_extraction/short_axis/",
     "src/registration/",
     ".git",
     "archive",

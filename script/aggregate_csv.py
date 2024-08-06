@@ -3,6 +3,7 @@ import os
 import glob
 import argparse
 
+
 def aggregate_csv(csv_dir, target_dir, prefix):
     """
     Aggregate csv files with the same prefix in the csv_dir. `eid` column must be present in each csv files.
@@ -16,6 +17,7 @@ def aggregate_csv(csv_dir, target_dir, prefix):
     comprehensive_df = comprehensive_df.sort_values("eid")
     os.makedirs(target_dir, exist_ok=True)
     comprehensive_df.to_csv(os.path.join(target_dir, f"{prefix}.csv"), index=False)
+    print(f"Aggregated csv file saved to {os.path.join(target_dir, f'{prefix}.csv')}")
 
 
 parser = argparse.ArgumentParser()
