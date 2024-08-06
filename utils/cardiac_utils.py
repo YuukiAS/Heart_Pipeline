@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 from typing import Tuple
 from vtk.util import numpy_support
 from scipy import interpolate
-import skimage.measure
+# import skimage.measure
 from .image_utils import (
     get_largest_cc, 
     remove_small_cc, 
@@ -481,7 +481,7 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
     """
     # Read the segmentation image
     nim = nib.load(seg_name)
-    X, Y, Z = nim.header["dim"][1:4]
+    _, _, Z = nim.header["dim"][1:4]
     affine = nim.affine
     seg = nim.get_fdata()
 
@@ -798,8 +798,7 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_
     split_volume("{0}/sa_crop.nii.gz".format(output_dir), "{0}/sa_crop_z".format(output_dir))
     split_volume("{0}/seg_sa_crop.nii.gz".format(output_dir), "{0}/seg_sa_crop_z".format(output_dir))
 
-    # Label class in the segmentation
-    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+    # label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Inter-frame motion estimation
     nim = nib.load("{0}/sa_crop.nii.gz".format(output_dir))
@@ -1315,7 +1314,7 @@ def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
     """
     # Read the segmentation image
     nim = nib.load(seg_la_name)
-    X, Y, Z = nim.header["dim"][1:4]
+    # X, Y, Z = nim.header["dim"][1:4]
     affine = nim.affine
     seg = nim.get_fdata()
 
@@ -1634,8 +1633,7 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_
     T = nim.header["dim"][4]
     dt = nim.header["pixdim"][4]
 
-    # Label class in the segmentation
-    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
+    # label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
     # Split the cine sequence
     split_sequence("{0}/la_4ch_crop.nii.gz".format(output_dir), "{0}/la_4ch_crop_fr".format(output_dir))
@@ -1853,7 +1851,7 @@ def evaluate_ventricular_length_sax(
         # World coordinate
         point = np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3]
         # Distance along the long-axis
-        points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
+        points += [np.append(point, np.dot(point, long_axis))]  # (x,y,distance)
         points_image += [np.append((x, y), np.dot(point, long_axis))]
     points = np.array(points)
     points_image = np.array(points_image)
@@ -1924,7 +1922,7 @@ def evaluate_ventricular_length_lax(
         # World coordinate
         point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
         # Distance along the long-axis
-        points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
+        points += [np.append(point, np.dot(point, long_axis))]
         points_image += [np.append((x, y), np.dot(point, long_axis))]
     points = np.array(points)
     points_image = np.array(points_image)
@@ -1980,7 +1978,7 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
             # World coordinate
             point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
             # Distance along the long-axis
-            points += [np.append(point, np.dot(point, long_axis))]  #  (x,y,distance)
+            points += [np.append(point, np.dot(point, long_axis))]
             points_image += [np.append((x, y), np.dot(point, long_axis))]
         points = np.array(points)
         points_image = np.array(points_image)

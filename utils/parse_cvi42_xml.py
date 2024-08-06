@@ -42,7 +42,7 @@ def parseContours(node):
     contours = {}
     for child in keepElementNodes(node.childNodes):
         contour_name = child.getAttribute('Hash:key')
-        sup = 1
+        # sup = 1
         for child2 in keepElementNodes(child.childNodes):
             if child2.getAttribute('Hash:key') == 'Points':
                 points = []

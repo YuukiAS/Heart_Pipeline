@@ -1,17 +1,20 @@
 [tool.ruff]
 line-length = 120
 
-[tool.ruff.lint]
-preview = true  # so that some rules can be enabled
-select = ["E", "F"]  # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default
-extend-select = ["W391"]
-
 # todo 'common','util' and 'src' need to be completed in the future
 exclude = [
     "common", 
-    "utils",
-    "src/segmentation/",
-    "src/feature_extraction/aortic/",    
+    "utils/slicer.py",
+    "utils/ukb_field_categories.py",
+    "utils/propagate_aortic_annotation.py",
+    "utils/execute.py",
+    "utils/download_data_ukbb_general.py",
+    "utils/convert_data_ukbb2964.py",
+    "src/segmentation",
+    "src/feature_extraction/aortic",    
+    "src/feature_extraction/long_axis/eval_strain_lax.py",
+    "src/feature_extraction/short_axis/eval_strain_sax.py",
+    "src/feature_extraction/short_axis/eval_wall_thickness.py",
     "src/registration/",
     ".git",
     "archive",
@@ -24,3 +27,8 @@ exclude = [
     "model",
     "others"
 ]
+
+[tool.ruff.lint]
+preview = true  # so that some rules can be enabled
+select = ["E", "F"]  # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes by default
+extend-select = ["W391"]

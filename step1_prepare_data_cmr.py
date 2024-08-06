@@ -13,6 +13,7 @@ import config
 from utils.log_utils import setup_logging
 logger = setup_logging("main: prepare_data_cmr")
 
+
 def generate_scripts(
     pipeline_dir, data_raw_dir, code_dir, out_dir, modality, num_subjects_per_file=100, retest_suffix=None
 ):

@@ -20,6 +20,7 @@ import scipy.ndimage.measurements as measure
 from matplotlib import pyplot as plt
 import seaborn as sns
 
+
 def crop_image(image, cx, cy, size):
     """Crop a 3D image using a bounding box centred at (cx, cy) with specified size"""
     X, Y = image.shape[:2]
@@ -82,9 +83,7 @@ def data_augmenter(image, label, shift, rotate, scale, intensity, flip):
         M = cv2.getRotationMatrix2D((row / 2, col / 2), rotate_val, 1.0 / scale_val)
         M[:, 2] += shift_val
         for c in range(image.shape[3]):
-            image2[i, :, :, c] = ndimage.interpolation.affine_transform(
-                image[i, :, :, c], M[:, :2], M[:, 2], order=1
-            )
+            image2[i, :, :, c] = ndimage.interpolation.affine_transform(image[i, :, :, c], M[:, :2], M[:, 2], order=1)
 
         # Apply the affine transformation (rotation + scale + shift) to the label map
         label2[i, :, :] = ndimage.interpolation.affine_transform(label[i, :, :], M[:, :2], M[:, 2], order=0)
@@ -129,9 +128,7 @@ def aortic_data_augmenter(image, label, shift, rotate, scale, intensity, flip):
     # Apply the transformation to the image
     for i in range(image.shape[0]):
         for c in range(image.shape[3]):
-            image2[i, :, :, c] = ndimage.interpolation.affine_transform(
-                image[i, :, :, c], M[:, :2], M[:, 2], order=1
-            )
+            image2[i, :, :, c] = ndimage.interpolation.affine_transform(image[i, :, :, c], M[:, :2], M[:, 2], order=1)
 
         label2[i, :, :] = ndimage.interpolation.affine_transform(label[i, :, :], M[:, :2], M[:, 2], order=0)
 
@@ -164,7 +161,7 @@ def distance_metric(seg_A, seg_B, dx):
     """
     table_md = []
     table_hd = []
-    X, Y, Z = seg_A.shape
+    _, _, Z = seg_A.shape
     for z in range(Z):
         # Binary mask at this slice
         slice_A = seg_A[:, :, z].astype(np.uint8)
@@ -173,16 +170,12 @@ def distance_metric(seg_A, seg_B, dx):
         # The distance is defined only when both contours exist on this slice
         if np.sum(slice_A) > 0 and np.sum(slice_B) > 0:
             # Find contours and retrieve all the points
-            contours, _ = cv2.findContours(
-                cv2.inRange(slice_A, 1, 1), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-            )
+            contours, _ = cv2.findContours(cv2.inRange(slice_A, 1, 1), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             pts_A = contours[0]
             for i in range(1, len(contours)):
                 pts_A = np.vstack((pts_A, contours[i]))
 
-            contours, _ = cv2.findContours(
-                cv2.inRange(slice_B, 1, 1), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-            )
+            contours, _ = cv2.findContours(cv2.inRange(slice_B, 1, 1), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             pts_B = contours[0]
             for i in range(1, len(contours)):
                 pts_B = np.vstack((pts_B, contours[i]))
@@ -364,9 +357,7 @@ def overlay_contour(img, seg, RGBforLabel: dict = None, title=None, fill=False, 
         # opencv requires color to be in 0~255, whilc cmaps are in 0~1
         contour_color = palette[i]
         contour_color = [int(255 * c) for c in contour_color]
-        plt.imshow(
-            cv2.drawContours(img, contour, -1, color=contour_color, thickness=-1 if fill else 1), cmap="gray"
-        )
+        plt.imshow(cv2.drawContours(img, contour, -1, color=contour_color, thickness=-1 if fill else 1), cmap="gray")
         if scatters is not None:
             scatter = scatters[values[i]]  # ignore ground truth
             for idx, s in enumerate(scatter):

@@ -12,7 +12,7 @@ def sa_pass_quality_control(seg_sa_name, t=0):
         raise ValueError("The segmentation should be 3D + t.")
 
     seg_sa = nim.get_fdata()[:, :, :, t]
-    X, Y, Z = seg_sa.shape[:3]
+    _, _, Z = seg_sa.shape[:3]
 
     # Label class in the segmentation
     label = {"LV": 1, "Myo": 2, "RV": 3}
@@ -84,7 +84,7 @@ def la_pass_quality_control(seg_la_name, t=0):
     if nim.get_fdata().ndim != 4:
         raise ValueError("The segmentation should be 3D + t.")
     seg = nim.get_fdata()[:, :, :, t]
-    X, Y, Z = seg.shape[:3]
+    # X, Y, Z = seg.shape[:3]
     seg_z = seg[:, :, 0]
 
     # Label class in the segmentation

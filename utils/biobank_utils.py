@@ -13,16 +13,17 @@
 # limitations under the License.
 # ==============================================================================
 """
-    The UK Biobank cardiac image converting module.
+The UK Biobank cardiac image converting module.
 
-    This module reads short-axis and long-axis DICOM files for a UK Biobank subject,
-    looks for the correct series (sometimes there are more than one series for one slice),
-    stack the slices into a 3D-t volume and save as a nifti image.
+This module reads short-axis and long-axis DICOM files for a UK Biobank subject,
+looks for the correct series (sometimes there are more than one series for one slice),
+stack the slices into a 3D-t volume and save as a nifti image.
 
-    pydicom is used for reading DICOM images. However, I have found that very rarely it could
-    fail in reading certain DICOM images, perhaps due to the DICOM format, which has no standard
-    and vary between manufacturers and machines.
+pydicom is used for reading DICOM images. However, I have found that very rarely it could
+fail in reading certain DICOM images, perhaps due to the DICOM format, which has no standard
+and vary between manufacturers and machines.
 """
+
 import os
 import re
 import pickle
@@ -34,42 +35,44 @@ import nibabel as nib
 
 
 def repl(m):
-    """ Function for reformatting the date """
-    return '{}{}-{}-20{}'.format(m.group(1), m.group(2), m.group(3), m.group(4))
+    """Function for reformatting the date"""
+    return "{}{}-{}-20{}".format(m.group(1), m.group(2), m.group(3), m.group(4))
 
 
 def process_manifest(name, name2):
     """
-        Read the lines in the manifest.csv file and check whether the date format contains
-        a comma, which needs to be removed since it causes problems in parsing the file.
+    Read the lines in the manifest.csv file and check whether the date format contains
+    a comma, which needs to be removed since it causes problems in parsing the file.
     """
-    with open(name2, 'w') as f2:
-        with open(name, 'r') as f:
+    with open(name2, "w") as f2:
+        with open(name, "r") as f:
             for line in f:
-                line2 = re.sub('([A-Z])(\w{2}) (\d{1,2}), 20(\d{2})', repl, line)
+                line2 = re.sub("([A-Z])(\w{2}) (\d{1,2}), 20(\d{2})", repl, line)
                 f2.write(line2)
 
 
 class BaseImage(object):
-    """ Representation of an image by an array, an image-to-world affine matrix and a temporal spacing """
+    """Representation of an image by an array, an image-to-world affine matrix and a temporal spacing"""
+
     volume = np.array([])
     affine = np.eye(4)
     dt = 1
 
     def WriteToNifti(self, filename):
         nim = nib.Nifti1Image(self.volume, self.affine)
-        nim.header['pixdim'][4] = self.dt
-        nim.header['sform_code'] = 1
+        nim.header["pixdim"][4] = self.dt
+        nim.header["sform_code"] = 1
         nib.save(nim, filename)
 
 
 class Biobank_Dataset(object):
-    """ Class for managing Biobank datasets """
+    """Class for managing Biobank datasets"""
+
     def __init__(self, input_dir, cvi42_dir=None):
         """
-            Initialise data
-            This is important, otherwise the dictionaries will not be cleaned between instances.
-            """
+        Initialise data
+        This is important, otherwise the dictionaries will not be cleaned between instances.
+        """
         self.subdir = {}
         self.data = {}
 
@@ -91,119 +94,120 @@ class Biobank_Dataset(object):
         shmolli_t1map_dir = []
         tag_dir = []
         for s in subdirs:
-            m = re.match('CINE_segmented_SAX_b(\d*)$', s)
+            m = re.match("CINE_segmented_SAX_b(\d*)$", s)
             if m:
                 sax_dir += [(os.path.join(input_dir, s), int(m.group(1)))]
-            elif re.match('CINE_segmented_LAX_2Ch$', s):
+            elif re.match("CINE_segmented_LAX_2Ch$", s):
                 lax_2ch_dir = os.path.join(input_dir, s)
-            elif re.match('CINE_segmented_LAX_3Ch$', s):
+            elif re.match("CINE_segmented_LAX_3Ch$", s):
                 lax_3ch_dir = os.path.join(input_dir, s)
-            elif re.match('CINE_segmented_LAX_4Ch$', s):
+            elif re.match("CINE_segmented_LAX_4Ch$", s):
                 lax_4ch_dir = os.path.join(input_dir, s)
-            elif re.match('CINE_segmented_SAX$', s):
+            elif re.match("CINE_segmented_SAX$", s):
                 sax_mix_dir = os.path.join(input_dir, s)
-            elif re.match('CINE_segmented_LAX$', s):
+            elif re.match("CINE_segmented_LAX$", s):
                 lax_mix_dir = os.path.join(input_dir, s)
-            elif re.match('CINE_segmented_Ao_dist$', s):
+            elif re.match("CINE_segmented_Ao_dist$", s):
                 aor_dir = os.path.join(input_dir, s)
-            elif re.match('CINE_segmented_LVOT$', s):
+            elif re.match("CINE_segmented_LVOT$", s):
                 lvot_dir = os.path.join(input_dir, s)
-            elif re.match('flow_250_tp_AoV_bh_ePAT@c$', s):
+            elif re.match("flow_250_tp_AoV_bh_ePAT@c$", s):
                 flow_dir = os.path.join(input_dir, s)
-            elif re.match('flow_250_tp_AoV_bh_ePAT@c_MAG$', s):
+            elif re.match("flow_250_tp_AoV_bh_ePAT@c_MAG$", s):
                 flow_mag_dir = os.path.join(input_dir, s)
-            elif re.match('flow_250_tp_AoV_bh_ePAT@c_P$', s):
+            elif re.match("flow_250_tp_AoV_bh_ePAT@c_P$", s):
                 flow_pha_dir = os.path.join(input_dir, s)
-            elif re.match('ShMOLLI_192i_SAX_b2s$', s):
+            elif re.match("ShMOLLI_192i_SAX_b2s$", s):
                 shmolli_dir = os.path.join(input_dir, s)
-            elif re.match('ShMOLLI_192i_SAX_b2s_SAX_b2s_FITPARAMS$', s):
+            elif re.match("ShMOLLI_192i_SAX_b2s_SAX_b2s_FITPARAMS$", s):
                 shmolli_fitpar_dir = os.path.join(input_dir, s)
-            elif re.match('ShMOLLI_192i_SAX_b2s_SAX_b2s_SAX_b2s_T1MAP$', s):
+            elif re.match("ShMOLLI_192i_SAX_b2s_SAX_b2s_SAX_b2s_T1MAP$", s):
                 shmolli_t1map_dir = os.path.join(input_dir, s)
-            m = re.match('cine_tagging_3sl_SAX_b(\d*)s$', s)
+            m = re.match("cine_tagging_3sl_SAX_b(\d*)s$", s)
             if m:
                 tag_dir += [(os.path.join(input_dir, s), int(m.group(1)))]
 
         if not sax_dir:
-            print('Warning: SAX subdirectories not found!')
+            print("Warning: SAX subdirectories not found!")
             if sax_mix_dir:
-                print('But a mixed SAX directory has been found. '
-                      'We will sort it into directories for each slice.')
+                print("But a mixed SAX directory has been found. " "We will sort it into directories for each slice.")
                 list = sorted(os.listdir(sax_mix_dir))
                 d = dicom.read_file(os.path.join(sax_mix_dir, list[0]))
                 T = d.CardiacNumberOfImages
                 Z = int(np.floor(len(list) / float(T)))
                 for z in range(Z):
-                    s = os.path.join(input_dir, 'CINE_segmented_SAX_b{0}'.format(z))
+                    s = os.path.join(input_dir, "CINE_segmented_SAX_b{0}".format(z))
                     os.mkdir(s)
-                    for f in list[z * T:(z + 1) * T]:
-                        os.system('mv {0}/{1} {2}'.format(sax_mix_dir, f, s))
+                    for f in list[z * T : (z + 1) * T]:
+                        os.system("mv {0}/{1} {2}".format(sax_mix_dir, f, s))
                     sax_dir += [(s, z)]
 
         if not lax_2ch_dir and not lax_3ch_dir and not lax_4ch_dir:
-            print('Warning: LAX subdirectories not found!')
+            print("Warning: LAX subdirectories not found!")
             if lax_mix_dir:
-                print('But a mixed LAX directory has been found. '
-                      'We will sort it into directories for 2Ch, 3Ch and 4Ch views.')
+                print(
+                    "But a mixed LAX directory has been found. "
+                    "We will sort it into directories for 2Ch, 3Ch and 4Ch views."
+                )
                 list = sorted(os.listdir(lax_mix_dir))
                 d = dicom.read_file(os.path.join(lax_mix_dir, list[0]))
                 T = d.CardiacNumberOfImages
                 if len(list) != 3 * T:
-                    print('Error: cannot split files into three partitions!')
+                    print("Error: cannot split files into three partitions!")
                 else:
-                    lax_3ch_dir = os.path.join(input_dir, 'CINE_segmented_LAX_3Ch')
+                    lax_3ch_dir = os.path.join(input_dir, "CINE_segmented_LAX_3Ch")
                     os.mkdir(lax_3ch_dir)
                     for f in list[:T]:
-                        os.system('mv {0}/{1} {2}'.format(lax_mix_dir, f, lax_3ch_dir))
+                        os.system("mv {0}/{1} {2}".format(lax_mix_dir, f, lax_3ch_dir))
 
-                    lax_4ch_dir = os.path.join(input_dir, 'CINE_segmented_LAX_4Ch')
+                    lax_4ch_dir = os.path.join(input_dir, "CINE_segmented_LAX_4Ch")
                     os.mkdir(lax_4ch_dir)
-                    for f in list[T:2 * T]:
-                        os.system('mv {0}/{1} {2}'.format(lax_mix_dir, f, lax_4ch_dir))
+                    for f in list[T : 2 * T]:
+                        os.system("mv {0}/{1} {2}".format(lax_mix_dir, f, lax_4ch_dir))
 
-                    lax_2ch_dir = os.path.join(input_dir, 'CINE_segmented_LAX_2Ch')
+                    lax_2ch_dir = os.path.join(input_dir, "CINE_segmented_LAX_2Ch")
                     os.mkdir(lax_2ch_dir)
-                    for f in list[2 * T:3 * T]:
-                        os.system('mv {0}/{1} {2}'.format(lax_mix_dir, f, lax_2ch_dir))
+                    for f in list[2 * T : 3 * T]:
+                        os.system("mv {0}/{1} {2}".format(lax_mix_dir, f, lax_2ch_dir))
 
         self.subdir = {}
         if sax_dir:
-            sax_dir = sorted(sax_dir, key=lambda x:x[1])
-            self.subdir['sa'] = [x for x, y in sax_dir]
+            sax_dir = sorted(sax_dir, key=lambda x: x[1])
+            self.subdir["sa"] = [x for x, y in sax_dir]
         if lax_2ch_dir:
-            self.subdir['la_2ch'] = [lax_2ch_dir]
+            self.subdir["la_2ch"] = [lax_2ch_dir]
         if lax_3ch_dir:
-            self.subdir['la_3ch'] = [lax_3ch_dir]
+            self.subdir["la_3ch"] = [lax_3ch_dir]
         if lax_4ch_dir:
-            self.subdir['la_4ch'] = [lax_4ch_dir]
+            self.subdir["la_4ch"] = [lax_4ch_dir]
         if aor_dir:
-            self.subdir['aor'] = [aor_dir]
+            self.subdir["aor"] = [aor_dir]
         if lvot_dir:
-            self.subdir['lvot'] = [lvot_dir]
+            self.subdir["lvot"] = [lvot_dir]
         if flow_dir:
-            self.subdir['flow'] = [flow_dir]
+            self.subdir["flow"] = [flow_dir]
         if flow_mag_dir:
-            self.subdir['flow_mag'] = [flow_mag_dir]
+            self.subdir["flow_mag"] = [flow_mag_dir]
         if flow_pha_dir:
-            self.subdir['flow_pha'] = [flow_pha_dir]
+            self.subdir["flow_pha"] = [flow_pha_dir]
         if shmolli_dir:
-            self.subdir['shmolli'] = [shmolli_dir]
+            self.subdir["shmolli"] = [shmolli_dir]
         if shmolli_fitpar_dir:
-            self.subdir['shmolli_fitpar'] = [shmolli_fitpar_dir]
+            self.subdir["shmolli_fitpar"] = [shmolli_fitpar_dir]
         if shmolli_t1map_dir:
-            self.subdir['shmolli_t1map'] = [shmolli_t1map_dir]
+            self.subdir["shmolli_t1map"] = [shmolli_t1map_dir]
         if tag_dir:
             tag_dir = sorted(tag_dir, key=lambda x: x[1])
             for x, y in tag_dir:
-                self.subdir['tag_{0}'.format(y)] = [x]
+                self.subdir["tag_{0}".format(y)] = [x]
 
         self.cvi42_dir = cvi42_dir
 
     def find_series(self, dir_name, T):
         """
-            In a few cases, there are two or three time sequences or series within each folder.
-            We need to find which series to convert.
-            """
+        In a few cases, there are two or three time sequences or series within each folder.
+        We need to find which series to convert.
+        """
         files = sorted(os.listdir(dir_name))
         if len(files) > T:
             # Sort the files according to their series UIDs
@@ -221,7 +225,7 @@ class Biobank_Dataset(object):
                 find_series = False
                 for suid, suid_files in series.items():
                     for f in suid_files:
-                        contour_pickle = os.path.join(self.cvi42_dir, os.path.splitext(f)[0] + '.pickle')
+                        contour_pickle = os.path.join(self.cvi42_dir, os.path.splitext(f)[0] + ".pickle")
                         if os.path.exists(contour_pickle):
                             find_series = True
                             choose_suid = suid
@@ -230,16 +234,18 @@ class Biobank_Dataset(object):
                     choose_suid = sorted(series.keys())[-1]
             else:
                 choose_suid = sorted(series.keys())[-1]
-            print('There are multiple series. Use series {0}.'.format(choose_suid))
+            print("There are multiple series. Use series {0}.".format(choose_suid))
             files = sorted(series[choose_suid])
 
         if len(files) < T:
-            print('Warning: {0}: Number of files < CardiacNumberOfImages! '
-                  'We will fill the missing files using duplicate slices.'.format(dir_name))
-        return(files)
+            print(
+                "Warning: {0}: Number of files < CardiacNumberOfImages! "
+                "We will fill the missing files using duplicate slices.".format(dir_name)
+            )
+        return files
 
     def read_dicom_images(self):
-        """ Read dicom images and store them in a 3D-t volume. """
+        """Read dicom images and store them in a 3D-t volume."""
         for name, dir in sorted(self.subdir.items()):
             # Read the image volume
             # Number of slices
@@ -292,15 +298,13 @@ class Biobank_Dataset(object):
                 axis_z = np.cross(axis_x, axis_y)
 
             # Determine the z spacing
-            if hasattr(d, 'SpacingBetweenSlices'):
+            if hasattr(d, "SpacingBetweenSlices"):
                 dz = float(d.SpacingBetweenSlices)
             elif Z >= 2:
-                print('Warning: can not find attribute SpacingBetweenSlices. '
-                      'Calculate from two successive slices.')
+                print("Warning: can not find attribute SpacingBetweenSlices. " "Calculate from two successive slices.")
                 dz = float(np.linalg.norm(pos_ul2 - pos_ul))
             else:
-                print('Warning: can not find attribute SpacingBetweenSlices. '
-                      'Use attribute SliceThickness instead.')
+                print("Warning: can not find attribute SpacingBetweenSlices. " "Use attribute SliceThickness instead.")
                 dz = float(d.SliceThickness)
 
             # Affine matrix which converts the voxel coordinate to world coordinate
@@ -311,14 +315,14 @@ class Biobank_Dataset(object):
             affine[:3, 3] = pos_ul
 
             # The 4D volume
-            volume = np.zeros((X, Y, Z, T), dtype='float32')
+            volume = np.zeros((X, Y, Z, T), dtype="float32")
             if self.cvi42_dir:
                 # Save both label map in original resolution and upsampled label map.
                 # The image annotation by defaults upsamples the image using cvi42 and then
                 # annotate on the upsampled image.
                 up = 4
-                label = np.zeros((X, Y, Z, T), dtype='int16')
-                label_up = np.zeros((X * up, Y * up, Z, T), dtype='int16')
+                label = np.zeros((X, Y, Z, T), dtype="int16")
+                label_up = np.zeros((X * up, Y * up, Z, T), dtype="int16")
 
             # Go through each slice
             for z in range(0, Z):
@@ -346,17 +350,23 @@ class Biobank_Dataset(object):
                         d = dicom.read_file(os.path.join(dir[z], f))
                         volume[:, :, z, t] = d.pixel_array.transpose()
                     except IndexError:
-                        print('Warning: dicom file missing for {0}: time point {1}. '
-                              'Image will be copied from the previous time point.'.format(dir[z], t))
+                        print(
+                            "Warning: dicom file missing for {0}: time point {1}. "
+                            "Image will be copied from the previous time point.".format(dir[z], t)
+                        )
                         volume[:, :, z, t] = volume[:, :, z, t - 1]
                     except (ValueError, TypeError):
-                        print('Warning: failed to read pixel_array from file {0}. '
-                              'Image will be copied from the previous time point.'.format(os.path.join(dir[z], f)))
+                        print(
+                            "Warning: failed to read pixel_array from file {0}. "
+                            "Image will be copied from the previous time point.".format(os.path.join(dir[z], f))
+                        )
                         volume[:, :, z, t] = volume[:, :, z, t - 1]
                     except NotImplementedError:
-                        print('Warning: failed to read pixel_array from file {0}. '
-                              'pydicom cannot handle compressed dicom files. '
-                              'Switch to SimpleITK instead.'.format(os.path.join(dir[z], f)))
+                        print(
+                            "Warning: failed to read pixel_array from file {0}. "
+                            "pydicom cannot handle compressed dicom files. "
+                            "Switch to SimpleITK instead.".format(os.path.join(dir[z], f))
+                        )
                         reader = sitk.ImageFileReader()
                         reader.SetFileName(os.path.join(dir[z], f))
                         img = sitk.GetArrayFromImage(reader.Execute())
@@ -364,9 +374,9 @@ class Biobank_Dataset(object):
 
                     if self.cvi42_dir:
                         # Check whether there is a corresponding cvi42 contour file for this dicom
-                        contour_pickle = os.path.join(self.cvi42_dir, os.path.splitext(f)[0] + '.pickle')
+                        contour_pickle = os.path.join(self.cvi42_dir, os.path.splitext(f)[0] + ".pickle")
                         if os.path.exists(contour_pickle):
-                            with open(contour_pickle, 'rb') as f:
+                            with open(contour_pickle, "rb") as f:
                                 contours = pickle.load(f)
 
                                 # Labels
@@ -386,24 +396,24 @@ class Biobank_Dataset(object):
                                 # can only be solved if we could have a better definition of contours.
                                 # Thanks for Elena Lukaschuk and Stefan Piechnik for pointing this out.
                                 ordered_contours = []
-                                if 'sarvendocardialContour' in contours:
-                                    ordered_contours += [(contours['sarvendocardialContour'], rv_endo)]
+                                if "sarvendocardialContour" in contours:
+                                    ordered_contours += [(contours["sarvendocardialContour"], rv_endo)]
 
-                                if 'saepicardialContour' in contours:
-                                    ordered_contours += [(contours['saepicardialContour'], lv_epi)]
-                                if 'saepicardialOpenContour' in contours:
-                                    ordered_contours += [(contours['saepicardialOpenContour'], lv_epi)]
+                                if "saepicardialContour" in contours:
+                                    ordered_contours += [(contours["saepicardialContour"], lv_epi)]
+                                if "saepicardialOpenContour" in contours:
+                                    ordered_contours += [(contours["saepicardialOpenContour"], lv_epi)]
 
-                                if 'saendocardialContour' in contours:
-                                    ordered_contours += [(contours['saendocardialContour'], lv_endo)]
-                                if 'saendocardialOpenContour' in contours:
-                                    ordered_contours += [(contours['saendocardialOpenContour'], lv_endo)]
+                                if "saendocardialContour" in contours:
+                                    ordered_contours += [(contours["saendocardialContour"], lv_endo)]
+                                if "saendocardialOpenContour" in contours:
+                                    ordered_contours += [(contours["saendocardialOpenContour"], lv_endo)]
 
-                                if 'laraContour' in contours:
-                                    ordered_contours += [(contours['laraContour'], ra_endo)]
+                                if "laraContour" in contours:
+                                    ordered_contours += [(contours["laraContour"], ra_endo)]
 
-                                if 'lalaContour' in contours:
-                                    ordered_contours += [(contours['lalaContour'], la_endo)]
+                                if "lalaContour" in contours:
+                                    ordered_contours += [(contours["lalaContour"], la_endo)]
 
                                 # cv2.fillPoly requires the contour coordinates to be integers.
                                 # However, the contour coordinates are floating point number since
@@ -415,9 +425,9 @@ class Biobank_Dataset(object):
                                 # We found that it also looks better to fill polygons it on the upsampled
                                 # space and then downsample the label map than fill on the original image.
                                 lab_up = np.zeros((Y * up, X * up))
-                                for c, l in ordered_contours:
-                                    coord = np.round(c * up).astype(int)
-                                    cv2.fillPoly(lab_up, [coord], l)
+                                for con, lab in ordered_contours:
+                                    coord = np.round(con * up).astype(int)
+                                    cv2.fillPoly(lab_up, [coord], lab)
 
                                 label_up[:, :, z, t] = lab_up.transpose()
                                 label[:, :, z, t] = lab_up[::up, ::up].transpose()
@@ -434,19 +444,19 @@ class Biobank_Dataset(object):
             if self.cvi42_dir:
                 # Only save the label map if it is non-zero
                 if np.any(label):
-                    self.data['label_' + name] = BaseImage()
-                    self.data['label_' + name].volume = label
-                    self.data['label_' + name].affine = affine
-                    self.data['label_' + name].dt = dt
+                    self.data["label_" + name] = BaseImage()
+                    self.data["label_" + name].volume = label
+                    self.data["label_" + name].affine = affine
+                    self.data["label_" + name].dt = dt
                 # Upsampled label map
                 if np.any(label_up):
-                    self.data['label_up_' + name] = BaseImage()
-                    self.data['label_up_' + name].volume = label_up
-                    up_matrix = np.array([[1.0/up, 0, 0, 0], [0, 1.0/up, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-                    self.data['label_up_' + name].affine = np.dot(affine, up_matrix)
-                    self.data['label_up_' + name].dt = dt
+                    self.data["label_up_" + name] = BaseImage()
+                    self.data["label_up_" + name].volume = label_up
+                    up_matrix = np.array([[1.0 / up, 0, 0, 0], [0, 1.0 / up, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+                    self.data["label_up_" + name].affine = np.dot(affine, up_matrix)
+                    self.data["label_up_" + name].dt = dt
 
     def convert_dicom_to_nifti(self, output_dir):
-        """ Save the image in nifti format. """
+        """Save the image in nifti format."""
         for name, image in self.data.items():
-            image.WriteToNifti(os.path.join(output_dir, '{0}.nii.gz'.format(name)))
+            image.WriteToNifti(os.path.join(output_dir, "{0}.nii.gz".format(name)))

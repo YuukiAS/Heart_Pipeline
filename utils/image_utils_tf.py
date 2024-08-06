@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def tf_categorical_accuracy(pred, truth):
     """Accuracy metric"""
     return tf.reduce_mean(tf.cast(tf.equal(pred, truth), dtype=tf.float32))

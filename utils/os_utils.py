@@ -1,5 +1,6 @@
 import os
 
+
 def check_existing_file(files_to_check, existing_path):
     """
     Check if the files in files_to_check already exist in existing_path.
