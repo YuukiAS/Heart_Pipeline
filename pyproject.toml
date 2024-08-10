@@ -14,7 +14,6 @@ exclude = [
     "src/feature_extraction/aortic",    
     "src/feature_extraction/long_axis/eval_strain_lax.py",
     "src/feature_extraction/short_axis/eval_strain_sax.py",
-    "src/feature_extraction/short_axis/eval_wall_thickness.py",
     "src/registration/",
     ".git",
     "archive",

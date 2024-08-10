@@ -20,9 +20,12 @@ import cv2
 import vtk
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from typing import Tuple
 from vtk.util import numpy_support
 from scipy import interpolate
+from scipy.stats import linregress
+import porespy as ps
 # import skimage.measure
 from .image_utils import (
     get_largest_cc, 
@@ -150,7 +153,7 @@ def determine_aha_coordinate_system(seg_sa, affine_sa):
 def determine_aha_part(seg_sa, affine_sa, three_slices=False):
     """Determine the AHA part for each slice."""
     # Label class in the segmentation
-    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Sort the z-axis positions of the slices with both endo and epicardium
     # segmentations
@@ -158,8 +161,8 @@ def determine_aha_part(seg_sa, affine_sa, three_slices=False):
     z_pos = []
     for z in range(Z):
         seg_z = seg_sa[:, :, z]
-        endo = (seg_z == label["LV"]).astype(np.uint8)  # doesn't include myocardium
-        myo = (seg_z == label["Myo"]).astype(np.uint8)
+        endo = (seg_z == labels["LV"]).astype(np.uint8)  # doesn't include myocardium
+        myo = (seg_z == labels["Myo"]).astype(np.uint8)
         pixel_thres = 10
         if (np.sum(endo) < pixel_thres) or (np.sum(myo) < pixel_thres):
             continue
@@ -278,7 +281,6 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
 
 def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
     """Evaluate myocardial wall thickness."""
-    # Read the segmentation image
     
     if seg.ndim != 3:
         raise ValueError("The input segmentation should be 3D.")
@@ -292,7 +294,7 @@ def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
     # Determine the AHA coordinate system using the mid-cavity slice
     aha_axis = determine_aha_coordinate_system(seg, affine)
 
-    # Determine the AHA part of each slice
+    # Determine the AHA part (basal, mid, apical) of each slice if part is not provided
     part_z = {}
     if not part:
         part_z = determine_aha_part(seg, affine)
@@ -381,6 +383,7 @@ def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
 
             # Add the point data
             thickness.InsertNextTuple1(dist_pq)
+            # * Determine the AHA segment ID based on part (basal, mid, apical)
             seg_id = determine_aha_segment_id(p, lv_centre, aha_axis, part_z[z])
             points_aha.InsertNextTuple1(seg_id)
 
@@ -486,7 +489,7 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
     seg = nim.get_fdata()
 
     # Label class in the segmentation
-    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
 
     # Determine the AHA coordinate system using the mid-cavity slice
     aha_axis = determine_aha_coordinate_system(seg, affine)
@@ -502,9 +505,9 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
     for z in range(Z):
         # Check whether there is the endocardial segmentation
         seg_z = seg[:, :, z]
-        endo = (seg_z == label["LV"]).astype(np.uint8)
+        endo = (seg_z == labels["LV"]).astype(np.uint8)
         endo = get_largest_cc(endo).astype(np.uint8)
-        myo = (seg_z == label["Myo"]).astype(np.uint8)
+        myo = (seg_z == labels["Myo"]).astype(np.uint8)
         myo = remove_small_cc(myo).astype(np.uint8)
         epi = (endo | myo).astype(np.uint8)
         epi = get_largest_cc(epi).astype(np.uint8)
@@ -798,8 +801,6 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_
     split_volume("{0}/sa_crop.nii.gz".format(output_dir), "{0}/sa_crop_z".format(output_dir))
     split_volume("{0}/seg_sa_crop.nii.gz".format(output_dir), "{0}/seg_sa_crop_z".format(output_dir))
 
-    # label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
-
     # Inter-frame motion estimation
     nim = nib.load("{0}/sa_crop.nii.gz".format(output_dir))
     Z = nim.header["dim"][3]
@@ -991,41 +992,73 @@ def remove_mitral_valve_points(endo_contour, epi_contour, mitral_plane):
     return endo_contour, epi_contour
 
 
+def _determine_sa_qualified_slice(seg_sa: Tuple[float, float]):
+    """
+    Determine whether certain slice of the short-axis is qualified at a given timepoint.
+    """
+    if seg_sa.ndim != 2:
+        raise ValueError("The input should be a 2D image.")
+
+    # Label class in the segmentation
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+
+    # Criterion 1: The area of LV and RV should be above a threshold
+    pixel_thres = 10
+    if np.sum(seg_sa == labels["LV"]) < pixel_thres:
+        return False
+    if np.sum(seg_sa == labels["RV"]) < pixel_thres:
+        return False
+
+    # Criterion 2: If the myocardium can surround LV perfectly, then we can determine the basal slice.
+    LV_mask = (seg_sa == labels["LV"]).astype(np.uint8)
+    myo_mask = (seg_sa == labels["Myo"]).astype(np.uint8)
+    contours, _ = cv2.findContours(myo_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for i in range(LV_mask.shape[0]):
+        for j in range(LV_mask.shape[1]):
+            if LV_mask[i, j] == 1:
+                if all(cv2.pointPolygonTest(contour, (j, i), False) < 0 for contour in contours):
+                    return False
+    return True
+
+
 def determine_sa_basal_slice(seg_sa: Tuple[float, float, float]):
     """
     Determine the basal slice of the short-axis image for a given timepoint.
     """
-    # Label class in the segmentation
-    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+    if seg_sa.ndim != 3:
+        raise ValueError("The input should be a 3D image.")
 
     _, _, Z = seg_sa.shape
 
     for z in range(Z):
-        if z > Z / 2:
+        if z > Z / 3:
             # In this case, the slice will be close to apex and should not be considered
             raise ValueError("The basal slice is not found.")
 
         seg_z = seg_sa[:, :, z]
 
-        # Criterion 1: The area of LV should be above a threshold
-        pixel_thres = 10
-        if np.sum(seg_z == label["LV"]) < pixel_thres:
+        if not _determine_sa_qualified_slice(seg_z):
             continue
+        return z
 
-        # Criterion 2: If the myocardium can surround LV perfectly, then we can determine the basal slice.
-        LV_mask = (seg_z == label["LV"]).astype(np.uint8)
-        myo_mask = (seg_z == label["Myo"]).astype(np.uint8)
-        contours, _ = cv2.findContours(myo_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        next_z = False
-        for i in range(LV_mask.shape[0]):
-            for j in range(LV_mask.shape[1]):
-                if LV_mask[i, j] == 1:
-                    if all(cv2.pointPolygonTest(contour, (j, i), False) < 0 for contour in contours):
-                        next_z = True
-                        break
-            if next_z:
-                break
-        if next_z:
+
+def determine_sa_apical_slice(seg_sa: Tuple[float, float, float]):
+    """
+    Determine the apical slice of the short-axis image for a given timepoint.
+    """
+    if seg_sa.ndim != 3:
+        raise ValueError("The input should be a 3D image.")
+
+    _, _, Z = seg_sa.shape
+
+    for z in range(Z - 1, -1, -1):
+        if z < Z / 3:
+            # In this case, the slice will be close to base and should not be considered
+            raise ValueError("The apical slice is not found.")
+
+        seg_z = seg_sa[:, :, z]
+
+        if not _determine_sa_qualified_slice(seg_z):
             continue
         return z
 
@@ -1210,7 +1243,7 @@ def determine_la_aha_part(seg_la, affine_la, affine_sa):
     along the long-axis and determine the part for each index.
     """
     # Label class in the segmentation
-    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
     # Sort the left ventricle and myocardium points according to their long-axis locations
     lv_myo_points = []
@@ -1218,7 +1251,7 @@ def determine_la_aha_part(seg_la, affine_la, affine_sa):
     z = 0
     for y in range(Y):
         for x in range(X):
-            if seg_la[x, y] == label["LV"] or seg_la[x, y] == label["Myo"]:
+            if seg_la[x, y] == labels["LV"] or seg_la[x, y] == labels["Myo"]:
                 z_sa = np.dot(np.linalg.inv(affine_sa), np.dot(affine_la, np.array([x, y, z, 1])))[2]
                 la_idx = int(round(z_sa * 2))
                 lv_myo_points += [[x, y, la_idx]]
@@ -1255,7 +1288,7 @@ def determine_la_aha_part(seg_la, affine_la, affine_sa):
     z = 0
     for y in range(Y):
         for x in range(X):
-            if seg_la[x, y] == label["LV"]:
+            if seg_la[x, y] == labels["LV"]:
                 z_sa = np.dot(np.linalg.inv(affine_sa), np.dot(affine_la, np.array([x, y, z, 1])))[2]
                 la_idx = int(round(z_sa * 2))
                 lv_points += [[x, y, la_idx]]
@@ -1319,7 +1352,7 @@ def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
     seg = nim.get_fdata()
 
     # Label class in the segmentation
-    label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
     # Determine the AHA coordinate system using the mid-cavity slice of short-axis images
     nim_sa = nib.load(seg_sa_name)
@@ -1347,12 +1380,12 @@ def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
     # Only keep the largest connected component
     z = 0
     seg_z = seg[:, :, z]
-    endo = (seg_z == label["LV"]).astype(np.uint8)
+    endo = (seg_z == labels["LV"]).astype(np.uint8)
     endo = get_largest_cc(endo).astype(np.uint8)
     # The myocardium may be split to two parts due to the very thin apex.
     # So we do not apply get_largest_cc() to it. However, we remove small pieces, which
     # may cause problems in determining the contours.
-    myo = (seg_z == label["Myo"]).astype(np.uint8)
+    myo = (seg_z == labels["Myo"]).astype(np.uint8)
     myo = remove_small_cc(myo).astype(np.uint8)
     epi = (endo | myo).astype(np.uint8)
     epi = get_largest_cc(epi).astype(np.uint8)
@@ -1632,8 +1665,6 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_
     nim = nib.load("{0}/la_4ch_crop.nii.gz".format(output_dir))
     T = nim.header["dim"][4]
     dt = nim.header["pixdim"][4]
-
-    # label = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
     # Split the cine sequence
     split_sequence("{0}/la_4ch_crop.nii.gz".format(output_dir), "{0}/la_4ch_crop_fr".format(output_dir))
@@ -2094,3 +2125,217 @@ def evaluate_AVPD(
     AV_displacement = np.sort(AV_displacement)
     AV_displacement = AV_displacement[1:-1]
     return np.mean(AV_displacement) * 1e-1  # unit: cm
+
+
+def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float],
+                               nim_sa: nib.nifti1.Nifti1Image,
+                               BSA_value: float):
+    if seg_sa_s_t.ndim != 2:
+        raise ValueError("The seg_sa should be a 2D image.")
+    NUM_SEGMENTS = 6
+
+    seg_z = seg_sa_s_t.astype(np.uint8)
+
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+    # * The segmentation masks are divided into 6 segmeents, depending on which interval [ k*pi/3, (k+1)*pi/3 )
+    # * the angle between vectors B_LP and B_LB_R is
+
+    seg_z_LV = seg_z == labels["LV"]
+    seg_z_RV = seg_z == labels["RV"]
+    seg_z_Myo = seg_z == labels["Myo"]
+
+    # np.argwhere is similar to np.nonzero, except the format of returns
+    barycenter_LV = np.mean(np.argwhere(seg_z_LV), axis=0)  
+    barycenter_RV = np.mean(np.argwhere(seg_z_RV), axis=0)
+    # plt.imshow(seg_Z_RV, cmap="gray")
+    # plt.scatter(barycenter_RV[1], barycenter_RV[0], c="r")
+
+    myo_points = np.argwhere(seg_z_Myo)
+    angles = np.zeros(myo_points.shape[0])
+    zones = np.zeros(myo_points.shape[0])
+    boundaries = np.zeros(myo_points.shape[0])  # -1: inner boundary, 1: outer boundary
+
+    for i in range(myo_points.shape[0]):
+        myo_point = myo_points[i]
+        vector1 = myo_point - barycenter_LV
+        vector1 = vector1 / np.linalg.norm(vector1)
+        vector2 = barycenter_RV - barycenter_LV
+        vector2 = vector2 / np.linalg.norm(vector2)
+        angle = np.arccos(np.dot(vector1, vector2))
+        if np.cross(vector1, vector2) < 0:
+            angle = 2 * np.pi - angle
+        angles[i] = angle
+        zones[i] = int(angle // (np.pi / 3)) + 1  # 6 segments
+        
+        neighbors = []
+        for j in range(-1, 2):
+            for k in range(-1, 2):
+                if abs(j) == abs(k):
+                    continue
+                if (
+                    myo_point[0] + j < 0
+                    or myo_point[0] + j >= seg_z.shape[0]
+                    or myo_point[1] + k < 0
+                    or myo_point[1] + k >= seg_z.shape[1]
+                ):
+                    continue
+                neighbors.append(seg_z[myo_point[0] + j, myo_point[1] + k])
+        if labels["LV"] in neighbors:
+            boundaries[i] = -1
+        elif (labels["BG"] in neighbors) or (labels["RV"] in neighbors):
+            boundaries[i] = 1
+
+    # plt.figure(figsize=(20, 10))
+    # plt.subplot(1,2,1)
+    # plt.imshow(seg_z, cmap="gray")
+    # plt.scatter(myo_points[:, 1], myo_points[:, 0], c=zones)
+    # plt.subplot(1,2,2)
+    # plt.imshow(seg_z, cmap="gray")
+    # plt.scatter(myo_points[:, 1], myo_points[:, 0], c=boundaries, s=0.5)
+
+    barycenter_segments_inner = []  # define barycenter of inner boundary of segment
+    barycenter_segments_outer = []  # define barycenter of outer boundary of segment
+
+    # seg_z_segments = np.ascontiguousarray(np.zeros_like(seg_z))
+    # seg_z_segments[seg_z_Myo] = zones
+    # plt.imshow(seg_z_segments, cmap='gray')
+
+    for i in range(1, NUM_SEGMENTS + 1):
+        segment_points = myo_points[zones == i]
+        segment_boundary = boundaries[zones == i]
+        segment_inner_barycenter = np.mean(segment_points[segment_boundary == -1], axis=0)
+        segment_outer_barycenter = np.mean(segment_points[segment_boundary == 1], axis=0)
+
+        # seg_z_segment = seg_z_segments == i
+        # plt.figure(figsize=(20, 10))
+        # plt.imshow(seg_z_segment, cmap="gray")
+        # plt.scatter(segment_inner_barycenter[1], segment_inner_barycenter[0], c="r",s=1)
+        # plt.scatter(segment_outer_barycenter[1], segment_outer_barycenter[0], c="b",s=1)
+
+        barycenter_segments_inner.append(segment_inner_barycenter)
+        barycenter_segments_outer.append(segment_outer_barycenter)
+
+    radius_segments = []  # define RA=|BI|/BSA
+    thickness_segments = []  # define T=|BO|/BSA-RA
+
+    for i in range(NUM_SEGMENTS):
+        barycenter_inner_real = np.dot(nim_sa.affine, 
+                                    np.array([barycenter_segments_inner[i][0], barycenter_segments_inner[i][1], 0, 1])
+                                    )[:3]
+        barycenter_outer_real = np.dot(nim_sa.affine, 
+                                    np.array([barycenter_segments_outer[i][0], barycenter_segments_outer[i][1], 0, 1])
+                                    )[:3]
+        barycenter_LV_real = np.dot(nim_sa.affine, 
+                                    np.array([barycenter_LV[0], barycenter_LV[1], 0, 1])
+                                    )[:3]
+
+        radius = np.linalg.norm(barycenter_inner_real - barycenter_LV_real) / BSA_value * 1e-1  # unit: cm
+        thickness = (np.linalg.norm(barycenter_outer_real - barycenter_LV_real) / BSA_value * 1e-1 - radius)
+        if thickness <= 0:
+            raise ValueError("Thickness should be positive.")
+        radius_segments.append(radius)
+        thickness_segments.append(thickness)
+
+    return (np.array(radius_segments), np.array(thickness_segments))
+
+
+def evaluate_radius_thickness_disparity(seg_sa: Tuple[float, float, float, float], 
+                                        nim_sa: nib.nifti1.Nifti1Image, 
+                                        BSA_value: float):
+    if seg_sa.ndim != 4:
+        raise ValueError("The seg_sa should be a 4D (3D+t) image.")
+    T = seg_sa.shape[3]
+    radius = []
+    thickness = []
+    for t in tqdm(range(T)):
+        seg_sa_t = seg_sa[:, :, :, t]
+        try:
+            basal_slice = determine_sa_basal_slice(seg_sa_t)
+            apical_slice = determine_sa_apical_slice(seg_sa_t)
+        except ValueError:
+            continue
+
+        radius_t = []
+        thickness_t = []
+        for s in range(basal_slice, apical_slice + 1):
+            seg_sa_s_t = seg_sa_t[:, :, s]
+            radius_segments, thickness_segments = _evaluate_radius_thickness(seg_sa_s_t, nim_sa, BSA_value)
+            radius_t.append(radius_segments)
+            thickness_t.append(thickness_segments)
+        radius.append(np.array(radius_t).ravel().tolist())
+        thickness.append(np.array(thickness_t).ravel().tolist())
+
+    # We cannot use numpy manipulation here as the slice*segment is variable for each timepoint
+    T_used = len(radius)
+    radius_disparity = np.zeros(T_used)
+    thickness_disparity = np.zeros(T_used)
+    for t in range(T_used):
+        # define Disparity: max(value_t/value_0) - min(value_t/value_0)
+        # Since we have lots of elements, we remove top 10% and bottom 10% to avoid possible outliers
+
+        radius_t = radius[t]
+        radius_t_0 = radius_t[0]
+        radius_t = sorted(radius_t)
+        radius_t = radius_t[int(0.1 * len(radius_t)):int(0.9 * len(radius_t))]
+        radius_t = [r / radius_t_0 for r in radius_t] 
+        radius_disparity_t = max(radius_t) - min(radius_t)
+        radius_disparity[t] = radius_disparity_t
+
+        thickness_t = thickness[t]
+        thickness_t_0 = thickness_t[0]
+        thickness_t = sorted(thickness_t)
+        thickness_t = thickness_t[int(0.1 * len(thickness_t)):int(0.9 * len(thickness_t))]
+        thickness_t = [t / thickness_t_0 for t in thickness_t]
+        thickness_disparity_t = max(thickness_t) - min(thickness_t)
+        thickness_disparity[t] = thickness_disparity_t
+
+    radius_motion_disparity = np.max(radius_disparity)  # maximum over time
+    thickness_motion_disparity = np.max(thickness_disparity)
+
+    return radius_motion_disparity, thickness_motion_disparity, radius, thickness
+
+
+def fractal_dimension(nim_sa_ED: nib.nifti1.Nifti1Image, seg_sa_ED: Tuple[float, float, float]):
+    fds = np.array([])
+
+    img_sa = nim_sa_ED.get_fdata()
+    for i in range(0, seg_sa_ED.shape[2]):
+        seg_endo = seg_sa_ED[:, :, i] == 1
+        img_endo = img_sa[:, :, i] * seg_endo
+        if img_endo.sum() == 0:
+            continue
+        img_endo = (255 * (img_endo - np.min(img_endo)) / (np.max(img_endo) - np.min(img_endo))).astype(np.uint8)
+        # plt.imshow(img_endo, cmap="gray")
+        seg_backgroud = (img_endo > 0).astype(np.uint8)
+        adaptive_thresh = cv2.adaptiveThreshold(
+            img_endo, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+        seg_endo_trabeculation = cv2.bitwise_and(adaptive_thresh, seg_backgroud)
+        # plt.imshow(seg_endo_trabeculation, cmap="gray")
+
+        # Find a bounding box that contain the endocardium and trabeculation
+        coords = cv2.findNonZero(seg_endo_trabeculation)
+        x, y, w, h = cv2.boundingRect(coords)
+        # print(f"{i}: {w}, {h}")
+        if w < 20 or h < 20:
+            continue
+        x -= 10
+        y -= 10
+        w += 20
+        h += 20
+        seg_endo_trabeculation_cropped = seg_endo_trabeculation[y:y + h, x:x + w]
+
+        contours, _ = cv2.findContours(seg_endo_trabeculation_cropped, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        seg_endo_trabeculation_contour = np.zeros_like(seg_endo_trabeculation_cropped)
+        cv2.drawContours(seg_endo_trabeculation_contour, contours, -1, 255, 1)
+
+        scale = np.arange(0.05, 0.5, 0.01)
+        bins = scale * seg_endo_trabeculation_cropped.shape[0]
+        ps.metrics.boxcount(seg_endo_trabeculation_contour, bins=bins)
+        boxcount_data = ps.metrics.boxcount(seg_endo_trabeculation_contour, bins=bins)
+        slope, _, _, _, _ = linregress(np.log(scale), np.log(boxcount_data.count))
+        slope = abs(slope)
+        if slope < 1 or slope > 2:
+            raise ValueError("Fractal dimension should lie between 1 and 2.")
+        fds.append(slope)
+
+    return fds.mean()
