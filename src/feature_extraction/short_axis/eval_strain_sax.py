@@ -14,76 +14,100 @@
 # ============================================================================
 import os
 import argparse
+import shutil
 import pandas as pd
-from common.cardiac_utils import *
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', metavar='dir_name', default='', required=True)
-    parser.add_argument('--output_csv', metavar='csv_name', default='', required=True)
-    parser.add_argument('--par_dir', metavar='dir_name', default='', required=True)
-    parser.add_argument('--start_idx', metavar='start index', type=int, default=0)
-    parser.add_argument('--end_idx', metavar='end index', type=int, default=0)
+from tqdm import tqdm
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
+
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
+import config
+
+from utils.log_utils import setup_logging
+
+from utils.quality_control_utils import sa_pass_quality_control
+from utils.cardiac_utils import cine_2d_sa_motion_and_strain_analysis
+
+logger = setup_logging("eval_strain_sax")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--retest", action="store_true")
+parser.add_argument("--data_list", help="List of subjects to be processed", nargs="*", type=int, required=True)
+parser.add_argument("--file_name", help="Name of the csv file to save the features")
+
+if __name__ == "__main__":
     args = parser.parse_args()
 
-    data_path = args.data_dir
-    data_list = sorted(os.listdir(data_path))
-    data_list = list(set(data_list)-set(['out']))
-    n_data = len(data_list)
-    start_idx = args.start_idx
-    end_idx = n_data if args.end_idx == 0 else args.end_idx
-    table = []
-    processed_list = []
-    for data in data_list[start_idx:end_idx]:
-        print(data)
-        data_dir = os.path.join(data_path, data)
+    data_dir = config.data_visit2_dir if args.retest else config.data_visit1_dir
 
-        # Quality control for segmentation at ED
-        # If the segmentation quality is low, the following functions may fail.
-        seg_sa_name = '{0}/seg_sa_ED.nii.gz'.format(data_dir)
-        if not os.path.exists(seg_sa_name):
+    df = pd.DataFrame()
+
+    for subject in tqdm(args.data_list):
+        subject = str(subject)
+        logger.info(f"Calculating circumferential and radial strain for subject {subject}")
+        sub_dir = os.path.join(data_dir, subject)
+        seg_sa_name = os.path.join(sub_dir, "seg_sa.nii.gz")
+        seg_sa_ED_name = os.path.join(sub_dir, "seg_sa_ED.nii.gz")
+
+        if not os.path.exists(seg_sa_ED_name) or not os.path.exists(seg_sa_name):
+            logger.error(f"Segmentation of short axis file for {subject} does not exist")
             continue
+
         if not sa_pass_quality_control(seg_sa_name):
+            logger.error(f"{subject}: seg_sa does not pass quality control, skipped.")
             continue
 
-        # Intermediate result directory
-        motion_dir = os.path.join(data_dir, 'cine_motion')
-        if not os.path.exists(motion_dir):
-            os.makedirs(motion_dir)
+        feature_dict = {
+            "eid": subject,
+        }
+
+        # * We will make use of MIRTK and average_3d_ffd here
+        # Note that we should not use export here, as it will exit after subprocess terminates
+        os.environ["PATH"] = config.MIRTK_path + os.pathsep + os.environ["PATH"]
+        os.environ["PATH"] = config.average_3d_ffd_path + os.pathsep + os.environ["PATH"]
+        # os.system(f"export PATH={config.MIRTK_path}:$PATH")
+        # os.system(f"export PATH={config.average_3d_ffd_path}:$PATH")
+
+        # Define This file contains registration parameters for each resolution level
+        par_config_name = os.path.join(config.par_config_dir, "ffd_cine_sa_2d_motion.cfg")
+
+        # Directory to store intermediate motion tracking results
+        temp_dir = os.path.join(sub_dir, "temp")
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+        # Directory to store final motion tracking results
+        ft_dir = os.path.join(sub_dir, "feature_tracking")
+        if not os.path.exists(ft_dir):
+            os.makedirs(ft_dir)
 
         # Perform motion tracking on short-axis images and calculate the strain
-        cine_2d_sa_motion_and_strain_analysis(data_dir,
-                                              args.par_dir,
-                                              motion_dir,
-                                              '{0}/strain_sa'.format(data_dir))
+        radial_strain, circum_strain = cine_2d_sa_motion_and_strain_analysis(sub_dir, par_config_name, temp_dir, ft_dir)
+        logger.info(f"{subject}: Radial and circumferential strain calculated, remove intermediate files.")
 
-        os.system('mv {0}/dice_cine_warp_ffd.csv {1}/'.format(motion_dir, data_dir))
         # Remove intermediate files
-        os.system('rm -rf {0}'.format(motion_dir))
+        shutil.rmtree(temp_dir)
 
-        # Record data
-        if os.path.exists('{0}/strain_sa_radial.csv'.format(data_dir)) \
-                and os.path.exists('{0}/strain_sa_circum.csv'.format(data_dir)):
-            df_radial = pd.read_csv('{0}/strain_sa_radial.csv'.format(data_dir), index_col=0)
-            df_circum = pd.read_csv('{0}/strain_sa_circum.csv'.format(data_dir), index_col=0)
-            line = [df_circum.iloc[i, :].min() for i in range(17)] + [df_radial.iloc[i, :].max() for i in range(17)]
-            table += [line]
-            processed_list += [data]
+        for i in range(16):
+            feature_dict.update({
+                f"LV: Radial strain (AHA_{i + 1}) [%]": radial_strain[i],
+                f"LV: Circumferential strain( AHA_{i + 1}) [%]": circum_strain[i],
+            })
 
-    # Save strain values for all the subjects
-    df = pd.DataFrame(table, index=processed_list,
-                      columns=['Ecc_AHA_1 (%)', 'Ecc_AHA_2 (%)', 'Ecc_AHA_3 (%)',
-                               'Ecc_AHA_4 (%)', 'Ecc_AHA_5 (%)', 'Ecc_AHA_6 (%)',
-                               'Ecc_AHA_7 (%)', 'Ecc_AHA_8 (%)', 'Ecc_AHA_9 (%)',
-                               'Ecc_AHA_10 (%)', 'Ecc_AHA_11 (%)', 'Ecc_AHA_12 (%)',
-                               'Ecc_AHA_13 (%)', 'Ecc_AHA_14 (%)', 'Ecc_AHA_15 (%)', 'Ecc_AHA_16 (%)',
-                               'Ecc_Global (%)',
-                               'Err_AHA_1 (%)', 'Err_AHA_2 (%)', 'Err_AHA_3 (%)',
-                               'Err_AHA_4 (%)', 'Err_AHA_5 (%)', 'Err_AHA_6 (%)',
-                               'Err_AHA_7 (%)', 'Err_AHA_8 (%)', 'Err_AHA_9 (%)',
-                               'Err_AHA_10 (%)', 'Err_AHA_11 (%)', 'Err_AHA_12 (%)',
-                               'Err_AHA_13 (%)', 'Err_AHA_14 (%)', 'Err_AHA_15 (%)', 'Err_AHA_16 (%)',
-                               'Err_Global (%)'])
-    df.to_csv(args.output_csv)
+        feature_dict.update({
+            "LV: Radial strain (Global) [%]": radial_strain[16],
+            "LV: Circumferential strain (Global) [%]": circum_strain[16],
+        })
 
+        # * We use the maximum absolute value: minimum for circum (negative) and maximum for radial (positive)
+        # df.to_csv(args.output_csv)
+        target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
+        target_dir = os.path.join(target_dir, "strain")
+        os.makedirs(target_dir, exist_ok=True)
+        df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
+        df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), ignore_index=True)
 
-  
+        # * Feature 1: Strain rate
+
+        radial_strain_lowess = None

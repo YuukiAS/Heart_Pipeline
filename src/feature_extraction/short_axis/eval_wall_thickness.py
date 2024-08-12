@@ -102,14 +102,14 @@ if __name__ == "__main__":
         for i in range(16):
             feature_dict.update(
                 {
-                    f"Myo: AHA_{i + 1} thickness [mm]": table_thickness[i],
-                    f"Myo: AHA_{i + 1}_max thickness [mm]": table_thickness_max[i],
+                    f"Myo: Thickness (AHA_{i + 1} [mm])": table_thickness[i],
+                    f"Myo: Thickness (AHA_{i + 1}_max [mm])": table_thickness_max[i],
                 }
             )
         feature_dict.update(
             {
-                "Myo: Global thickness [mm]": table_thickness[16],
-                "Myo: Global_max thickness [mm]": table_thickness_max[16],
+                "Myo: Thickness (Global_mean) [mm]": table_thickness[16],
+                "Myo: Thickness (Global_max) [mm]": table_thickness_max[16],
             }
         )
 

@@ -69,7 +69,7 @@ if __name__ == "__main__":
             continue
 
         if not sa_pass_quality_control(seg_sa_name):  # default t = 0
-            logger.error(f"{subject}: seg_sa does not pass sa_pass_quality_control, skipped.")
+            logger.error(f"{subject}: seg_sa does not pass quality control, skipped.")
             continue
 
         nim_sa = nib.load(sa_name)
