@@ -26,17 +26,25 @@ from vtk.util import numpy_support
 from scipy import interpolate
 from scipy.stats import linregress
 import porespy as ps
+
 # import skimage.measure
 from .image_utils import (
-    get_largest_cc, 
-    remove_small_cc, 
-    padding, 
+    get_largest_cc,
+    remove_small_cc,
+    padding,
     split_volume,
     split_sequence,
     np_categorical_dice,
     make_sequence,
-    auto_crop_image
+    auto_crop_image,
 )
+
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
+from utils.log_utils import setup_logging
+
+logger = setup_logging("cardiac-utils")
 
 
 def approximate_contour(contour, factor=4, smooth=0.05, periodic=False):
@@ -91,7 +99,7 @@ def determine_aha_coordinate_system(seg_sa, affine_sa):
     Determine the AHA coordinate system using the mid-cavity slice
     of the short-axis image segmentation.
     """
-    
+
     if seg_sa.ndim != 3:
         raise ValueError("The input segmentation should be 3D.")
 
@@ -281,7 +289,7 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
 
 def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
     """Evaluate myocardial wall thickness."""
-    
+
     if seg.ndim != 3:
         raise ValueError("The input segmentation should be 3D.")
 
@@ -474,7 +482,7 @@ def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
     return endo_poly, epi_poly, index, table_thickness, table_thickness_max
 
 
-def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_slices=False):
+def _extract_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2, part=None, three_slices=False):
     """Extract the myocardial contours, including both endo and epicardial contours.
     Determine the AHA segment ID for all the contour points.
 
@@ -570,14 +578,13 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
             if i == 0:
                 contour_start_id = point_id
 
-            # Add the circumferential line
+            # * Add the circumferential line for epicardial contour
             if i == (N - 1):
                 lines.InsertNextCell(2, [point_id, contour_start_id])
             else:
                 lines.InsertNextCell(2, [point_id, point_id + 1])
 
             lines_aha.InsertNextTuple1(seg_id)
-
             # Line direction (1 = radial, 2 = circumferential, 3 = longitudinal)
             lines_dir.InsertNextTuple1(2)
 
@@ -624,14 +631,13 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
             if i == 0:
                 contour_start_id = point_id
 
-            # Add the circumferential line
+            # * Add the circumferential line for endocardial contour
             if i == (N - 1):
                 lines.InsertNextCell(2, [point_id, contour_start_id])
             else:
                 lines.InsertNextCell(2, [point_id, point_id + 1])
 
             lines_aha.InsertNextTuple1(seg_id)
-
             # Line direction (1 = radial, 2 = circumferential, 3 = longitudinal)
             lines_dir.InsertNextTuple1(2)
 
@@ -653,10 +659,9 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
                 val = np.array(val)
                 epi_point_id = ids.GetId(np.argmax(val))
 
-                # Add the radial line
+                # * Add the radial line (endocardial and epicardial)
                 lines.InsertNextCell(2, [point_id, epi_point_id])
                 lines_aha.InsertNextTuple1(seg_id)
-
                 # Line direction (1 = radial, 2 = circumferential, 3 = longitudinal)
                 lines_dir.InsertNextTuple1(1)
 
@@ -674,18 +679,19 @@ def extract_myocardial_contour(seg_name, contour_name_stem, part=None, three_sli
         poly.GetCellData().AddArray(lines_dir)
 
         writer = vtk.vtkPolyDataWriter()
-        contour_name = "{0}{1:02d}.vtk".format(contour_name_stem, z)
+        contour_name = f"{contour_name_stem1}{z:02d}{contour_name_stem2}.vtk"
         writer.SetFileName(contour_name)
         writer.SetInputData(poly)
         writer.Write()
         os.system('sed -i "1s/4.1/4.0/" {0}'.format(contour_name))
 
 
-def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
-    """Calculate the strain based on the line length"""
+def evaluate_strain_by_length_sa(contour_name_stem, T, result_dir):
+    """Calculate the radial and circumferential strain based on the line length"""
     # Read the polydata at the first time frame (ED frame)
     fr = 0
     # read poly from vtk file that represents transformed myocardial contours
+    # e.g. myo_contour_fr0.vtk
     reader = vtk.vtkPolyDataReader()
     reader.SetFileName("{0}{1:02d}.vtk".format(contour_name_stem, fr))
     reader.Update()
@@ -694,8 +700,8 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
 
     # Calculate the length of each line
     lines = poly.GetLines()
-    lines_aha = poly.GetCellData().GetArray("Segment ID")
-    lines_dir = poly.GetCellData().GetArray("Direction ID")
+    lines_aha = poly.GetCellData().GetArray("Segment ID")  # determined in evaluate_wall_thickness()
+    lines_dir = poly.GetCellData().GetArray("Direction ID")  # determined in extract_myocardial_contour()
     n_lines = lines.GetNumberOfCells()
     length_ED = np.zeros(n_lines)
     seg_id = np.zeros(n_lines)
@@ -710,7 +716,8 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
         p2 = np.array(points.GetPoint(ids.GetId(1)))
         d = np.linalg.norm(p1 - p2)
         seg_id[i] = lines_aha.GetValue(i)
-        dir_id[i] = lines_dir.GetValue(i)  # radial and circumferential, to be used when calculating the strain
+        # 1 = radial, 2 = circumferential, 3 = longitudinal (la)
+        dir_id[i] = lines_dir.GetValue(i)
         length_ED[i] = d
 
     # For each time frame, calculate the strain, i.e. change of length
@@ -721,8 +728,8 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
     for fr in range(0, T):
         # Read the polydata
         reader = vtk.vtkPolyDataReader()
-        filename = "{0}{1:02d}.vtk".format(contour_name_stem, fr)
-        reader.SetFileName(filename)
+        filename_myo = "{0}{1:02d}.vtk".format(contour_name_stem, fr)
+        reader.SetFileName(filename_myo)
         reader.Update()
         poly = reader.GetOutput()
         points = poly.GetPoints()
@@ -739,9 +746,9 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
             lines.GetNextCell(ids)
             p1 = np.array(points.GetPoint(ids.GetId(0)))
             p2 = np.array(points.GetPoint(ids.GetId(1)))
-            d = np.linalg.norm(p1 - p2)  # use norm as it's distance
+            d = np.linalg.norm(p1 - p2)  # use norm as distance
 
-            # Strain of this line (unit: %)
+            # * Strain of this line (unit: %)
             strain[i] = (d - length_ED[i]) / length_ED[i] * 100
             vtk_strain.InsertNextTuple1(strain[i])
 
@@ -749,202 +756,261 @@ def evaluate_strain_by_length(contour_name_stem, T, dt, output_name_stem):
         poly.GetCellData().AddArray(vtk_strain)
         writer = vtk.vtkPolyDataWriter()
         writer.SetInputData(poly)
-        writer.SetFileName(filename)
+        filename_strain = f"{result_dir}/strain/strain_fr{fr:02d}.vtk"
+        writer.SetFileName(filename_strain)
         writer.Write()
-        os.system('sed -i "1s/4.1/4.0/" {0}'.format(filename))  # change the version number from 4.1 to 4.0 in file
+        os.system('sed -i "1s/4.1/4.0/" {0}'.format(filename_strain))  # change the version number from 4.1 to 4.0
 
         # Calculate the segmental and global strains
         for i in range(0, 16):
             table_strain["radial"][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 1)])
             table_strain["circum"][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 2)])
-        table_strain["radial"][-1, fr] = np.mean(strain[dir_id == 1])
+        table_strain["radial"][-1, fr] = np.mean(strain[dir_id == 1])  # global
         table_strain["circum"][-1, fr] = np.mean(strain[dir_id == 2])
 
-    for c in ["radial", "circum"]:
-        # Save into csv files
-        index = [str(x) for x in np.arange(1, 17)] + ["Global"]
-        column = np.arange(0, T) * dt * 1e3
-        df = pd.DataFrame(table_strain[c], index=index, columns=column)
-        df.to_csv("{0}_{1}.csv".format(output_name_stem, c))
+    return table_strain["radial"], table_strain["circum"]
 
 
-def cine_2d_sa_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_name_stem):
-    """Perform motion tracking and strain analysis for cine MR images."""
-    # Crop the image to save computation for image registration
+def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, result_dir, eval_dice=False):
+    """
+    Perform motion tracking and strain analysis for short-axis cine MR images.
+    """
+    # Make folders to arrange files
+    os.makedirs(f"{temp_dir}/sa", exist_ok=True)
+    os.makedirs(f"{temp_dir}/seg_sa", exist_ok=True)
+    os.makedirs(f"{temp_dir}/myo_contour", exist_ok=True)
+    os.makedirs(f"{temp_dir}/pair", exist_ok=True)
+    os.makedirs(f"{temp_dir}/forward", exist_ok=True)
+    os.makedirs(f"{temp_dir}/backward", exist_ok=True)
+    os.makedirs(f"{temp_dir}/combined", exist_ok=True)
+    os.makedirs(f"{result_dir}/strain", exist_ok=True)
+    os.makedirs(f"{result_dir}/myo_contour", exist_ok=True)
+    if eval_dice:
+        os.makedirs(f"{result_dir}/doc", exist_ok=True)
+
     # Focus on the left ventricle so that motion tracking is less affected by
     # the movement of RV and LV outflow tract
     padding(
-        "{0}/seg_sa_ED.nii.gz".format(data_dir),
-        "{0}/seg_sa_ED.nii.gz".format(data_dir),
-        "{0}/seg_sa_lv_ED.nii.gz".format(output_dir),
-        3,
+        f"{data_dir}/seg_sa_ED.nii.gz",  # input A
+        f"{data_dir}/seg_sa_ED.nii.gz",  # input B
+        f"{temp_dir}/seg_sa/seg_sa_LV_ED.nii.gz",  # output
+        3,  # set all pixels with value 3 (RV) to 0 (BG), focusing on LV only
         0,
     )
-    auto_crop_image("{0}/seg_sa_lv_ED.nii.gz".format(output_dir), "{0}/seg_sa_lv_crop_ED.nii.gz".format(output_dir), 20)
+
+    # Crop the image to save computation for image registration
+    auto_crop_image(f"{temp_dir}/seg_sa/seg_sa_LV_ED.nii.gz", f"{temp_dir}/seg_sa/seg_sa_LV_crop_ED.nii.gz", 20)
+
+    # Transform sa/seg_sa.nii.gz to sa/seg_sa_crop.nii.gz using seg_sa_LV_crop_ED.nii.gz
     os.system(
-        "mirtk transform-image {0}/sa.nii.gz {1}/sa_crop.nii.gz " "-target {1}/seg_sa_lv_crop_ED.nii.gz".format(
-            data_dir, output_dir
-        )
+        f"mirtk transform-image {data_dir}/sa.nii.gz {temp_dir}/sa/sa_crop.nii.gz "
+        f"-target {temp_dir}/seg_sa/seg_sa_LV_crop_ED.nii.gz"
     )
     os.system(
-        "mirtk transform-image {0}/seg_sa.nii.gz {1}/seg_sa_crop.nii.gz " "-target {1}/seg_sa_lv_crop_ED.nii.gz".format(
-            data_dir, output_dir
-        )
+        f"mirtk transform-image {data_dir}/seg_sa.nii.gz {temp_dir}/seg_sa/seg_sa_crop.nii.gz "
+        f"-target {temp_dir}/seg_sa/seg_sa_LV_crop_ED.nii.gz"
     )
 
-    # Extract the myocardial contours for three slices, respectively basal, mid-cavity and apical
-    extract_myocardial_contour(
-        "{0}/seg_sa_ED.nii.gz".format(data_dir), "{0}/myo_contour_ED_z".format(output_dir), three_slices=True
-    )
-
-    # Split the volume into slices
-    split_volume("{0}/sa_crop.nii.gz".format(output_dir), "{0}/sa_crop_z".format(output_dir))
-    split_volume("{0}/seg_sa_crop.nii.gz".format(output_dir), "{0}/seg_sa_crop_z".format(output_dir))
-
-    # Inter-frame motion estimation
-    nim = nib.load("{0}/sa_crop.nii.gz".format(output_dir))
+    nim = nib.load(f"{temp_dir}/sa/sa_crop.nii.gz")
     Z = nim.header["dim"][3]
     T = nim.header["dim"][4]
     dt = nim.header["pixdim"][4]
+    slice_used = []
+
+    # Split a volume into slices
+    split_volume(f"{temp_dir}/sa/sa_crop.nii.gz", f"{temp_dir}/sa/sa_crop_z")
+    split_volume(f"{temp_dir}/seg_sa/seg_sa_crop.nii.gz", f"{temp_dir}/seg_sa/seg_sa_crop_z")
+
+    # Extract the myocardial contours for three slices, respectively basal, mid-cavity and apical
+    _extract_myocardial_contour(
+        f"{data_dir}/seg_sa_ED.nii.gz", f"{temp_dir}/myo_contour/myo_contour_z", "_ED", three_slices=True
+    )
+
+    # * Inter-frame motion estimation through registration
+    logger.info("Inter-frame motion estimation through registration")
     dice_lv_myo = []
     for z in range(Z):
-        if not os.path.exists("{0}/myo_contour_ED_z{1:02d}.vtk".format(output_dir, z)):
+        # Since we set three_slices=True, only three slices will be analysed
+        if not os.path.exists(f"{temp_dir}/myo_contour/myo_contour_z{z:02d}_ED.vtk"):
             continue
+        logger.info(f"Analyze slice {z}")
+        slice_used.append(z)
+        # Split the cine sequence for this slice (split according to time instead of slice)
+        # e.g. sa_crop_z00.nii.gz -> sa_crop_z00_fr00.nii.gz, sa_crop_z00_fr01.nii.gz, ...
+        split_sequence(f"{temp_dir}/sa/sa_crop_z{z:02d}.nii.gz", f"{temp_dir}/sa/sa_crop_z{z:02d}_fr")
 
-        # Split the cine sequence for this slice
-        split_sequence(
-            "{0}/sa_crop_z{1:02d}.nii.gz".format(output_dir, z), "{0}/sa_crop_z{1:02d}_fr".format(output_dir, z)
-        )
-
-        # Forward image registration
+        # Ref https://doi.org/10.1038/s41591-020-1009-y
+        # * Image registration between successive time frames for forward image registration
+        # * Note1: We can use mirtk info to get information about generated .dof.gz file
+        # * Note2: For mirtk register <img1> <img2> -dofout <dof>, the transformation is from img2 to img1
+        # results are named as ffd_z{z:02d}_pair_00_to_01.dof.gz, ffd_z{z:02d}_pair_01_to_02.dof.gz, ...
         for fr in range(1, T):
             target_fr = fr - 1
             source_fr = fr
-            target = "{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, target_fr)
-            source = "{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, source_fr)
-            par = "{0}/ffd_cine_2d_motion.cfg".format(par_dir)  # Parameter file for 2D cine image registration
-            dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(
-                output_dir, z, target_fr, source_fr
-            )  # Output transformation field
-            os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
+            target = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{target_fr:02d}.nii.gz"
+            source = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{source_fr:02d}.nii.gz"
+            # output transformation to be used
+            dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
+            # fixme It seems that the parameter doesn't work well compared with default
+            os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof}")
+            # os.system(f"mirtk register {target} {source} -dofout {dof}")
 
-        # Compose forward inter-frame transformation fields
-        # for the first frame, directly copy the transformation
+        # * Start forward image registration
+        # results are named as ffd_z{z:02d}_forward_00_to_01.dof.gz, ffd_z{z:02d}_forward_00_to_02.dof.gz, ...
+
+        # For the first and second time frame, directly copy the transformation
         os.system(
-            "cp {0}/ffd_z{1:02d}_pair_00_to_01.dof.gz " "{0}/ffd_z{1:02d}_forward_00_to_01.dof.gz".format(output_dir, z)
+            f"cp {temp_dir}/pair/ffd_z{z:02d}_pair_00_to_01.dof.gz "
+            f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_01.dof.gz"
         )
-        # for the rest frames, compose the transformation fields
+        # For the rest time frames, compose the transformation fields
         for fr in range(2, T):
             dofs = ""
             for k in range(1, fr + 1):
-                dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(output_dir, z, k - 1, k)
+                dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{k - 1:02d}_to_{k:02d}.dof.gz"
                 dofs += dof + " "
-            dof_out = "{0}/ffd_z{1:02d}_forward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
-            os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
+            dof_out = f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_{fr:02d}.dof.gz"
+            # We need to use -approximate here so that transform-points can be used
+            os.system(f"mirtk compose-dofs {dofs} {dof_out} -approximate")
 
-        # Backward image registration
+        # * Image registration reversely between successive time frames for backward image registration
+        # results are named as ffd_z{z:02d}_pair_01_to_00.dof.gz, ffd_z{z:02d}_pair_02_to_01.dof.gz, ...
         for fr in range(T - 1, 0, -1):
             target_fr = (fr + 1) % T
             source_fr = fr
-            target = "{0}/sa_crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, target_fr)
-            source = "{0}/sa _crop_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, source_fr)
-            par = "{0}/ffd_cine_2d_motion.cfg".format(par_dir)
-            dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(output_dir, z, target_fr, source_fr)
-            os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
+            target = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{target_fr:02d}.nii.gz"
+            source = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{source_fr:02d}.nii.gz"
+            dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
+            # fixme It seems that the parameter doesn't work well compared with default
+            os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof}")
+            # os.system(f"mirtk register {target} {source} -dofout {dof}")
 
-        # Compose backward inter-frame transformation fields
+        # * Start backward image registration
+        # results are named as ffd_z{z:02d}_backward_00_to_01.dof.gz, ffd_z{z:02d}_backward_00_to_02.dof.gz, ...
+
+        # For the first and last time frame, directly copy the transformation
         os.system(
-            "cp {0}/ffd_z{1:02d}_pair_00_to_{2:02d}.dof.gz " "{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz".format(
-                output_dir, z, T - 1
-            )
+            f"cp {temp_dir}/pair/ffd_z{z:02d}_pair_00_to_{T - 1:02d}.dof.gz "
+            f"{temp_dir}/backward/ffd_z{z:02d}_backward_00_to_{(T - 1):02d}.dof.gz"
         )
+        # For the rest time frames, compose the transformation fields
         for fr in range(T - 2, 0, -1):
             dofs = ""
             for k in range(T - 1, fr - 1, -1):
-                dof = "{0}/ffd_z{1:02d}_pair_{2:02d}_to_{3:02d}.dof.gz".format(output_dir, z, (k + 1) % T, k)
+                dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{((k + 1) % T):02d}_to_{k:02d}.dof.gz"
                 dofs += dof + " "
-            dof_out = "{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
-            os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
+            dof_out = f"{temp_dir}/backward/ffd_z{z:02d}_backward_00_to_{fr:02d}.dof.gz"
+            os.system(f"mirtk compose-dofs {dofs} {dof_out} -approximate")
 
-        # Average the forward and backward transformations
+        # * Average the forward and backward transformations
+        # * For a frame at early stage of a cardiac cycle, the forward displacement field will have a higher weight
+        os.system(f"mirtk init-dof {temp_dir}/forward/ffd_z{z:02d}_forward_00_to_00.dof.gz")  # initialize a dof file
+        os.system(f"mirtk init-dof {temp_dir}/backward/ffd_z{z:02d}_backward_00_to_00.dof.gz")
+        os.system(f"mirtk init-dof {temp_dir}/combined/ffd_z{z:02d}_00_to_00.dof.gz")
+        # * For the first frame, average_3d_ffd will give segmentation fault, thus we directly copy it
+        # todo: Maybe OK?
         os.system(
-            "mirtk init-dof {0}/ffd_z{1:02d}_forward_00_to_00.dof.gz".format(output_dir, z)
-        )  # Identity (affine) transformation
-        os.system("mirtk init-dof {0}/ffd_z{1:02d}_backward_00_to_00.dof.gz".format(output_dir, z))
-        os.system("mirtk init-dof {0}/ffd_z{1:02d}_00_to_00.dof.gz".format(output_dir, z))
-        # For a frame at early stage of a cardiac cycle (small fr), the forward displacement field will have a higher
-        for fr in range(1, T):
-            dof_forward = "{0}/ffd_z{1:02d}_forward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
+            f"cp {temp_dir}/forward/ffd_z{z:02d}_forward_00_to_01.dof.gz "
+            f"{temp_dir}/combined/ffd_z{z:02d}_00_to_01.dof.gz"
+        )
+        for fr in range(2, T):
+            dof_forward = f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_{fr:02d}.dof.gz"
             weight_forward = float(T - fr) / T
-            dof_backward = "{0}/ffd_z{1:02d}_backward_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
+            dof_backward = f"{temp_dir}/backward/ffd_z{z:02d}_backward_00_to_{fr:02d}.dof.gz"
             weight_backward = float(fr) / T
-            dof_combine = "{0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
-            os.system(
-                "average_3d_ffd 2 {0} {1} {2} {3} {4}".format(
-                    dof_forward, weight_forward, dof_backward, weight_backward, dof_combine
-                )
-            )
+            # combined transformation to be created
+            dof_combine = f"{temp_dir}/combined/ffd_z{z:02d}_00_to_{fr:02d}.dof.gz"
+            # 2 means there are two input files
+            os.system(f"average_3d_ffd 2 {dof_forward} {weight_forward} {dof_backward} {weight_backward} {dof_combine}")
 
-        # Transform the contours
+        # * Transform the contours using combined transformation from average_3d_ffd
+        # fixme These contours are completely the same
+        # results are named as myo_contour_z{z:02d}_fr{fr:02d}.vtk
         for fr in range(0, T):
             os.system(
-                "mirtk transform-points {0}/myo_contour_ED_z{1:02d}.vtk "
-                "{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk "
-                "-dofin {0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz".format(output_dir, z, fr)
+                f"mirtk transform-points "
+                f"{temp_dir}/myo_contour/myo_contour_z{z:02d}_ED.vtk "
+                f"{temp_dir}/myo_contour/myo_contour_z{z:02d}_fr{fr:02d}.vtk "
+                f"-dofin {temp_dir}/combined/ffd_z{z:02d}_00_to_{fr:02d}.dof.gz"
             )
 
-        # Transform the segmentation and evaluate the Dice metric
-        eval_dice = False
+        # Evaluate the Dice metric to ensure the accuracy of strain calculation
         if eval_dice:
+            logger.info(f"Evaluate the Dice metric for slice {z}")
+
             split_sequence(
-                "{0}/seg_sa_crop_z{1:02d}.nii.gz".format(output_dir, z),
-                "{0}/seg_sa_crop_z{1:02d}_fr".format(output_dir, z),
+                f"{temp_dir}/seg_sa/seg_sa_crop_z{z:02d}.nii.gz",
+                f"{temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr",
             )
 
             image_names = []
             for fr in range(0, T):
+                # Use the obtained dof to warp image of future frames and compare it to the first one
                 os.system(
-                    "mirtk transform-image {0}/seg_sa_crop_z{1:02d}_fr{2:02d}.nii.gz "
-                    "{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz "
-                    "-dofin {0}/ffd_z{1:02d}_00_to_{2:02d}.dof.gz "
-                    "-target {0}/seg_sa_crop_z{1:02d}_fr00.nii.gz".format(output_dir, z, fr)
+                    f"mirtk transform-image {temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr{fr:02d}.nii.gz "
+                    f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz "
+                    f"-dofin {temp_dir}/combined/ffd_z{z:02d}_00_to_{fr:02d}.dof.gz "
+                    f"-target {temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz"
                 )
-                image_A = nib.load(
-                    "{0}/seg_sa_crop_z{1:02d}_fr00.nii.gz".format(output_dir, z)
-                ).get_fdata()  # target image
+                image_A = nib.load(f"{temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz").get_fdata()  # target image
                 image_B = nib.load(
-                    "{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, fr)
-                ).get_fdata()  # warped target image
-                # evaluate dice metric on the warped segmentation and the target segmentation
-                dice_lv_myo += [[np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)]]
-                image_names += ["{0}/seg_sa_crop_warp_ffd_z{1:02d}_fr{2:02d}.nii.gz".format(output_dir, z, fr)]
-            combine_name = "{0}/seg_sa_crop_warp_ffd_z{1:02d}.nii.gz".format(output_dir, z)  # a sequence to be made
-            make_sequence(image_names, dt, combine_name)
+                    f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz"
+                ).get_fdata()  # warped image
+                # reduce the extra dimension for warped image
+                image_B = image_B[:, :, :, 0]
+                nim_B = nib.load(
+                    f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz"
+                )
+                nim_B_new = nib.Nifti1Image(image_B, nim_B.affine, nim_B.header)
+                nib.save(nim_B_new, f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz")
+                # evaluate dice metric over LV and Myo on the warped segmentation and the target segmentation
+                dice_lv_myo.append(
+                    [np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)]
+                )
+                image_names.append(f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz")
 
+            sa_warp_combined_name = f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}.nii.gz"  # a sequence to be made
+            make_sequence(image_names, dt, sa_warp_combined_name)  # opposite to split_sequence, dt is the time interval
+
+    # output the dice result for all slices to csv
     if eval_dice:
-        print(np.mean(dice_lv_myo, axis=0))
+        logger.info(f"Overall mean Dice of LV and Myo: {np.mean(dice_lv_myo, axis=0)}")
         df_dice = pd.DataFrame(dice_lv_myo)
-        df_dice.to_csv("{0}/dice_cine_warp_ffd.csv".format(output_dir), index=None, header=None)
+        df_dice.columns = ["LV", "Myo"]
+        df_dice.index = [f"Slice{s}:{t}" for s in slice_used for t in range(T)]
+        # append mean result at the end
+        df_dice.loc["mean"] = df_dice.mean()
+        df_dice.to_csv(
+            f"{result_dir}/doc/dice_sa_warp_ffd.csv", 
+            index=True,
+            header=True)
 
-    # Merge the 2D tracked contours from all the slice
+    # * Merge the 2D tracked contours from all the slice into one vtk
+    logger.info("Merge the 2D tracked contours from all the slice into one vtk")
     for fr in range(0, T):
-        append = vtk.vtkAppendPolyData()
+        contours = vtk.vtkAppendPolyData()
         reader = {}
+        # recall that if we set three_slices=True, only three slices will be analysed
         for z in range(Z):
-            if not os.path.exists("{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk".format(output_dir, z, fr)):
+            # result from contours tracked using combined transformation from average_3d_ffd
+            if not os.path.exists(f"{temp_dir}/myo_contour/myo_contour_z{z:02d}_fr{fr:02d}.vtk"):
                 continue
             reader[z] = vtk.vtkPolyDataReader()
-            reader[z].SetFileName("{0}/myo_contour_z{1:02d}_fr{2:02d}.vtk".format(output_dir, z, fr))
+            reader[z].SetFileName(f"{temp_dir}/myo_contour/myo_contour_z{z:02d}_fr{fr:02d}.vtk")
             reader[z].Update()
-            append.AddInputData(reader[z].GetOutput())
-        append.Update()
+            contours.AddInputData(reader[z].GetOutput())
+        contours.Update()
         writer = vtk.vtkPolyDataWriter()
-        writer.SetFileName("{0}/myo_contour_fr{1:02d}.vtk".format(output_dir, fr))
-        writer.SetInputData(append.GetOutput())
+        writer.SetFileName(f"{result_dir}/myo_contour/myo_contour_fr{fr:02d}.vtk")
+        writer.SetInputData(contours.GetOutput())
         writer.Write()
 
     # Calculate the strain based on the line length
-    evaluate_strain_by_length("{0}/myo_contour_fr".format(output_dir), T, dt, output_name_stem)
+    # radial_strain, circum_strain = evaluate_strain_by_length_sa(
+    #     f"{result_dir}/myo_contour/myo_contour_fr", T, result_dir
+    # )
+    # return radial_strain, circum_strain
+    return
 
 
 def remove_mitral_valve_points(endo_contour, epi_contour, mitral_plane):
@@ -1193,7 +1259,7 @@ def determine_avpd_landmark(seg4: Tuple[float, float], major_axis, image_line_ma
     #     # Calculate the directed distance from the point to the line formed by the two closest points
     #     return np.cross(closest_points[1] - closest_points[0], point - closest_points[0]) > 0
 
-    def _fit_line(line_points):    
+    def _fit_line(line_points):
         # Fit line y = mx + c
         x = line_points[:, 0]
         y = line_points[:, 1]
@@ -1527,8 +1593,8 @@ def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
     os.system('sed -i "1s/4.1/4.0/" {0}'.format(contour_name))
 
 
-def evaluate_la_strain_by_length(contour_name_stem, T, dt, output_name_stem):
-    """Calculate the strain based on the line length"""
+def evaluate_strain_by_length_la(contour_name_stem, T, dt, output_name_stem):
+    """Calculate the longitudinal strain based on the line length"""
     # Read the polydata at the first time frame (ED frame)
     fr = 0
     reader = vtk.vtkPolyDataReader()
@@ -1738,7 +1804,7 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_
         )
 
     # Calculate the strain based on the line length
-    evaluate_la_strain_by_length("{0}/la_4ch_myo_contour_fr".format(output_dir), T, dt, output_name_stem)
+    evaluate_strain_by_length_la("{0}/la_4ch_myo_contour_fr".format(output_dir), T, dt, output_name_stem)
 
     # Transform the segmentation and evaluate the Dice metric
     eval_dice = False
@@ -1763,7 +1829,7 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_
 
         print(np.mean(dice_lv_myo, axis=0))
         df_dice = pd.DataFrame(dice_lv_myo)
-        df_dice.to_csv("{0}/dice_cine_la_4ch_warp_ffd.csv".format(output_dir), index=None, header=None)
+        df_dice.to_csv("{0}/dice_la_4ch_warp_ffd.csv".format(output_dir), index=None, header=None)
 
 
 def plot_bulls_eye(data, vmin, vmax, cmap="Reds", color_line="black"):
@@ -2098,27 +2164,27 @@ def evaluate_AVPD(
     if display is True:
         plt.subplot(1, 2, 1)
         plt.title("Landmark at ED")
-        plt.imshow(label_ED, cmap='gray')
-        plt.scatter(lm_ED[0][1], lm_ED[0][0], c='red')
-        plt.scatter(lm_ED[1][1], lm_ED[1][0], c='yellow')
-        plt.scatter(lm_ED[2][1], lm_ED[2][0], c='blue')
-        plt.scatter(lm_ED[3][1], lm_ED[3][0], c='purple')
+        plt.imshow(label_ED, cmap="gray")
+        plt.scatter(lm_ED[0][1], lm_ED[0][0], c="red")
+        plt.scatter(lm_ED[1][1], lm_ED[1][0], c="yellow")
+        plt.scatter(lm_ED[2][1], lm_ED[2][0], c="blue")
+        plt.scatter(lm_ED[3][1], lm_ED[3][0], c="purple")
         for i in range(len(points_line_LV_ED)):
-            plt.scatter(points_line_LV_ED[i][1], points_line_LV_ED[i][0], c='green', s=2)
+            plt.scatter(points_line_LV_ED[i][1], points_line_LV_ED[i][0], c="green", s=2)
         for i in range(len(points_line_RV_ED)):
-            plt.scatter(points_line_RV_ED[i][1], points_line_RV_ED[i][0], c='green', s=2)
+            plt.scatter(points_line_RV_ED[i][1], points_line_RV_ED[i][0], c="green", s=2)
 
         plt.subplot(1, 2, 2)
         plt.title("Landmark at ES")
-        plt.imshow(label_ES, cmap='gray')
-        plt.scatter(lm_ES[0][1], lm_ES[0][0], c='red')
-        plt.scatter(lm_ES[1][1], lm_ES[1][0], c='yellow')
-        plt.scatter(lm_ES[2][1], lm_ES[2][0], c='blue')
-        plt.scatter(lm_ES[3][1], lm_ES[3][0], c='purple')
+        plt.imshow(label_ES, cmap="gray")
+        plt.scatter(lm_ES[0][1], lm_ES[0][0], c="red")
+        plt.scatter(lm_ES[1][1], lm_ES[1][0], c="yellow")
+        plt.scatter(lm_ES[2][1], lm_ES[2][0], c="blue")
+        plt.scatter(lm_ES[3][1], lm_ES[3][0], c="purple")
         for i in range(len(points_line_LV_ES)):
-            plt.scatter(points_line_LV_ES[i][1], points_line_LV_ES[i][0], c='green', s=2)
+            plt.scatter(points_line_LV_ES[i][1], points_line_LV_ES[i][0], c="green", s=2)
         for i in range(len(points_line_RV_ES)):
-            plt.scatter(points_line_RV_ES[i][1], points_line_RV_ES[i][0], c='green', s=2)
+            plt.scatter(points_line_RV_ES[i][1], points_line_RV_ES[i][0], c="green", s=2)
 
     # remove maximum and minimum
     AV_displacement = np.linalg.norm(np.array(AV["ED"]) - np.array(AV["ES"]), axis=1)
@@ -2127,9 +2193,7 @@ def evaluate_AVPD(
     return np.mean(AV_displacement) * 1e-1  # unit: cm
 
 
-def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float],
-                               nim_sa: nib.nifti1.Nifti1Image,
-                               BSA_value: float):
+def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float):
     if seg_sa_s_t.ndim != 2:
         raise ValueError("The seg_sa should be a 2D image.")
     NUM_SEGMENTS = 6
@@ -2145,7 +2209,7 @@ def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float],
     seg_z_Myo = seg_z == labels["Myo"]
 
     # np.argwhere is similar to np.nonzero, except the format of returns
-    barycenter_LV = np.mean(np.argwhere(seg_z_LV), axis=0)  
+    barycenter_LV = np.mean(np.argwhere(seg_z_LV), axis=0)
     barycenter_RV = np.mean(np.argwhere(seg_z_RV), axis=0)
     # plt.imshow(seg_Z_RV, cmap="gray")
     # plt.scatter(barycenter_RV[1], barycenter_RV[0], c="r")
@@ -2166,7 +2230,7 @@ def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float],
             angle = 2 * np.pi - angle
         angles[i] = angle
         zones[i] = int(angle // (np.pi / 3)) + 1  # 6 segments
-        
+
         neighbors = []
         for j in range(-1, 2):
             for k in range(-1, 2):
@@ -2219,18 +2283,16 @@ def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float],
     thickness_segments = []  # define T=|BO|/BSA-RA
 
     for i in range(NUM_SEGMENTS):
-        barycenter_inner_real = np.dot(nim_sa.affine, 
-                                    np.array([barycenter_segments_inner[i][0], barycenter_segments_inner[i][1], 0, 1])
-                                    )[:3]
-        barycenter_outer_real = np.dot(nim_sa.affine, 
-                                    np.array([barycenter_segments_outer[i][0], barycenter_segments_outer[i][1], 0, 1])
-                                    )[:3]
-        barycenter_LV_real = np.dot(nim_sa.affine, 
-                                    np.array([barycenter_LV[0], barycenter_LV[1], 0, 1])
-                                    )[:3]
+        barycenter_inner_real = np.dot(
+            nim_sa.affine, np.array([barycenter_segments_inner[i][0], barycenter_segments_inner[i][1], 0, 1])
+        )[:3]
+        barycenter_outer_real = np.dot(
+            nim_sa.affine, np.array([barycenter_segments_outer[i][0], barycenter_segments_outer[i][1], 0, 1])
+        )[:3]
+        barycenter_LV_real = np.dot(nim_sa.affine, np.array([barycenter_LV[0], barycenter_LV[1], 0, 1]))[:3]
 
         radius = np.linalg.norm(barycenter_inner_real - barycenter_LV_real) / BSA_value * 1e-1  # unit: cm
-        thickness = (np.linalg.norm(barycenter_outer_real - barycenter_LV_real) / BSA_value * 1e-1 - radius)
+        thickness = np.linalg.norm(barycenter_outer_real - barycenter_LV_real) / BSA_value * 1e-1 - radius
         if thickness <= 0:
             raise ValueError("Thickness should be positive.")
         radius_segments.append(radius)
@@ -2239,9 +2301,9 @@ def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float],
     return (np.array(radius_segments), np.array(thickness_segments))
 
 
-def evaluate_radius_thickness_disparity(seg_sa: Tuple[float, float, float, float], 
-                                        nim_sa: nib.nifti1.Nifti1Image, 
-                                        BSA_value: float):
+def evaluate_radius_thickness_disparity(
+    seg_sa: Tuple[float, float, float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float
+):
     if seg_sa.ndim != 4:
         raise ValueError("The seg_sa should be a 4D (3D+t) image.")
     T = seg_sa.shape[3]
@@ -2276,15 +2338,15 @@ def evaluate_radius_thickness_disparity(seg_sa: Tuple[float, float, float, float
         radius_t = radius[t]
         radius_t_0 = radius_t[0]
         radius_t = sorted(radius_t)
-        radius_t = radius_t[int(0.1 * len(radius_t)):int(0.9 * len(radius_t))]
-        radius_t = [r / radius_t_0 for r in radius_t] 
+        radius_t = radius_t[int(0.1 * len(radius_t)) : int(0.9 * len(radius_t))]
+        radius_t = [r / radius_t_0 for r in radius_t]
         radius_disparity_t = max(radius_t) - min(radius_t)
         radius_disparity[t] = radius_disparity_t
 
         thickness_t = thickness[t]
         thickness_t_0 = thickness_t[0]
         thickness_t = sorted(thickness_t)
-        thickness_t = thickness_t[int(0.1 * len(thickness_t)):int(0.9 * len(thickness_t))]
+        thickness_t = thickness_t[int(0.1 * len(thickness_t)) : int(0.9 * len(thickness_t))]
         thickness_t = [t / thickness_t_0 for t in thickness_t]
         thickness_disparity_t = max(thickness_t) - min(thickness_t)
         thickness_disparity[t] = thickness_disparity_t
@@ -2307,8 +2369,7 @@ def fractal_dimension(nim_sa_ED: nib.nifti1.Nifti1Image, seg_sa_ED: Tuple[float,
         img_endo = (255 * (img_endo - np.min(img_endo)) / (np.max(img_endo) - np.min(img_endo))).astype(np.uint8)
         # plt.imshow(img_endo, cmap="gray")
         seg_backgroud = (img_endo > 0).astype(np.uint8)
-        adaptive_thresh = cv2.adaptiveThreshold(
-            img_endo, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
+        adaptive_thresh = cv2.adaptiveThreshold(img_endo, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
         seg_endo_trabeculation = cv2.bitwise_and(adaptive_thresh, seg_backgroud)
         # plt.imshow(seg_endo_trabeculation, cmap="gray")
 
@@ -2322,7 +2383,7 @@ def fractal_dimension(nim_sa_ED: nib.nifti1.Nifti1Image, seg_sa_ED: Tuple[float,
         y -= 10
         w += 20
         h += 20
-        seg_endo_trabeculation_cropped = seg_endo_trabeculation[y:y + h, x:x + w]
+        seg_endo_trabeculation_cropped = seg_endo_trabeculation[y : y + h, x : x + w]
 
         contours, _ = cv2.findContours(seg_endo_trabeculation_cropped, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
         seg_endo_trabeculation_contour = np.zeros_like(seg_endo_trabeculation_cropped)

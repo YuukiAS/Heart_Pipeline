@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 import cv2
+import os
 import numpy as np
 import nibabel as nib
 from scipy import ndimage
@@ -20,6 +21,12 @@ import scipy.ndimage.measurements as measure
 from matplotlib import pyplot as plt
 import seaborn as sns
 
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
+from utils.log_utils import setup_logging
+
+logger = setup_logging("image-utils")
 
 def crop_image(image, cx, cy, size):
     """Crop a 3D image using a bounding box centred at (cx, cy) with specified size"""
@@ -147,7 +154,9 @@ def aortic_data_augmenter(image, label, shift, rotate, scale, intensity, flip):
 
 
 def np_categorical_dice(pred, truth, k):
-    """Dice overlap metric for label k"""
+    """
+    Dice overlap metric for label k
+    """
     A = (pred == k).astype(np.float32)
     B = (truth == k).astype(np.float32)
     return 2 * np.sum(A * B) / (np.sum(A) + np.sum(B))
@@ -253,7 +262,9 @@ def make_sequence(image_names, dt, output_name):
 
 
 def split_volume(image_name, output_name):
-    """Split an image volume into a number of slices."""
+    """
+    Split an image volume into a number of slices.
+    """
     nim = nib.load(image_name)
     Z = nim.header["dim"][3]
     affine = nim.affine
@@ -278,6 +289,9 @@ def image_apply_mask(input_name, output_name, mask_image, pad_value=-1):
 
 
 def padding(input_A_name, input_B_name, output_name, value_in_B, value_output):
+    """
+    Pad the image A with the value_output where the image B has the value_in_B.
+    """
     nim = nib.load(input_A_name)
     image_A = nim.get_fdata()
     image_B = nib.load(input_B_name).get_fdata()
@@ -287,6 +301,14 @@ def padding(input_A_name, input_B_name, output_name, value_in_B, value_output):
 
 
 def auto_crop_image(input_name, output_name, reserve):
+    """
+    Automatically crop the image to remove the background.
+
+    Parameters:
+    - input_name: string, input image file name
+    - output_name: string, output image file name
+    - reserve: int, number of pixels to reserve outside the bounding box
+    """
     nim = nib.load(input_name)
     image = nim.get_fdata()
     X, Y, Z = image.shape[:3]
@@ -299,15 +321,17 @@ def auto_crop_image(input_name, output_name, reserve):
     x1, x2 = max(x1, 0), min(x2, X)
     y1, y2 = max(y1, 0), min(y2, Y)
     z1, z2 = max(z1, 0), min(z2, Z)
-    print("Bounding box")
-    print("  bottom-left corner = ({},{},{})".format(x1, y1, z1))
-    print("  top-right corner = ({},{},{})".format(x2, y2, z2))
+    logger.info("Bounding box:")
+    logger.info(f"  Bottom-left corner = ({x1},{y1},{z1})")
+    logger.info(f"  Top-right corner = ({x2},{y2},{z2})")
 
     # Crop the image
     image = image[x1:x2, y1:y2, z1:z2]
 
-    # Update the affine matrix
+    # Update the affine matrix so that the origin is at the bottom-left corner
     affine = nim.affine
+    # * Note that it's the fourth column!
+    # * The first three columns are for rotation and scaling, while fourth column is for translation
     affine[:3, 3] = np.dot(affine, np.array([x1, y1, z1, 1]))[:3]
     nim2 = nib.Nifti1Image(image, affine)
     nib.save(nim2, output_name)
