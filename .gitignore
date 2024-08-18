@@ -54,10 +54,10 @@ overlay
 .ruff_cache
 others
 doc
-par
 EasyReg
 NiftyReg
 uniGradICON
 nnUNet
 tasks/*.ipynb
 src/**/*.ipynb
+third_party

@@ -91,23 +91,24 @@ if __name__ == "__main__":
 
         for i in range(16):
             feature_dict.update({
-                f"LV: Radial strain (AHA_{i + 1}) [%]": radial_strain[i],
-                f"LV: Circumferential strain( AHA_{i + 1}) [%]": circum_strain[i],
+                f"LV: Radial strain (AHA_{i + 1}) [%]": radial_strain[i, :].max(),
+                f"LV: Circumferential strain( AHA_{i + 1}) [%]": circum_strain[i, :].min(),
             })
 
         feature_dict.update({
-            "LV: Radial strain (Global) [%]": radial_strain[16],
-            "LV: Circumferential strain (Global) [%]": circum_strain[16],
+            "LV: Radial strain (Global) [%]": radial_strain[16, :].max(),
+            "LV: Circumferential strain (Global) [%]": circum_strain[16, :].min(),
         })
 
-        # * We use the maximum absolute value: minimum for circum (negative) and maximum for radial (positive)
-        # df.to_csv(args.output_csv)
+        # todo: Make a time series
+
+        # * Feature 1: Strain rate
+
+        radial_strain_lowess = None
+
+        # * We use the maximum absolute value: minimum for circumferential (negative) and maximum for radial (positive)
         target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
         target_dir = os.path.join(target_dir, "strain")
         os.makedirs(target_dir, exist_ok=True)
         df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
         df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), ignore_index=True)
-
-        # * Feature 1: Strain rate
-
-        radial_strain_lowess = None

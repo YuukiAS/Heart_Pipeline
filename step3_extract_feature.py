@@ -102,6 +102,12 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                         f"python -u ./src/feature_extraction/long_axis/eval_atrial_volume.py "
                         f"{retest_str} --file_name=atrial_volume_{file_i} --data_list {sub_file_i_str} \n"
                     )
+                    file_script.write("echo 'Extract features for longitudinal strain'\n")
+                    file_script.write(
+                        f"python -u ./src/feature_extraction/long_axis/eval_strain_lax.py "
+                        f"{retest_str} --file_name=strain_{file_i} --data_list {sub_file_i_str} \n"
+                    )
+
                     # Script for aggregating separate feature files
                     if file_i == 1:
                         if retest_suffix is None:
@@ -111,6 +117,12 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                                 f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
                                 "--prefix=atrial_volume\n"
                             )
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'strain')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                "--prefix=strain\n"
+                            )
                         else:
                             file_aggregate.write(
                                 "python ./script/aggregate_csv.py "
@@ -118,12 +130,29 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                                 f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
                                 "--prefix=atrial_volume\n"
                             )
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'strain')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                "--prefix=strain\n"
+                            )
                 if "sa" in modality:
                     file_script.write("echo 'Extract features for ventricular volume'\n")
                     file_script.write(
                         f"python -u ./src/feature_extraction/short_axis/eval_ventricular_volume.py "
                         f"{retest_str} --file_name=ventricular_volume_{file_i} --data_list {sub_file_i_str} \n"
                     )
+                    file_script.write("echo 'Extract features for wall thickness'\n")
+                    file_script.write(
+                        f"python -u ./src/feature_extraction/short_axis/eval_wall_thickness.py "
+                        f"{retest_str} --file_name=wall_thickness_{file_i} --data_list {sub_file_i_str} \n"
+                    )
+                    file_script.write("echo 'Extract features for cirumferential and radial strain'\n")
+                    file_script.write(
+                        f"python -u ./src/feature_extraction/short_axis/eval_strain_sax.py "
+                        f"{retest_str} --file_name=strain_{file_i} --data_list {sub_file_i_str} \n"
+                    )
+
                     # Script for aggregating separate feature files
                     if file_i == 1:
                         if retest_suffix is None:
@@ -133,12 +162,36 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                                 f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
                                 "--prefix=ventricular_volume\n"
                             )
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'wall_thickness')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                "--prefix=wall_thickness\n"
+                            )
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'strain')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                "--prefix=strain\n"
+                            )
                         else:
                             file_aggregate.write(
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit2_dir, 'ventricle')} "
                                 f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
                                 "--prefix=ventricular_volume\n"
+                            )
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'wall_thickness')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                "--prefix=wall_thickness\n"
+                            )
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'strain')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                "--prefix=strain\n"
                             )
                 if "aor" in modality:
                     pass

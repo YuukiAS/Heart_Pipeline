@@ -71,6 +71,13 @@ if __name__ == '__main__':
             table += [line]
             processed_list += [data]
 
+        # for c in ["longit"]:
+        # # Save into csv files
+        # index = [str(x) for x in np.arange(1, 7)] + ["Global"]
+        # column = np.arange(0, T) * dt * 1e3
+        # df = pd.DataFrame(table_strain[c], index=index, columns=column)
+        # df.to_csv("{0}_{1}.csv".format(output_name_stem, c))  # used in eval_strain_lax.py
+
     # Save strain values for all the subjects
     df = pd.DataFrame(table, index=processed_list,
                       columns=['Ell_1 (%)', 'Ell_2 (%)', 'Ell_3 (%)',

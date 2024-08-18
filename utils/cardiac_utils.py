@@ -482,8 +482,9 @@ def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
     return endo_poly, epi_poly, index, table_thickness, table_thickness_max
 
 
-def _extract_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2, part=None, three_slices=False):
-    """Extract the myocardial contours, including both endo and epicardial contours.
+def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2, part=None, three_slices=False):
+    """
+    Extract the myocardial contours, including both endo and epicardial contours.
     Determine the AHA segment ID for all the contour points.
 
     By default, part is None. This function will automatically determine the part
@@ -508,6 +509,9 @@ def _extract_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2
         part_z = determine_aha_part(seg, affine, three_slices=three_slices)
     else:
         part_z = {z: part for z in range(Z)}
+
+    if three_slices:
+        logger.info(f"We will analyze three slices: {part_z}")
 
     # For each slice
     for z in range(Z):
@@ -688,6 +692,8 @@ def _extract_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2
 
 def evaluate_strain_by_length_sa(contour_name_stem, T, result_dir):
     """Calculate the radial and circumferential strain based on the line length"""
+    os.makedirs(f"{result_dir}/strain_sa", exist_ok=True)
+
     # Read the polydata at the first time frame (ED frame)
     fr = 0
     # read poly from vtk file that represents transformed myocardial contours
@@ -756,7 +762,7 @@ def evaluate_strain_by_length_sa(contour_name_stem, T, result_dir):
         poly.GetCellData().AddArray(vtk_strain)
         writer = vtk.vtkPolyDataWriter()
         writer.SetInputData(poly)
-        filename_strain = f"{result_dir}/strain/strain_fr{fr:02d}.vtk"
+        filename_strain = f"{result_dir}/strain_sa/strain_fr{fr:02d}.vtk"
         writer.SetFileName(filename_strain)
         writer.Write()
         os.system('sed -i "1s/4.1/4.0/" {0}'.format(filename_strain))  # change the version number from 4.1 to 4.0
@@ -783,10 +789,9 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     os.makedirs(f"{temp_dir}/forward", exist_ok=True)
     os.makedirs(f"{temp_dir}/backward", exist_ok=True)
     os.makedirs(f"{temp_dir}/combined", exist_ok=True)
-    os.makedirs(f"{result_dir}/strain", exist_ok=True)
-    os.makedirs(f"{result_dir}/myo_contour", exist_ok=True)
-    if eval_dice:
-        os.makedirs(f"{result_dir}/doc", exist_ok=True)
+    os.makedirs(f"{result_dir}/myo_contour_sa", exist_ok=True)
+    os.makedirs(f"{result_dir}/doc", exist_ok=True)
+    mirtk_log_file = f"{result_dir}/doc/mirtk_sa.log"
 
     # Focus on the left ventricle so that motion tracking is less affected by
     # the movement of RV and LV outflow tract
@@ -822,13 +827,14 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     split_volume(f"{temp_dir}/seg_sa/seg_sa_crop.nii.gz", f"{temp_dir}/seg_sa/seg_sa_crop_z")
 
     # Extract the myocardial contours for three slices, respectively basal, mid-cavity and apical
-    _extract_myocardial_contour(
+    _extract_sa_myocardial_contour(
         f"{data_dir}/seg_sa_ED.nii.gz", f"{temp_dir}/myo_contour/myo_contour_z", "_ED", three_slices=True
     )
+    logger.info("Myocardial contour at ED extracted")
 
     # * Inter-frame motion estimation through registration
-    logger.info("Inter-frame motion estimation through registration")
-    dice_lv_myo = []
+    if eval_dice:
+        dice_lv_myo = []
     for z in range(Z):
         # Since we set three_slices=True, only three slices will be analysed
         if not os.path.exists(f"{temp_dir}/myo_contour/myo_contour_z{z:02d}_ED.vtk"):
@@ -839,6 +845,7 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
         # e.g. sa_crop_z00.nii.gz -> sa_crop_z00_fr00.nii.gz, sa_crop_z00_fr01.nii.gz, ...
         split_sequence(f"{temp_dir}/sa/sa_crop_z{z:02d}.nii.gz", f"{temp_dir}/sa/sa_crop_z{z:02d}_fr")
 
+        logger.info(f"Slice {z}: Forward registration")
         # Ref https://doi.org/10.1038/s41591-020-1009-y
         # * Image registration between successive time frames for forward image registration
         # * Note1: We can use mirtk info to get information about generated .dof.gz file
@@ -851,9 +858,9 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
             source = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{source_fr:02d}.nii.gz"
             # output transformation to be used
             dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
-            # fixme It seems that the parameter doesn't work well compared with default
-            os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof}")
-            # os.system(f"mirtk register {target} {source} -dofout {dof}")
+            os.system(
+                f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
+            )
 
         # * Start forward image registration
         # results are named as ffd_z{z:02d}_forward_00_to_01.dof.gz, ffd_z{z:02d}_forward_00_to_02.dof.gz, ...
@@ -870,9 +877,10 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
                 dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{k - 1:02d}_to_{k:02d}.dof.gz"
                 dofs += dof + " "
             dof_out = f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_{fr:02d}.dof.gz"
-            # We need to use -approximate here so that transform-points can be used
-            os.system(f"mirtk compose-dofs {dofs} {dof_out} -approximate")
+            # todo Use -approximate will cause strain computation failed
+            os.system(f"mirtk compose-dofs {dofs} {dof_out}")
 
+        logger.info(f"Slice {z}: Backward registration")
         # * Image registration reversely between successive time frames for backward image registration
         # results are named as ffd_z{z:02d}_pair_01_to_00.dof.gz, ffd_z{z:02d}_pair_02_to_01.dof.gz, ...
         for fr in range(T - 1, 0, -1):
@@ -881,16 +889,16 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
             target = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{target_fr:02d}.nii.gz"
             source = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{source_fr:02d}.nii.gz"
             dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
-            # fixme It seems that the parameter doesn't work well compared with default
-            os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof}")
-            # os.system(f"mirtk register {target} {source} -dofout {dof}")
+            os.system(
+                f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
+            )
 
         # * Start backward image registration
         # results are named as ffd_z{z:02d}_backward_00_to_01.dof.gz, ffd_z{z:02d}_backward_00_to_02.dof.gz, ...
 
         # For the first and last time frame, directly copy the transformation
         os.system(
-            f"cp {temp_dir}/pair/ffd_z{z:02d}_pair_00_to_{T - 1:02d}.dof.gz "
+            f"cp {temp_dir}/pair/ffd_z{z:02d}_pair_00_to_{(T - 1):02d}.dof.gz "
             f"{temp_dir}/backward/ffd_z{z:02d}_backward_00_to_{(T - 1):02d}.dof.gz"
         )
         # For the rest time frames, compose the transformation fields
@@ -900,31 +908,46 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
                 dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{((k + 1) % T):02d}_to_{k:02d}.dof.gz"
                 dofs += dof + " "
             dof_out = f"{temp_dir}/backward/ffd_z{z:02d}_backward_00_to_{fr:02d}.dof.gz"
-            os.system(f"mirtk compose-dofs {dofs} {dof_out} -approximate")
+            os.system(f"mirtk compose-dofs {dofs} {dof_out}")
 
+        logger.info(f"Slice {z}: Combine the forward and backward transformations")
         # * Average the forward and backward transformations
         # * For a frame at early stage of a cardiac cycle, the forward displacement field will have a higher weight
         os.system(f"mirtk init-dof {temp_dir}/forward/ffd_z{z:02d}_forward_00_to_00.dof.gz")  # initialize a dof file
         os.system(f"mirtk init-dof {temp_dir}/backward/ffd_z{z:02d}_backward_00_to_00.dof.gz")
         os.system(f"mirtk init-dof {temp_dir}/combined/ffd_z{z:02d}_00_to_00.dof.gz")
-        # * For the first frame, average_3d_ffd will give segmentation fault, thus we directly copy it
-        # todo: Maybe OK?
-        os.system(
-            f"cp {temp_dir}/forward/ffd_z{z:02d}_forward_00_to_01.dof.gz "
-            f"{temp_dir}/combined/ffd_z{z:02d}_00_to_01.dof.gz"
-        )
-        for fr in range(2, T):
+
+        # todo: Currently we directly copy the transformations.
+        # todo: Current Dice is very bad (0.3) for Myo
+        # todo: average_3d_ffd will crush for the first frame; and cannot be used when compose-dofs -approximate
+        # os.system(
+        #     f"cp {temp_dir}/forward/ffd_z{z:02d}_forward_00_to_01.dof.gz "
+        #     f"{temp_dir}/combined/ffd_z{z:02d}_00_to_01.dof.gz"
+        # )
+        # for fr in range(2, T):
+        #     dof_forward = f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_{fr:02d}.dof.gz"
+        #     weight_forward = float(T - fr) / T
+        #     dof_backward = f"{temp_dir}/backward/ffd_z{z:02d}_backward_00_to_{fr:02d}.dof.gz"
+        #     weight_backward = float(fr) / T
+        #     # combined transformation to be created
+        #     dof_combine = f"{temp_dir}/combined/ffd_z{z:02d}_00_to_{fr:02d}.dof.gz"
+        #     # 2 means there are two input files
+        #     os.system(
+        #          f"average_3d_ffd 2 {dof_forward} {weight_forward} {dof_backward} {weight_backward} {dof_combine}"
+        #     )
+
+        for fr in range(1, T):
             dof_forward = f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_{fr:02d}.dof.gz"
-            weight_forward = float(T - fr) / T
             dof_backward = f"{temp_dir}/backward/ffd_z{z:02d}_backward_00_to_{fr:02d}.dof.gz"
-            weight_backward = float(fr) / T
             # combined transformation to be created
             dof_combine = f"{temp_dir}/combined/ffd_z{z:02d}_00_to_{fr:02d}.dof.gz"
-            # 2 means there are two input files
-            os.system(f"average_3d_ffd 2 {dof_forward} {weight_forward} {dof_backward} {weight_backward} {dof_combine}")
 
-        # * Transform the contours using combined transformation from average_3d_ffd
-        # fixme These contours are completely the same
+            if fr > T // 2:
+                os.system(f"cp {dof_forward} {dof_combine}")
+            else:
+                os.system(f"cp {dof_backward} {dof_combine}")
+
+        # * Transform the contours using combined transformation
         # results are named as myo_contour_z{z:02d}_fr{fr:02d}.vtk
         for fr in range(0, T):
             os.system(
@@ -952,21 +975,19 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
                     f"-dofin {temp_dir}/combined/ffd_z{z:02d}_00_to_{fr:02d}.dof.gz "
                     f"-target {temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz"
                 )
-                image_A = nib.load(f"{temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz").get_fdata()  # target image
+                image_A = nib.load(
+                    f"{temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz"
+                ).get_fdata()  # target image
                 image_B = nib.load(
                     f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz"
                 ).get_fdata()  # warped image
                 # reduce the extra dimension for warped image
                 image_B = image_B[:, :, :, 0]
-                nim_B = nib.load(
-                    f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz"
-                )
+                nim_B = nib.load(f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz")
                 nim_B_new = nib.Nifti1Image(image_B, nim_B.affine, nim_B.header)
                 nib.save(nim_B_new, f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz")
                 # evaluate dice metric over LV and Myo on the warped segmentation and the target segmentation
-                dice_lv_myo.append(
-                    [np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)]
-                )
+                dice_lv_myo.append([np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)])
                 image_names.append(f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz")
 
             sa_warp_combined_name = f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}.nii.gz"  # a sequence to be made
@@ -974,16 +995,14 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
 
     # output the dice result for all slices to csv
     if eval_dice:
-        logger.info(f"Overall mean Dice of LV and Myo: {np.mean(dice_lv_myo, axis=0)}")
         df_dice = pd.DataFrame(dice_lv_myo)
         df_dice.columns = ["LV", "Myo"]
         df_dice.index = [f"Slice{s}:{t}" for s in slice_used for t in range(T)]
         # append mean result at the end
         df_dice.loc["mean"] = df_dice.mean()
-        df_dice.to_csv(
-            f"{result_dir}/doc/dice_sa_warp_ffd.csv", 
-            index=True,
-            header=True)
+        logger.info(f"Mean Dice for LV: {df_dice.loc['mean'].values[0]}")
+        logger.info(f"Mean Dice for Myo: {df_dice.loc['mean'].values[1]}")
+        df_dice.to_csv(f"{result_dir}/doc/dice_sa_warp_ffd.csv", index=True, header=True)
 
     # * Merge the 2D tracked contours from all the slice into one vtk
     logger.info("Merge the 2D tracked contours from all the slice into one vtk")
@@ -1001,15 +1020,10 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
             contours.AddInputData(reader[z].GetOutput())
         contours.Update()
         writer = vtk.vtkPolyDataWriter()
-        writer.SetFileName(f"{result_dir}/myo_contour/myo_contour_fr{fr:02d}.vtk")
+        writer.SetFileName(f"{result_dir}/myo_contour_sa/myo_contour_fr{fr:02d}.vtk")
         writer.SetInputData(contours.GetOutput())
         writer.Write()
 
-    # Calculate the strain based on the line length
-    # radial_strain, circum_strain = evaluate_strain_by_length_sa(
-    #     f"{result_dir}/myo_contour/myo_contour_fr", T, result_dir
-    # )
-    # return radial_strain, circum_strain
     return
 
 
@@ -1407,8 +1421,9 @@ def determine_la_aha_segment_id(point, la_idx, axis, mid_line, part_z):
     return seg_id
 
 
-def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
-    """Extract the myocardial contours on long-axis images.
+def _extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
+    """
+    Extract the myocardial contours on long-axis images.
     Also, determine the AHA segment ID for all the contour points.
     """
     # Read the segmentation image
@@ -1593,8 +1608,10 @@ def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
     os.system('sed -i "1s/4.1/4.0/" {0}'.format(contour_name))
 
 
-def evaluate_strain_by_length_la(contour_name_stem, T, dt, output_name_stem):
+def evaluate_strain_by_length_la(contour_name_stem, T, result_dir):
     """Calculate the longitudinal strain based on the line length"""
+    os.makedirs(f"{result_dir}/strain_la", exist_ok=True)
+
     # Read the polydata at the first time frame (ED frame)
     fr = 0
     reader = vtk.vtkPolyDataReader()
@@ -1609,7 +1626,7 @@ def evaluate_strain_by_length_la(contour_name_stem, T, dt, output_name_stem):
     lines_dir = poly.GetCellData().GetArray("Direction ID")
     n_lines = lines.GetNumberOfCells()
     length_ED = np.zeros(n_lines)
-    seg_id = np.zeros(n_lines)  # define 6 segments
+    seg_id = np.zeros(n_lines)
     dir_id = np.zeros(n_lines)
 
     lines.InitTraversal()
@@ -1658,178 +1675,228 @@ def evaluate_strain_by_length_la(contour_name_stem, T, dt, output_name_stem):
         poly.GetCellData().AddArray(vtk_strain)
         writer = vtk.vtkPolyDataWriter()
         writer.SetInputData(poly)
-        writer.SetFileName(filename)
+        filename_strain = f"{result_dir}/strain_la/strain_fr{fr:02d}.vtk"
+        writer.SetFileName(filename_strain)
         writer.Write()
-        os.system('sed -i "1s/4.1/4.0/" {0}'.format(filename))
+        os.system('sed -i "1s/4.1/4.0/" {0}'.format(filename_strain))
 
         # Calculate the segmental and global strains
         for i in range(6):
             table_strain["longit"][i, fr] = np.mean(strain[(seg_id == (i + 1)) & (dir_id == 3)])
         table_strain["longit"][-1, fr] = np.mean(strain[dir_id == 3])  # global
 
-    for c in ["longit"]:
-        # Save into csv files
-        index = [str(x) for x in np.arange(1, 7)] + ["Global"]
-        column = np.arange(0, T) * dt * 1e3
-        df = pd.DataFrame(table_strain[c], index=index, columns=column)
-        df.to_csv("{0}_{1}.csv".format(output_name_stem, c))  # used in eval_strain_lax.py
+    return table_strain["longit"]
 
 
-def cine_2d_la_motion_and_strain_analysis(data_dir, par_dir, output_dir, output_name_stem):
-    """Perform motion tracking and strain analysis for cine MR images."""
+def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, result_dir, eval_dice=False):
+    """
+    Perform motion tracking and strain analysis for long-axis cine MR images.
+    """
+    # Make folders to arrange files
+    os.makedirs(f"{temp_dir}/la", exist_ok=True)
+    os.makedirs(f"{temp_dir}/seg_la", exist_ok=True)
+    os.makedirs(f"{temp_dir}/myo_contour", exist_ok=True)
+    os.makedirs(f"{temp_dir}/pair", exist_ok=True)
+    os.makedirs(f"{temp_dir}/forward", exist_ok=True)
+    os.makedirs(f"{temp_dir}/backward", exist_ok=True)
+    os.makedirs(f"{temp_dir}/combined", exist_ok=True)
+    os.makedirs(f"{result_dir}/myo_contour_la", exist_ok=True)
+    os.makedirs(f"{result_dir}/doc", exist_ok=True)
+    mirtk_log_file = f"{result_dir}/doc/mirtk_la.log"
+
     # Crop the image to save computation for image registration
     # Focus on the left ventricle so that motion tracking is less affected by
     # the movement of RV and LV outflow tract
     padding(
-        "{0}/seg4_la_4ch_ED.nii.gz".format(data_dir),
-        "{0}/seg4_la_4ch_ED.nii.gz".format(data_dir),
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        2,
+        f"{data_dir}/seg4_la_4ch_ED.nii.gz",
+        f"{data_dir}/seg4_la_4ch_ED.nii.gz",
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        2,  # set all pixels with value 2 (Myo) to 1, it will not influence evaluation of Dice.
         1,
     )
     padding(
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        3,
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        3,  # set all pixels with value 3 (RV) to 0 (BG)
         0,
     )
     padding(
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        4,
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        4,  # set all pixels with value 4 (LA) to 0 (BG)
         0,
     )
     padding(
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir),
-        5,
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz",
+        5,  # set all pixels with value 5 (RV) to 0 (BG)
         0,
     )
+
+    # Crop the image to save computation for image registration
     auto_crop_image(
-        "{0}/seg4_la_4ch_lv_ED.nii.gz".format(output_dir), "{0}/seg4_la_4ch_lv_crop_ED.nii.gz".format(output_dir), 20
-    )
-    os.system(
-        "mirtk transform-image {0}/la_4ch.nii.gz {1}/la_4ch_crop.nii.gz "
-        "-target {1}/seg4_la_4ch_lv_crop_ED.nii.gz".format(data_dir, output_dir)
-    )
-    os.system(
-        "mirtk transform-image {0}/seg4_la_4ch.nii.gz {1}/seg4_la_4ch_crop.nii.gz "
-        "-target {1}/seg4_la_4ch_lv_crop_ED.nii.gz".format(data_dir, output_dir)
+        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz", f"{temp_dir}/seg_la/seg4_la_4ch_LV_crop_ED.nii.gz", 20
     )
 
-    # Extract the myocardial contour
-    extract_la_myocardial_contour(
-        "{0}/seg4_la_4ch_ED.nii.gz".format(data_dir),
-        "{0}/seg_sa_ED.nii.gz".format(data_dir),
-        "{0}/la_4ch_myo_contour_ED.vtk".format(output_dir),
+    # Transform la/seg_la.nii.gz to la/seg_la_crop.nii.gz using seg_la_LV_crop_ED.nii.gz
+    os.system(
+        f"mirtk transform-image {data_dir}/la_4ch.nii.gz {temp_dir}/la/la_4ch_crop.nii.gz "
+        f"-target {temp_dir}/seg_la/seg4_la_4ch_LV_crop_ED.nii.gz"
+    )
+    os.system(
+        f"mirtk transform-image {data_dir}/seg4_la_4ch.nii.gz {temp_dir}/seg_la/seg4_la_4ch_crop.nii.gz "
+        f"-target {temp_dir}/seg_la/seg4_la_4ch_LV_crop_ED.nii.gz"
     )
 
-    # Inter-frame motion estimation
-    nim = nib.load("{0}/la_4ch_crop.nii.gz".format(output_dir))
+    nim = nib.load(f"{temp_dir}/la/la_4ch_crop.nii.gz")
+    # For long axis, we don't need to care about slice
     T = nim.header["dim"][4]
     dt = nim.header["pixdim"][4]
 
-    # Split the cine sequence
-    split_sequence("{0}/la_4ch_crop.nii.gz".format(output_dir), "{0}/la_4ch_crop_fr".format(output_dir))
+    split_sequence(f"{temp_dir}/la/la_4ch_crop.nii.gz", f"{temp_dir}/la/la_4ch_crop_fr")
 
-    # Forward image registration
+    # Extract the myocardial contours for the slices
+    _extract_la_myocardial_contour(
+        f"{data_dir}/seg4_la_4ch_ED.nii.gz", 
+        f"{data_dir}/seg_sa_ED.nii.gz",  # requires SA image to determine coordinate system
+        f"{temp_dir}/myo_contour/la_4ch_myo_contour_ED.vtk"
+    )
+    logger.info("Myocardial contour at ED extracted")
+
+    logger.info("Forward registration")
+    # * Image registration between successive time frames for forward image registration
     for fr in range(1, T):
         target_fr = fr - 1
         source_fr = fr
-        target = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, target_fr)
-        source = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, source_fr)
-        par = "{0}/ffd_cine_la_2d_motion.cfg".format(par_dir)
-        dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, target_fr, source_fr)
-        os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
+        target = f"{temp_dir}/la/la_4ch_crop_fr{target_fr:02d}.nii.gz"
+        source = f"{temp_dir}/la/la_4ch_crop_fr{source_fr:02d}.nii.gz"
+        dof = f"{temp_dir}/pair/ffd_la_4ch_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
+        os.system(
+            f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
+        )
 
-    # Compose forward inter-frame transformation fields
-    os.system("cp {0}/ffd_la_4ch_pair_00_to_01.dof.gz " "{0}/ffd_la_4ch_forward_00_to_01.dof.gz".format(output_dir))
+    # * Start forward image registration
+    os.system(
+        f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_01.dof.gz " 
+        f"{temp_dir}/forward/ffd_la_4ch_forward_00_to_01.dof.gz"
+    )
     for fr in range(2, T):
         dofs = ""
         for k in range(1, fr + 1):
-            dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, k - 1, k)
+            dof = f"{temp_dir}/pair/ffd_la_4ch_pair_{k - 1:02d}_to_{k:02d}.dof.gz"
             dofs += dof + " "
-        dof_out = "{0}/ffd_la_4ch_forward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
-        os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
+        dof_out = f"{temp_dir}/forward/ffd_la_4ch_forward_00_to_{fr:02d}.dof.gz"
+        os.system(f"mirtk compose-dofs {dofs} {dof_out}")
 
-    # Backward image registration
+    logger.info("Backward registration")
+    # * Image registration reversely between successive time frames for backward image registration
     for fr in range(T - 1, 0, -1):
         target_fr = (fr + 1) % T
         source_fr = fr
-        target = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, target_fr)
-        source = "{0}/la_4ch_crop_fr{1:02d}.nii.gz".format(output_dir, source_fr)
-        par = "{0}/ffd_cine_la_2d_motion.cfg".format(par_dir)
-        dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, target_fr, source_fr)
-        os.system("mirtk register {0} {1} -parin {2} -dofout {3}".format(target, source, par, dof))
-
-    # Compose backward inter-frame transformation fields
-    os.system(
-        "cp {0}/ffd_la_4ch_pair_00_to_{1:02d}.dof.gz " "{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz".format(
-            output_dir, T - 1
+        target = f"{temp_dir}/la/la_4ch_crop_fr{target_fr:02d}.nii.gz"
+        source = f"{temp_dir}/la/la_4ch_crop_fr{source_fr:02d}.nii.gz"
+        dof = f"{temp_dir}/pair/ffd_la_4ch_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
+        os.system(
+            f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
         )
+
+    # For the first and last time frame, directly copy the transformation
+    os.system(
+        f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_{(T - 1):02d}.dof.gz " 
+        f"{temp_dir}/backward/ffd_la_4ch_backward_00_to_{(T - 1):02d}.dof.gz"
     )
+    # For the rest time frames, compose the transformation fields
     for fr in range(T - 2, 0, -1):
         dofs = ""
         for k in range(T - 1, fr - 1, -1):
-            dof = "{0}/ffd_la_4ch_pair_{1:02d}_to_{2:02d}.dof.gz".format(output_dir, (k + 1) % T, k)
+            dof = f"{temp_dir}/pair/ffd_la_4ch_pair_{(k + 1) % T:02d}_to_{k:02d}.dof.gz"
             dofs += dof + " "
-        dof_out = "{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
-        os.system("mirtk compose-dofs {0} {1} -approximate".format(dofs, dof_out))
+        dof_out = f"{temp_dir}/backward/ffd_la_4ch_backward_00_to_{fr:02d}.dof.gz"
+        os.system(f"mirtk compose-dofs {dofs} {dof_out}")
 
+    logger.info("Combine the forward and backward transformations")
     # Average the forward and backward transformations
-    os.system("mirtk init-dof {0}/ffd_la_4ch_forward_00_to_00.dof.gz".format(output_dir))
-    os.system("mirtk init-dof {0}/ffd_la_4ch_backward_00_to_00.dof.gz".format(output_dir))
-    os.system("mirtk init-dof {0}/ffd_la_4ch_00_to_00.dof.gz".format(output_dir))
+    os.system(f"mirtk init-dof {temp_dir}/forward/ffd_la_4ch_forward_00_to_00.dof.gz")
+    os.system(f"mirtk init-dof {temp_dir}/backward/ffd_la_4ch_backward_00_to_00.dof.gz")
+    os.system(f"mirtk init-dof {temp_dir}/combined/ffd_la_4ch_00_to_00.dof.gz")
+
+    # todo: Similar to short axis, currently we directly copy the transformations.
+    # for fr in range(1, T):
+    #     dof_forward = "{0}/ffd_la_4ch_forward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+    #     weight_forward = float(T - fr) / T
+    #     dof_backward = "{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+    #     weight_backward = float(fr) / T
+    #     dof_combine = "{0}/ffd_la_4ch_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+    #     os.system(
+    #         "average_3d_ffd 2 {0} {1} {2} {3} {4}".format(
+    #             dof_forward, weight_forward, dof_backward, weight_backward, dof_combine
+    #         )
+    #     )
+
     for fr in range(1, T):
-        dof_forward = "{0}/ffd_la_4ch_forward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
-        weight_forward = float(T - fr) / T
-        dof_backward = "{0}/ffd_la_4ch_backward_00_to_{1:02d}.dof.gz".format(output_dir, fr)
-        weight_backward = float(fr) / T
-        dof_combine = "{0}/ffd_la_4ch_00_to_{1:02d}.dof.gz".format(output_dir, fr)
-        os.system(
-            "average_3d_ffd 2 {0} {1} {2} {3} {4}".format(
-                dof_forward, weight_forward, dof_backward, weight_backward, dof_combine
-            )
-        )
+        dof_forward = f"{temp_dir}/forward/ffd_la_4ch_forward_00_to_{fr:02d}.dof.gz"
+        dof_backward = f"{temp_dir}/backward/ffd_la_4ch_backward_00_to_{fr:02d}.dof.gz"
+        # combined transformation to be created
+        dof_combine = f"{temp_dir}/combined/ffd_la_4ch_00_to_{fr:02d}.dof.gz"
+
+        if fr > T // 2:
+            os.system(f"cp {dof_forward} {dof_combine}")
+        else:
+            os.system(f"cp {dof_backward} {dof_combine}")
 
     # Transform the contours and calculate the strain
     for fr in range(0, T):
         os.system(
-            "mirtk transform-points {0}/la_4ch_myo_contour_ED.vtk "
-            "{0}/la_4ch_myo_contour_fr{1:02d}.vtk "
-            "-dofin {0}/ffd_la_4ch_00_to_{1:02d}.dof.gz".format(output_dir, fr)
+            f"mirtk transform-points {temp_dir}/myo_contour/la_4ch_myo_contour_ED.vtk "
+            f"{result_dir}/myo_contour_la/la_4ch_myo_contour_fr{fr:02d}.vtk "
+            f"-dofin {temp_dir}/combined/ffd_la_4ch_00_to_{fr:02d}.dof.gz"
         )
 
-    # Calculate the strain based on the line length
-    evaluate_strain_by_length_la("{0}/la_4ch_myo_contour_fr".format(output_dir), T, dt, output_name_stem)
-
-    # Transform the segmentation and evaluate the Dice metric
-    eval_dice = False
     if eval_dice:
-        split_sequence("{0}/seg4_la_4ch_crop.nii.gz".format(output_dir), "{0}/seg4_la_4ch_crop_fr".format(output_dir))
         dice_lv_myo = []
-
         image_names = []
+        
+        split_sequence(
+            f"{temp_dir}/seg_la/seg4_la_4ch_crop.nii.gz", 
+            f"{temp_dir}/seg_la/seg4_la_4ch_crop_fr"
+        )
+
         for fr in range(0, T):
             os.system(
-                "mirtk transform-image {0}/seg4_la_4ch_crop_fr{1:02d}.nii.gz "
-                "{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz "
-                "-dofin {0}/ffd_la_4ch_00_to_{1:02d}.dof.gz "
-                "-target {0}/seg4_la_4ch_crop_fr00.nii.gz".format(output_dir, fr)
+                f"mirtk transform-image {temp_dir}/seg_la/seg4_la_4ch_crop_fr{fr:02d}.nii.gz "
+                f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz "
+                f"-dofin {temp_dir}/combined/ffd_la_4ch_00_to_{fr:02d}.dof.gz "
+                f"-target {temp_dir}/seg_la/seg4_la_4ch_crop_fr00.nii.gz"
             )
-            image_A = nib.load("{0}/seg4_la_4ch_crop_fr00.nii.gz".format(output_dir)).get_fdata()
-            image_B = nib.load("{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz".format(output_dir, fr)).get_fdata()
-            dice_lv_myo += [[np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)]]
-            image_names += ["{0}/seg4_la_4ch_crop_warp_ffd_fr{1:02d}.nii.gz".format(output_dir, fr)]
-        combine_name = "{0}/seg4_la_4ch_crop_warp_ffd.nii.gz".format(output_dir)
-        make_sequence(image_names, dt, combine_name)
+            image_A = nib.load(
+                f"{temp_dir}/seg_la/seg4_la_4ch_crop_fr00.nii.gz"
+            ).get_fdata()
+            image_B = nib.load(
+                f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz"
+            ).get_fdata()
+            image_B = image_B[:, :, :, 0]
+            nim_B = nib.load(f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz")
+            nim_B_new = nib.Nifti1Image(image_B, nim_B.affine, nim_B.header)
+            nib.save(nim_B_new, f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz")
+            dice_lv_myo.append([np_categorical_dice(image_A, image_B, 1), np_categorical_dice(image_A, image_B, 2)])
+            image_names.append(f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz")
 
-        print(np.mean(dice_lv_myo, axis=0))
+        la_warp_combined_name = f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd.nii.gz"
+        make_sequence(image_names, dt, la_warp_combined_name)
+
         df_dice = pd.DataFrame(dice_lv_myo)
-        df_dice.to_csv("{0}/dice_la_4ch_warp_ffd.csv".format(output_dir), index=None, header=None)
+        df_dice.columns = ["LV", "Myo"]
+        df_dice.index = [f"Frame {i}" for i in range(T)]
+        # append mean result at the end
+        df_dice.loc["mean"] = df_dice.mean()
+        logger.info(f"Mean Dice for LV: {df_dice.loc['mean'].values[0]}")
+        logger.info(f"Mean Dice for Myo: {df_dice.loc['mean'].values[1]}")
+        df_dice.to_csv(f"{result_dir}/doc/dice_la_4ch_warp_ffd.csv", index=True, header=True)
+
+    return
 
 
 def plot_bulls_eye(data, vmin, vmax, cmap="Reds", color_line="black"):

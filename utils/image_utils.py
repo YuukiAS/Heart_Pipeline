@@ -321,7 +321,7 @@ def auto_crop_image(input_name, output_name, reserve):
     x1, x2 = max(x1, 0), min(x2, X)
     y1, y2 = max(y1, 0), min(y2, Y)
     z1, z2 = max(z1, 0), min(z2, Z)
-    logger.info("Bounding box:")
+    logger.info("Auto-crop image with bounding box:")
     logger.info(f"  Bottom-left corner = ({x1},{y1},{z1})")
     logger.info(f"  Top-right corner = ({x2},{y2},{z2})")
 
