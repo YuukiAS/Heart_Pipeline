@@ -36,7 +36,7 @@ import config
 from utils.log_utils import setup_logging
 from utils.quality_control_utils import sa_pass_quality_control
 from utils.analyze_utils import plot_time_series_double_x, plot_time_series_double_x_y, analyze_time_series_derivative
-from utils.cardiac_utils import cine_2d_sa_motion_and_strain_analysis, evaluate_strain_by_length_sa
+from utils.cardiac_utils import cine_2d_sa_motion_and_strain_analysis, evaluate_strain_by_length_sa, evaluate_torsion
 
 logger = setup_logging("eval_strain_sax")
 
@@ -59,9 +59,10 @@ if __name__ == "__main__":
         seg_sa_name = os.path.join(sub_dir, "seg_sa.nii.gz")
         seg_sa_ED_name = os.path.join(sub_dir, "seg_sa_ED.nii.gz")
 
-        nim = nib.load(seg_sa_name)
-        T = nim.header["dim"][4]
-        temporal_resolution = nim.header["pixdim"][4]
+        nim_sa = nib.load(seg_sa_name)
+        seg_sa = nim_sa.get_fdata()
+        T = nim_sa.header["dim"][4]
+        temporal_resolution = nim_sa.header["pixdim"][4]
         time_grid_point = np.arange(T)
         time_grid_real = time_grid_point * temporal_resolution  # unit: s
 
@@ -162,7 +163,7 @@ if __name__ == "__main__":
         fig.savefig(f"{sub_dir}/timeseries/grs_raw.png")
         plt.close(fig)
 
-        # Read in time points
+        # Read in important time points
         with open(f"{sub_dir}/timeseries/ventricle.pkl", "rb") as time_series_file:
             ventricle = pickle.load(time_series_file)
 
@@ -186,7 +187,7 @@ if __name__ == "__main__":
                 circum_strain[16, :] / 100,  # Since strain is in %
                 n_pos=2,
                 n_neg=1,
-                method="loess"  # for strain rate, we don't use the moving average method
+                method="loess",  # for strain rate, we don't use the moving average method
             )
 
             GCSR_S = GCSR_neg[0]
@@ -211,7 +212,7 @@ if __name__ == "__main__":
                 radial_strain[16, :] / 100,  # Since strain is in %
                 n_pos=1,
                 n_neg=2,
-                method="loess"
+                method="loess",
             )
             GRSR_S = GRSR_pos[0]
             GRSR_E = GRSR_neg[np.argmin(T_GRSR_neg)]
@@ -296,7 +297,6 @@ if __name__ == "__main__":
         T_circum_strain_post = None
         circum_strain_post = None
         if T_circum_strain_peak > T_ES:
-            # Post systolic shortening exists
             T_circum_strain_post = T_circum_strain_peak
             circum_strain_post = cicum_strain_peak
 
@@ -311,7 +311,7 @@ if __name__ == "__main__":
             feature_dict.update(
                 {
                     "LV: Circumferential Strain (End-systolic, absolute value) [%]": circum_strain_ES,
-                    "LV:  Circumferential Strain (Peak-systolic, absolute value) [%]": cicum_strain_peak,
+                    "LV: Circumferential Strain (Peak-systolic, absolute value) [%]": cicum_strain_peak,
                 }
             )
             logger.info(f"{subject}: End-systolic, peak-systolic circumferential strain calculated.")
@@ -346,6 +346,8 @@ if __name__ == "__main__":
 
         # * Feature 3 Time to peak interval
 
+        # We use global value here, while for longitudinal strain, we consider each segment
+
         t_circum_strain_peak = T_circum_strain_peak * temporal_resolution * 1000  # unit: ms
         t_radial_strain_peak = T_radial_strain_peak * temporal_resolution * 1000
 
@@ -377,25 +379,141 @@ if __name__ == "__main__":
         # * Feature 4 Strain imaging diastolic index (SI-DI)
 
         # Ref https://www.sciencedirect.com/science/article/pii/S0914508711000116
+
+        circum_strain_1_3_DD = abs(GCS_loess_y[T_1_3_DD])
+
+        circum_SI_DI = (circum_strain_ES - circum_strain_1_3_DD) / circum_strain_ES
+
+        radial_strain_1_3_DD = abs(GRS_loess_y[T_1_3_DD])
+
+        radial_SI_DI = (radial_strain_ES - radial_strain_1_3_DD) / radial_strain_ES
+
+        feature_dict.update(
+            {
+                "LV: Circumferential Strain: Strain Imaging Diastolic Index [%]": circum_SI_DI * 100,
+                "LV: Radial Strain: Strain Imaging Diastolic Index [%]": radial_SI_DI * 100,
+            }
+        )
+
+        logger.info(f"{subject}: Strain imaging diastolic index (SI-DI) calculated.")
+
+        # * Feature 5 Torsion and recoil rate, Recoil rate
+
         try:
-            circum_strain_1_3_DD = abs(GCS_loess_y[T_1_3_DD])
+            torsion_endo, torsion_epi, torsion_global, basal_slice, apical_slice = evaluate_torsion(
+                seg_sa, nim_sa, contour_name_stem=f"{ft_dir}/myo_contour_sa/myo_contour_fr"
+            )
+            logger.info(f"{subject}: Torsion calculated, save time series plots.")
 
-            circum_SI_DI = (circum_strain_ES - circum_strain_1_3_DD) / circum_strain_ES
+            plt.plot(np.arange(T), torsion_endo["base"], label="base")
+            plt.plot(np.arange(T), torsion_endo["apex"], label="apex")
+            plt.plot(np.arange(T), torsion_endo["twist"], label="twist")
+            plt.axhline(0, color='black', linestyle='--')
+            plt.ylabel("°")
+            plt.vlines(T_ES, -10, 10, color="black")
+            plt.legend()
+            plt.title(f"Subject {subject}: Endocardial Twist Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/twist_endo.png")
+            plt.close()
 
-            radial_strain_1_3_DD = abs(GRS_loess_y[T_1_3_DD])
+            plt.plot(np.arange(T), torsion_epi["base"], label="base")
+            plt.plot(np.arange(T), torsion_epi["apex"], label="apex")
+            plt.plot(np.arange(T), torsion_epi["twist"], label="twist")
+            plt.axhline(0, color='black', linestyle='--')
+            plt.ylabel("°")
+            plt.vlines(T_ES, -10, 10, color="black")
+            plt.legend()
+            plt.title(f"Subject {subject}: Epicardial Twist Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/twist_epi.png")
+            plt.close()
 
-            radial_SI_DI = (radial_strain_ES - radial_strain_1_3_DD) / radial_strain_ES
+            plt.plot(np.arange(T), torsion_global["base"], label="base")
+            plt.plot(np.arange(T), torsion_global["apex"], label="apex")
+            plt.plot(np.arange(T), torsion_global["twist"], label="twist")
+            plt.axhline(0, color='black', linestyle='--')
+            plt.ylabel("°")
+            plt.vlines(T_ES, -10, 10, color="black")
+            plt.legend()
+            plt.title(f"Subject {subject}: Global Twist Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/twist_global.png")
+            plt.close()
 
             feature_dict.update(
                 {
-                    "LV: Circumferential Strain: Strain Imaging Diastolic Index [%]": circum_SI_DI * 100,
-                    "LV: Radial Strain: Strain Imaging Diastolic Index [%]": radial_SI_DI * 100,
+                    "LV: Endocardial Torsion [°/cm]": np.max(torsion_endo["torsion"]),
+                    "LV: Epicardial Torsion [°/cm]": np.max(torsion_epi["torsion"]),
+                    "LV: Global Torsion [°/cm]": np.max(torsion_global["torsion"]),
                 }
             )
-        except ValueError:
-            logger.warning(f"{subject}: Error in calculating strain imaging diastolic index (SI-DI).")
 
-        # todo Feature 5 Torsion and recoil rate
+            plt.plot(np.arange(T), torsion_endo["torsion"], label="endo")
+            plt.plot(np.arange(T), torsion_epi["torsion"], label="epi")
+            plt.plot(np.arange(T), torsion_global["torsion"], label="global")
+            plt.axhline(0, color='black', linestyle='--')
+            plt.ylabel("°/cm")
+            plt.vlines(T_ES, -3, 3, color="black")
+            plt.legend()
+            plt.title(f"Subject {subject}: Torsion Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/torsion.png")
+            plt.close()
+
+            T_endo_torsion_peak = np.argmax(torsion_endo["torsion"])
+            T_epi_torsion_peak = np.argmax(torsion_epi["torsion"])
+            T_global_torsion_peak = np.argmax(torsion_global["torsion"])
+
+            t_endo_torsion_peak = T_endo_torsion_peak * temporal_resolution * 1000  # unit: ms
+            t_epi_torsion_peak = T_epi_torsion_peak * temporal_resolution * 1000
+            t_global_torsion_peak = T_global_torsion_peak * temporal_resolution * 1000
+
+            feature_dict.update(
+                {
+                    "LV: Endocardial Torsion: Time to Peak [ms]": t_endo_torsion_peak,
+                    "LV: Epicardial Torsion: Time to Peak [ms]": t_epi_torsion_peak,
+                    "LV: Global Torsion: Time to Peak [ms]": t_global_torsion_peak,
+                }
+            )
+
+            # Define Peak recoil rate is the maximum negative slope of torsion-time curve
+
+            try:
+                _, _, _, recoil_rate_endo = analyze_time_series_derivative(
+                    time_grid_real,
+                    torsion_endo["torsion"],
+                    n_pos=0,
+                    n_neg=1,
+                    method="loess",
+                )
+
+                _, _, _, recoil_rate_epi = analyze_time_series_derivative(
+                    time_grid_real,
+                    torsion_epi["torsion"],
+                    n_pos=0,
+                    n_neg=1,
+                    method="loess",
+                )
+
+                _, _, _, recoil_rate_global = analyze_time_series_derivative(
+                    time_grid_real,
+                    torsion_global["torsion"],
+                    n_pos=0,
+                    n_neg=1,
+                    method="loess",
+                )
+
+                logger.info(f"{subject}: Recoil rate calculated.")
+                feature_dict.update(
+                    {
+                        "LV: Endocardial Recoil Rate [°/cm/s]": recoil_rate_endo[0],
+                        "LV: Epicardial Recoil Rate [°/cm/s]": recoil_rate_epi[0],
+                        "LV: Global Recoil Rate [°/cm/s]": recoil_rate_global[0],
+                    }
+                )
+            except ValueError as e:
+                logger.warning(f"{subject}: {e}  No recoil rate calculated.")
+
+        except ValueError as e:
+            logger.warning(f"{subject}: {e} No torsion calculated.")
+            continue
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)

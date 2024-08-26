@@ -17,11 +17,12 @@ logger = setup_logging("ecg_processor")
 
 
 class ECG_Processor:
-    def __init__(self, subject, retest=False):
+    def __init__(self, subject, retest=False, sampling_rate=500):
         if type(subject) is not str:
             raise TypeError("Subject must be a string")
         self.subject = subject
         self.retest = retest
+        self.sampling_rate = sampling_rate
 
         self.voltages_rest = None
         self.voltages_exercise = None
@@ -56,7 +57,7 @@ class ECG_Processor:
             data_reader = XMLReader(xml_file, ecg_type="rest")
             voltages = data_reader.getVoltages()
         except ValueError as e:
-            logger.error(f"While processing rest XML file for subject {self.subject}: Error {e}")
+            logger.error(f"Subject {self.subject}: While processing rest XML file: Error {e}")
             voltages = None
         return voltages
 
@@ -73,27 +74,47 @@ class ECG_Processor:
             data_reader = XMLReader(xml_file, ecg_type="exercise")
             voltages_divided = data_reader.getDividedVoltages()
         except ValueError as e:
-            logger.error(f"While processing exercise XML file for subject {self.subject}: Error {e}")
+            logger.error(f"Subject {self.subject}: While processing exercise XML file: Error {e}")
             voltages_divided = None
         return voltages_divided
 
     def get_voltages_rest(self):
         if self.voltages_rest is None:
-            raise ValueError(f"ECG rest data is not available for the subject {self.subject}")
+            raise ValueError(f"Subject {self.subject}: ECG rest data is not available")
         return self.voltages_rest
 
     def get_voltages_exercise(self):
         if self.voltages_exercise is None:
-            raise ValueError(f"ECG exercise data is not available for the subject {self.subject}")
+            raise ValueError(f"Subject {self.subject}: ECG exercise data is not available")
         return self.voltages_exercise
+
+    def determine_RR_interval(self):
+        """
+        Determine the mean RR interval based on rest ECG XML file.
+        """
+        if self.voltages_rest is None:
+            raise ValueError(f"Subject {self.subject}: ECG rest data is not available")
+
+        RR_interval_leads = []
+        for lead in self.voltages_rest:
+            ecg_signal = self.voltages_rest[lead]
+            _, info = nk.ecg_process(ecg_signal, sampling_rate=self.sampling_rate)
+            R_peaks = np.array(info['ECG_R_Peaks'])
+            RR_interval = np.mean(np.diff(R_peaks))
+            RR_interval_leads.append(RR_interval)
+        # * If sample rate is 500, then we need to multiply by 2!
+        return np.mean(np.array(RR_interval_leads)) * (1000 / self.sampling_rate)  
 
     def determine_timepoint_LA(
         self, methods=["neurokit", "pantompkins1985", "hamilton2002", "elgendi2010", "engzeemod2012"], log=False
     ):
         """
-        Determine the pre-contraction point for left atrium based on ECG XML file.
+        Determine the pre-contraction point for left atrium based on rest ECG XML file.
         The point for maximum volume is also reported, but does not yield satisfactory results.
         """
+        if self.voltages_rest is None:
+            raise ValueError(f"Subject {self.subject}: ECG rest data is not available")
+
         t_max_total = []
         t_pre_a_total = []
 
@@ -111,7 +132,7 @@ class ECG_Processor:
                 # Ref https://neuropsychology.github.io/NeuroKit/functions/ecg.html
                 for method in methods:
                     try:
-                        _, info = nk.ecg_process(ecg_signal, sampling_rate=500, method=method)
+                        _, info = nk.ecg_process(ecg_signal, sampling_rate=self.sampling_rate, method=method)
                         L = len(info["ECG_R_Peaks"])
                     except ZeroDivisionError as e:
                         logger.warning(f"Method {method} failed for lead {lead} due to ZeroDivisionError {e}")

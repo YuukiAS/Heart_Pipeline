@@ -105,7 +105,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                     file_script.write("echo 'Extract features for longitudinal strain'\n")
                     file_script.write(
                         f"python -u ./src/feature_extraction/long_axis/eval_strain_lax.py "
-                        f"{retest_str} --file_name=strain_{file_i} --data_list {sub_file_i_str} \n"
+                        f"{retest_str} --file_name=strain_la_{file_i} --data_list {sub_file_i_str} \n"
                     )
 
                     # Script for aggregating separate feature files
@@ -121,7 +121,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit1_dir, 'strain')} "
                                 f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
-                                "--prefix=strain\n"
+                                "--prefix=strain_la\n"
                             )
                         else:
                             file_aggregate.write(
@@ -134,7 +134,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit2_dir, 'strain')} "
                                 f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
-                                "--prefix=strain\n"
+                                "--prefix=strain_la\n"
                             )
                 if "sa" in modality:
                     file_script.write("echo 'Extract features for ventricular volume'\n")
@@ -150,7 +150,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                     file_script.write("echo 'Extract features for cirumferential and radial strain'\n")
                     file_script.write(
                         f"python -u ./src/feature_extraction/short_axis/eval_strain_sax.py "
-                        f"{retest_str} --file_name=strain_{file_i} --data_list {sub_file_i_str} \n"
+                        f"{retest_str} --file_name=strain_sa_{file_i} --data_list {sub_file_i_str} \n"
                     )
 
                     # Script for aggregating separate feature files
@@ -172,7 +172,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit1_dir, 'strain')} "
                                 f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
-                                "--prefix=strain\n"
+                                "--prefix=strain_sa\n"
                             )
                         else:
                             file_aggregate.write(
@@ -191,7 +191,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit2_dir, 'strain')} "
                                 f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
-                                "--prefix=strain\n"
+                                "--prefix=strain_sa\n"
                             )
                 if "aor" in modality:
                     pass

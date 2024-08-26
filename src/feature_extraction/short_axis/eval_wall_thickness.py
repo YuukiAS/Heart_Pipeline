@@ -49,11 +49,20 @@ if __name__ == "__main__":
         subject = str(subject)
         logger.info(f"Calculating myocardial wall thickness for subject {subject}")
         sub_dir = os.path.join(data_dir, subject)
-
-        # Quality control for segmentation at ED
+        sa_name = f"{sub_dir}/sa.nii.gz"
         sa_ED_name = f"{sub_dir}/sa_ED.nii.gz"
         seg_sa_name = f"{sub_dir}/seg_sa.nii.gz"
         seg_sa_ED_name = f"{sub_dir}/seg_sa_ED.nii.gz"
+
+        nim_sa = nib.load(sa_name)
+        nim_sa_ED = nib.load(sa_ED_name)
+        nim_seg_sa = nib.load(seg_sa_name)
+        nim_seg_sa_ED = nib.load(seg_sa_ED_name)
+        seg_sa = nim_seg_sa.get_fdata()
+        seg_sa_ED = nim_seg_sa_ED.get_fdata()
+
+        # Quality control for segmentation at ED
+
         if not os.path.exists(seg_sa_name):
             logger.error(f"Segmentation of short axis file for {subject} does not exist")
             continue
@@ -62,12 +71,6 @@ if __name__ == "__main__":
             # If the segmentation quality is low, evaluation of wall thickness may fail.
             logger.error(f"{subject}: seg_sa does not pass sa_pass_quality_control, skipped.")
             continue
-
-        nim_sa = nib.load(sa_ED_name)
-        nim_sa_ED = nib.load(sa_ED_name)
-        nim_seg_sa_ED = nib.load(seg_sa_ED_name)
-        seg_sa = nim_sa.get_fdata()
-        seg_sa_ED = nim_seg_sa_ED.get_fdata()
 
         feature_dict = {
             "eid": subject,
@@ -113,9 +116,6 @@ if __name__ == "__main__":
             }
         )
 
-        df_row = pd.DataFrame([feature_dict])
-        df = pd.concat([df, df_row], ignore_index=True)
-
         # * Feature 2: Radius and thickness that incorporate distance to barycenter of LV cavity (with modification)
         # Refer https://www.sciencedirect.com/science/article/pii/S1361841519300519
         # * This features utilizes the entire time series instead of just ED
@@ -146,12 +146,15 @@ if __name__ == "__main__":
         # * Feature 3: Fractal dimension for trabeculation
         # Refer  https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-36
 
-        fd = fractal_dimension(nim_sa_ED, seg_sa_ED)
+        fd = fractal_dimension(seg_sa_ED, nim_sa_ED)
         feature_dict.update({"Myo: Fractal dimension": fd})
         logger.info(f"{subject}: Fractal dimension calculation completed")
+
+        df_row = pd.DataFrame([feature_dict])
+        df = pd.concat([df, df_row], ignore_index=True)
 
     target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
     target_dir = os.path.join(target_dir, "wall_thickness")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
-    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), ignore_index=True)
+    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), index=False)

@@ -58,7 +58,7 @@ par_config_dir = '/work/users/y/u/yuukias/Heart_Pipeline/third_party/config'
 
 # Put the folder containing the binaries here, not the path to binaries
 average_3d_ffd_path = '/work/users/y/u/yuukias/Heart_Pipeline/third_party/average_3d_ffd'
-# The strain requires MIRTK to have transform-points executable.
+# The strain requires MIRTK to have transform-points executable!
 # Please make sure VTK is installed and install MIRTK by setting following arguments:
 # export VTK_DIR=/path/VTK/build
 # cmake .. -DVTK_DIR=/path/VTK/build -DWITH_VTK=ON -DMODULE_PointSet=ON

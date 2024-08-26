@@ -28,6 +28,7 @@ from utils.log_utils import setup_logging
 
 logger = setup_logging("image-utils")
 
+
 def crop_image(image, cx, cy, size):
     """Crop a 3D image using a bounding box centred at (cx, cy) with specified size"""
     X, Y = image.shape[:2]

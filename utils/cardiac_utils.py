@@ -48,7 +48,7 @@ logger = setup_logging("cardiac-utils")
 
 
 def approximate_contour(contour, factor=4, smooth=0.05, periodic=False):
-    """Approximate a contour.
+    """Approximate a contour through upsampling and smoothing.
 
     contour: input contour
     factor: upsampling factor for the contour
@@ -482,7 +482,7 @@ def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
     return endo_poly, epi_poly, index, table_thickness, table_thickness_max
 
 
-def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2, part=None, three_slices=False):
+def extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2, part=None, three_slices=False):
     """
     Extract the myocardial contours, including both endo and epicardial contours.
     Determine the AHA segment ID for all the contour points.
@@ -503,7 +503,7 @@ def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_st
     # Determine the AHA coordinate system using the mid-cavity slice
     aha_axis = determine_aha_coordinate_system(seg, affine)
 
-    # Determine the AHA part of each slice
+    # Determine the AHA part of each slice (basal, mid, apical)
     part_z = {}
     if not part:
         part_z = determine_aha_part(seg, affine, three_slices=three_slices)
@@ -531,20 +531,26 @@ def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_st
         if z not in part_z.keys():
             continue
 
-        # Construct the points set and data arrays to represent both endo and epicardial contours
-        points = vtk.vtkPoints()
-        points_radial = vtk.vtkFloatArray()
+        # * Construct the points set and data arrays to represent both endo and epicardial contours
+        points = vtk.vtkPoints()  # define The real world coordinates of the points
+
+        points_radial = vtk.vtkFloatArray()  # define Radial direction from cavity center to the point (normalized)
         points_radial.SetName("Direction_Radial")
         points_radial.SetNumberOfComponents(3)
-        points_label = vtk.vtkIntArray()
+
+        points_label = vtk.vtkIntArray()  # define Label of the point (1 = endo, 2 = epi)
         points_label.SetName("Label")
-        points_aha = vtk.vtkIntArray()
+
+        points_aha = vtk.vtkIntArray()  # define AHA segment ID 1~16
         points_aha.SetName("Segment ID")
+
         point_id = 0
 
-        lines = vtk.vtkCellArray()
+        lines = vtk.vtkCellArray()  # define Two consecutive points
+
         lines_aha = vtk.vtkIntArray()
         lines_aha.SetName("Segment ID")
+
         lines_dir = vtk.vtkIntArray()
         lines_dir.SetName("Direction ID")
 
@@ -553,7 +559,7 @@ def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_st
         cx, cy = [np.mean(x) for x in np.nonzero(endo)]
         lv_centre = np.dot(affine, np.array([cx, cy, z, 1]))[:3]
 
-        # Extract epicardial contour
+        # * Extract epicardial contour -------------------------------------------
         contours, _ = cv2.findContours(cv2.inRange(epi, 1, 1), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         epi_contour = contours[0][:, 0, :]
         epi_contour = approximate_contour(epi_contour, periodic=True)
@@ -600,11 +606,11 @@ def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_st
         epi_points.DeepCopy(points)
         epi_poly = vtk.vtkPolyData()
         epi_poly.SetPoints(epi_points)
-        locator = vtk.vtkPointLocator()
+        locator = vtk.vtkPointLocator()  # define locator can be used to find the closest point
         locator.SetDataSet(epi_poly)
         locator.BuildLocator()
 
-        # Extract endocardial contour
+        # * Extract endocardial contour  -------------------------------------------
         # Note: cv2 considers an input image as a Y x X array, which is different
         # from nibabel which assumes a X x Y array.
         contours, _ = cv2.findContours(cv2.inRange(endo, 1, 1), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
@@ -652,6 +658,7 @@ def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_st
                 # The closest epicardial points
                 ids = vtk.vtkIdList()
                 n_ids = 10
+                # * Find the n_ids closest points on the epicardial contour to p on endocardial contour
                 locator.FindClosestNPoints(n_ids, p, ids)
 
                 # The point that aligns with the radial direction
@@ -663,7 +670,7 @@ def _extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_st
                 val = np.array(val)
                 epi_point_id = ids.GetId(np.argmax(val))
 
-                # * Add the radial line (endocardial and epicardial)
+                # Add the radial line (endocardial and epicardial)
                 lines.InsertNextCell(2, [point_id, epi_point_id])
                 lines_aha.InsertNextTuple1(seg_id)
                 # Line direction (1 = radial, 2 = circumferential, 3 = longitudinal)
@@ -704,10 +711,10 @@ def evaluate_strain_by_length_sa(contour_name_stem, T, result_dir):
     poly = reader.GetOutput()
     points = poly.GetPoints()
 
-    # Calculate the length of each line
+    # * Calculate the length of each line
     lines = poly.GetLines()
-    lines_aha = poly.GetCellData().GetArray("Segment ID")  # determined in evaluate_wall_thickness()
-    lines_dir = poly.GetCellData().GetArray("Direction ID")  # determined in extract_myocardial_contour()
+    lines_aha = poly.GetCellData().GetArray("Segment ID")
+    lines_dir = poly.GetCellData().GetArray("Direction ID")
     n_lines = lines.GetNumberOfCells()
     length_ED = np.zeros(n_lines)
     seg_id = np.zeros(n_lines)
@@ -726,7 +733,7 @@ def evaluate_strain_by_length_sa(contour_name_stem, T, result_dir):
         dir_id[i] = lines_dir.GetValue(i)
         length_ED[i] = d
 
-    # For each time frame, calculate the strain, i.e. change of length
+    # * For each time frame later, calculate the strain, i.e. change of length
     table_strain = {}
     table_strain["radial"] = np.zeros((17, T))
     table_strain["circum"] = np.zeros((17, T))
@@ -734,6 +741,7 @@ def evaluate_strain_by_length_sa(contour_name_stem, T, result_dir):
     for fr in range(0, T):
         # Read the polydata
         reader = vtk.vtkPolyDataReader()
+        # * We will use all three slices to calculate the strain
         filename_myo = "{0}{1:02d}.vtk".format(contour_name_stem, fr)
         reader.SetFileName(filename_myo)
         reader.Update()
@@ -827,7 +835,7 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     split_volume(f"{temp_dir}/seg_sa/seg_sa_crop.nii.gz", f"{temp_dir}/seg_sa/seg_sa_crop_z")
 
     # Extract the myocardial contours for three slices, respectively basal, mid-cavity and apical
-    _extract_sa_myocardial_contour(
+    extract_sa_myocardial_contour(
         f"{data_dir}/seg_sa_ED.nii.gz", f"{temp_dir}/myo_contour/myo_contour_z", "_ED", three_slices=True
     )
     logger.info("Myocardial contour at ED extracted")
@@ -975,9 +983,7 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
                     f"-dofin {temp_dir}/combined/ffd_z{z:02d}_00_to_{fr:02d}.dof.gz "
                     f"-target {temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz"
                 )
-                image_A = nib.load(
-                    f"{temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz"
-                ).get_fdata()  # target image
+                image_A = nib.load(f"{temp_dir}/seg_sa/seg_sa_crop_z{z:02d}_fr00.nii.gz").get_fdata()  # target image
                 image_B = nib.load(
                     f"{temp_dir}/seg_sa/seg_sa_crop_warp_ffd_z{z:02d}_fr{fr:02d}.nii.gz"
                 ).get_fdata()  # warped image
@@ -1421,7 +1427,7 @@ def determine_la_aha_segment_id(point, la_idx, axis, mid_line, part_z):
     return seg_id
 
 
-def _extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
+def extract_la_myocardial_contour(seg_la_name, seg_sa_name, contour_name):
     """
     Extract the myocardial contours on long-axis images.
     Also, determine the AHA segment ID for all the contour points.
@@ -1759,10 +1765,10 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     split_sequence(f"{temp_dir}/la/la_4ch_crop.nii.gz", f"{temp_dir}/la/la_4ch_crop_fr")
 
     # Extract the myocardial contours for the slices
-    _extract_la_myocardial_contour(
-        f"{data_dir}/seg4_la_4ch_ED.nii.gz", 
+    extract_la_myocardial_contour(
+        f"{data_dir}/seg4_la_4ch_ED.nii.gz",
         f"{data_dir}/seg_sa_ED.nii.gz",  # requires SA image to determine coordinate system
-        f"{temp_dir}/myo_contour/la_4ch_myo_contour_ED.vtk"
+        f"{temp_dir}/myo_contour/la_4ch_myo_contour_ED.vtk",
     )
     logger.info("Myocardial contour at ED extracted")
 
@@ -1774,14 +1780,11 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
         target = f"{temp_dir}/la/la_4ch_crop_fr{target_fr:02d}.nii.gz"
         source = f"{temp_dir}/la/la_4ch_crop_fr{source_fr:02d}.nii.gz"
         dof = f"{temp_dir}/pair/ffd_la_4ch_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
-        os.system(
-            f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
-        )
+        os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1")
 
     # * Start forward image registration
     os.system(
-        f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_01.dof.gz " 
-        f"{temp_dir}/forward/ffd_la_4ch_forward_00_to_01.dof.gz"
+        f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_01.dof.gz " f"{temp_dir}/forward/ffd_la_4ch_forward_00_to_01.dof.gz"
     )
     for fr in range(2, T):
         dofs = ""
@@ -1799,13 +1802,11 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
         target = f"{temp_dir}/la/la_4ch_crop_fr{target_fr:02d}.nii.gz"
         source = f"{temp_dir}/la/la_4ch_crop_fr{source_fr:02d}.nii.gz"
         dof = f"{temp_dir}/pair/ffd_la_4ch_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
-        os.system(
-            f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
-        )
+        os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1")
 
     # For the first and last time frame, directly copy the transformation
     os.system(
-        f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_{(T - 1):02d}.dof.gz " 
+        f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_{(T - 1):02d}.dof.gz "
         f"{temp_dir}/backward/ffd_la_4ch_backward_00_to_{(T - 1):02d}.dof.gz"
     )
     # For the rest time frames, compose the transformation fields
@@ -1858,11 +1859,8 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     if eval_dice:
         dice_lv_myo = []
         image_names = []
-        
-        split_sequence(
-            f"{temp_dir}/seg_la/seg4_la_4ch_crop.nii.gz", 
-            f"{temp_dir}/seg_la/seg4_la_4ch_crop_fr"
-        )
+
+        split_sequence(f"{temp_dir}/seg_la/seg4_la_4ch_crop.nii.gz", f"{temp_dir}/seg_la/seg4_la_4ch_crop_fr")
 
         for fr in range(0, T):
             os.system(
@@ -1871,12 +1869,8 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
                 f"-dofin {temp_dir}/combined/ffd_la_4ch_00_to_{fr:02d}.dof.gz "
                 f"-target {temp_dir}/seg_la/seg4_la_4ch_crop_fr00.nii.gz"
             )
-            image_A = nib.load(
-                f"{temp_dir}/seg_la/seg4_la_4ch_crop_fr00.nii.gz"
-            ).get_fdata()
-            image_B = nib.load(
-                f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz"
-            ).get_fdata()
+            image_A = nib.load(f"{temp_dir}/seg_la/seg4_la_4ch_crop_fr00.nii.gz").get_fdata()
+            image_B = nib.load(f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz").get_fdata()
             image_B = image_B[:, :, :, 0]
             nim_B = nib.load(f"{temp_dir}/seg_la/seg4_la_4ch_crop_warp_ffd_fr{fr:02d}.nii.gz")
             nim_B_new = nib.Nifti1Image(image_B, nim_B.affine, nim_B.header)
@@ -2260,7 +2254,7 @@ def evaluate_AVPD(
     return np.mean(AV_displacement) * 1e-1  # unit: cm
 
 
-def _evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float):
+def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float):
     if seg_sa_s_t.ndim != 2:
         raise ValueError("The seg_sa should be a 2D image.")
     NUM_SEGMENTS = 6
@@ -2388,7 +2382,7 @@ def evaluate_radius_thickness_disparity(
         thickness_t = []
         for s in range(basal_slice, apical_slice + 1):
             seg_sa_s_t = seg_sa_t[:, :, s]
-            radius_segments, thickness_segments = _evaluate_radius_thickness(seg_sa_s_t, nim_sa, BSA_value)
+            radius_segments, thickness_segments = evaluate_radius_thickness(seg_sa_s_t, nim_sa, BSA_value)
             radius_t.append(radius_segments)
             thickness_t.append(thickness_segments)
         radius.append(np.array(radius_t).ravel().tolist())
@@ -2424,8 +2418,8 @@ def evaluate_radius_thickness_disparity(
     return radius_motion_disparity, thickness_motion_disparity, radius, thickness
 
 
-def fractal_dimension(nim_sa_ED: nib.nifti1.Nifti1Image, seg_sa_ED: Tuple[float, float, float]):
-    fds = np.array([])
+def fractal_dimension(seg_sa_ED: Tuple[float, float, float], nim_sa_ED: nib.nifti1.Nifti1Image):
+    fds = []
 
     img_sa = nim_sa_ED.get_fdata()
     for i in range(0, seg_sa_ED.shape[2]):
@@ -2466,4 +2460,235 @@ def fractal_dimension(nim_sa_ED: nib.nifti1.Nifti1Image, seg_sa_ED: Tuple[float,
             raise ValueError("Fractal dimension should lie between 1 and 2.")
         fds.append(slope)
 
-    return fds.mean()
+    return np.mean(np.array(fds))
+
+
+def calculate_LV_center(seg_sa, affine, time, slice):
+    """
+    Determine the real-world coordinates of the center of the LV in the given slice and time.
+    """
+    if seg_sa.ndim != 4:
+        raise ValueError("seg_sa should be 4D (3D+t) array")
+
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+
+    seg_z_t = seg_sa[:, :, slice, time]
+    seg_z_t_LV = seg_z_t == labels["LV"]
+
+    barycenter_LV = np.mean(np.argwhere(seg_z_t_LV), axis=0)
+
+    barycenter_LV = np.dot(affine, np.array([*barycenter_LV, slice, 1]))[:3]
+
+    return barycenter_LV
+
+
+def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nifti1.Nifti1Image, contour_name_stem):
+    if seg_sa.ndim != 4:
+        raise ValueError("seg_sa should be 4D (3D+t) array")
+
+    T = seg_sa.shape[3]
+    n_slices_total = seg_sa.shape[2]
+    affine = nim_sa.affine
+
+    reader = vtk.vtkPolyDataReader()
+    reader.SetFileName(f"{contour_name_stem}00.vtk")
+    reader.Update()
+    poly = reader.GetOutput()
+
+    points = poly.GetPoints()
+    lines = poly.GetLines()
+    lines_dir = poly.GetCellData().GetArray("Direction ID")
+
+    n_points = points.GetNumberOfPoints()
+    n_lines = lines.GetNumberOfCells()
+
+    points_base_ED = {"epi": [], "endo": []}  # define used to determine the angle through arcsin of vector
+    points_apex_ED = {"epi": [], "endo": []}
+
+    # Determine the three slices used
+    affine_inv = np.linalg.inv(affine)
+    z_cnt = np.zeros(n_slices_total)
+
+    for i in range(n_points):
+        point = points.GetPoint(i)
+        (_, _, z) = np.dot(affine_inv, np.append(point, 1))[:3]
+        z = int(round(z))
+        z_cnt[z] += 1
+        # plt.imshow(seg_sa_ED[:, :, z], cmap='gray')
+        # plt.scatter(y, x, c='r')
+
+    basal_slice = np.min(np.nonzero(z_cnt)[0])
+    apical_slice = np.max(np.nonzero(z_cnt)[0])
+    # print(basal_slice, apical_slice)
+
+    # Ref https://dx.plos.org/10.1371/journal.pone.0109164
+    SLICE_THICKNESS = 8  # unit: mm
+    SLICE_GAP = 2
+    n_slices_used = apical_slice - basal_slice + 1
+
+    if nim_sa.header["pixdim"][3] != SLICE_THICKNESS + SLICE_GAP:
+        raise ValueError("The slice thickness and gap is not the same as protocol")
+
+    # * Determine the vector at ED
+    LV_barycenter_basal_ED = calculate_LV_center(seg_sa, affine, 0, basal_slice)
+    LV_barycenter_apical_ED = calculate_LV_center(seg_sa, affine, 0, apical_slice)
+
+    lines.InitTraversal()
+    for i in range(n_lines):
+        ids = vtk.vtkIdList()
+        lines.GetNextCell(ids)
+
+        dir_id = lines_dir.GetValue(i)
+        if dir_id != 1:
+            # non-radial line
+            continue
+
+        # define p1 is on endo and p2 is on epi
+        p1 = np.array(points.GetPoint(ids.GetId(0)))
+        p2 = np.array(points.GetPoint(ids.GetId(1)))
+
+        (_, _, z1) = np.dot(affine_inv, np.append(p1, 1))[:3]
+        (_, _, z2) = np.dot(affine_inv, np.append(p2, 1))[:3]
+        z1 = round(z1)
+        z2 = round(z2)
+
+        if z1 != z2:
+            raise ValueError("The line is not on the same slice")
+
+        if z1 == basal_slice:
+            points_base_ED["endo"].append(p1)
+            points_base_ED["epi"].append(p2)
+        elif z1 == apical_slice:
+            points_apex_ED["endo"].append(p1)
+            points_apex_ED["epi"].append(p2)
+
+    # * Note that since the slice we chosen are not 0% and 100%, the twist here should be smaller than normal
+    # * Only the torsion should be considered
+
+    torsion_endo = {"base": np.zeros(T), "apex": np.zeros(T), "twist": np.zeros(T), "torsion": np.zeros(T)}
+
+    torsion_epi = {"base": np.zeros(T), "apex": np.zeros(T), "twist": np.zeros(T), "torsion": np.zeros(T)}
+
+    torsion_global = {"base": np.zeros(T), "apex": np.zeros(T), "twist": np.zeros(T), "torsion": np.zeros(T)}
+
+    for fr in range(1, T):
+        reader = vtk.vtkPolyDataReader()
+        filename_myo = f"{contour_name_stem}{fr:02d}.vtk"
+        reader.SetFileName(filename_myo)
+        reader.Update()
+        poly = reader.GetOutput()
+        points = poly.GetPoints()
+        lines = poly.GetLines()
+        lines_dir = poly.GetCellData().GetArray("Direction ID")
+        n_lines = lines.GetNumberOfCells()
+
+        points_base = {"epi": [], "endo": []}
+        points_apex = {"epi": [], "endo": []}
+
+        LV_barycenter_basal = calculate_LV_center(seg_sa, affine, fr, basal_slice)
+        LV_barycenter_apical = calculate_LV_center(seg_sa, affine, fr, apical_slice)
+
+        lines.InitTraversal()
+        for i in range(n_lines):
+            ids = vtk.vtkIdList()
+            lines.GetNextCell(ids)
+
+            dir_id = lines_dir.GetValue(i)
+            if dir_id != 1:
+                # non-radial line
+                continue
+
+            p1 = np.array(points.GetPoint(ids.GetId(0)))
+            p2 = np.array(points.GetPoint(ids.GetId(1)))
+
+            (_, _, z1) = np.dot(affine_inv, np.append(p1, 1))[:3]
+            (_, _, z2) = np.dot(affine_inv, np.append(p2, 1))[:3]
+            z1 = round(z1)
+            z2 = round(z2)
+
+            if z1 != z2:
+                print(z1)
+                raise ValueError("The line is not on the same slice")
+
+            if z1 == basal_slice:
+                points_base["endo"].append(p1)
+                points_base["epi"].append(p2)
+            elif z1 == apical_slice:
+                points_apex["endo"].append(p1)
+                points_apex["epi"].append(p2)
+
+        if len(points_base_ED["epi"]) != len(points_base["epi"]) or len(points_base_ED["endo"]) != len(
+            points_base["endo"]
+        ):
+            raise ValueError(f"The number of points at frame {fr} is different from ED")
+
+        # Ref https://www.sciencedirect.com/science/article/pii/S1097664723012437?via%3Dihub
+
+        rotations_base_z = {"epi": np.zeros(len(points_base["epi"])), "endo": np.zeros(len(points_base["endo"]))}
+        rotations_apex_z = {"epi": np.zeros(len(points_apex["epi"])), "endo": np.zeros(len(points_apex["endo"]))}
+
+        n_base = len(points_base["epi"])
+        n_apex = len(points_apex["epi"])
+
+        for i in range(n_base):
+            v1 = points_base_ED["epi"][i] - LV_barycenter_basal_ED
+            v1 = [v1[0], v1[1]]
+            v2 = points_base["epi"][i] - LV_barycenter_basal
+            v2 = [v2[0], v2[1]]
+            rotations_base_z["epi"][i] = np.degrees(
+                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+            )
+
+        for i in range(n_base):
+            v1 = points_base_ED["endo"][i] - LV_barycenter_basal_ED
+            v1 = [v1[0], v1[1]]
+            v2 = points_base["endo"][i] - LV_barycenter_basal
+            v2 = [v2[0], v2[1]]
+            rotations_base_z["endo"][i] = np.degrees(
+                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+            )
+
+        for i in range(n_apex):
+            v1 = points_apex_ED["epi"][i] - LV_barycenter_apical_ED
+            v1 = [v1[0], v1[1]]
+            v2 = points_apex["epi"][i] - LV_barycenter_apical
+            v2 = [v2[0], v2[1]]
+            rotations_apex_z["epi"][i] = np.degrees(
+                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+            )
+
+        for i in range(n_apex):
+            v1 = points_apex_ED["endo"][i] - LV_barycenter_apical_ED
+            v1 = [v1[0], v1[1]]
+            v2 = points_apex["endo"][i] - LV_barycenter_apical
+            v2 = [v2[0], v2[1]]
+            rotations_apex_z["endo"][i] = np.degrees(
+                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+            )
+
+        torsion_endo["base"][fr] = np.mean(rotations_base_z["endo"])
+        torsion_endo["apex"][fr] = -np.mean(rotations_apex_z["endo"])
+        torsion_endo["twist"][fr] = torsion_endo["apex"][fr] - torsion_endo["base"][fr]
+        torsion_endo["torsion"][fr] = torsion_endo["twist"][fr] / (
+            (SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1
+        )  # unit: degree/cm
+
+        torsion_epi["base"][fr] = np.mean(rotations_base_z["epi"])
+        torsion_epi["apex"][fr] = -np.mean(rotations_apex_z["epi"])
+        torsion_epi["twist"][fr] = torsion_epi["apex"][fr] - torsion_epi["base"][fr]
+        torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / (
+            (SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1
+        )
+
+        torsion_global["base"][fr] = (n_base * torsion_endo["base"][fr] + n_apex * torsion_epi["base"][fr]) / (
+            n_base + n_apex
+        )
+        torsion_global["apex"][fr] = (n_base * torsion_endo["apex"][fr] + n_apex * torsion_epi["apex"][fr]) / (
+            n_base + n_apex
+        )
+        torsion_global["twist"][fr] = torsion_global["apex"][fr] - torsion_global["base"][fr]
+        torsion_global["torsion"][fr] = torsion_global["twist"][fr] / (
+            (SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1
+        )
+
+    return torsion_endo, torsion_epi, torsion_global, basal_slice, apical_slice

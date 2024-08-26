@@ -7,6 +7,8 @@ from scipy.signal import find_peaks
 import numpy as np
 import matplotlib.pyplot as plt
 import pingouin as pg
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
 
 
 def calculate_icc(data_1, data_2, eid_name_1, eid_name_2, features_dict):
@@ -180,7 +182,7 @@ def plot_time_series_double_x_y(
     return fig, ax1, ax2
 
 
-def analyze_time_series_derivative(x: list, y: list, n_pos, n_neg):
+def analyze_time_series_derivative(x: list, y: list, n_pos, n_neg, method="ma"):
     """
     Analyze the derivative of a time series of features derived from cine MRI.
     We follow the approach described in https://pubmed.ncbi.nlm.nih.gov/28241751/ when deriving PER/PFR.
@@ -189,29 +191,59 @@ def analyze_time_series_derivative(x: list, y: list, n_pos, n_neg):
     if n_pos not in [0, 1, 2] or n_neg not in [0, 1, 2]:
         raise ValueError("n_pos and n_neg must be smaller than 2")
 
-    x_ma = np.convolve(x, np.ones(3) / 3, mode="valid")
-    y_ma = np.convolve(y, np.ones(3) / 3, mode="valid")
-
-    y_ma_diff = np.gradient(y_ma, x_ma)
-
     # peak rate
     PR_pos = []
     PR_neg = []
+    T_PR_pos = []
+    T_PR_neg = []
 
-    peaks_pos = find_peaks(y_ma_diff, height=0)
-    peaks_neg = find_peaks(-y_ma_diff, height=0)
-    # define sort in descending order of values
-    T_PR_pos = peaks_pos[0][np.argsort(-peaks_pos[1]["peak_heights"])[:n_pos]] if n_pos > 0 else []
-    T_PR_neg = peaks_neg[0][np.argsort(-peaks_neg[1]["peak_heights"])[:n_neg]] if n_neg > 0 else []
+    # Note moving average (ma) will reduce the number of frames
+    if method == "ma":
+        x_ma = np.convolve(x, np.ones(3) / 3, mode="valid")
+        y_ma = np.convolve(y, np.ones(3) / 3, mode="valid")
 
-    for T in T_PR_pos:
-        if T < 2 or T > len(x_ma) - 2:
-            raise IndexError("The peak is too close to the edge of the time series.")
-        PR_pos.append((y_ma[T + 2] - y_ma[T - 2]) / (x_ma[T + 2] - x_ma[T - 2]))
+        y_ma_diff = np.gradient(y_ma, x_ma)
 
-    for T in T_PR_neg:
-        if T < 1 or T > len(x_ma) - 2:
-            raise IndexError("The peak is too close to the edge of the time series.")
-        PR_neg.append((y_ma[T + 2] - y_ma[T - 1]) / (x_ma[T + 2] - x_ma[T - 1]))
+        peaks_pos = find_peaks(y_ma_diff, height=0)
+        peaks_neg = find_peaks(-y_ma_diff, height=0)
+        # define sort in descending order of values
+        T_PR_pos = peaks_pos[0][np.argsort(-peaks_pos[1]["peak_heights"])[:n_pos]] if n_pos > 0 else []
+        T_PR_neg = peaks_neg[0][np.argsort(-peaks_neg[1]["peak_heights"])[:n_neg]] if n_neg > 0 else []
+
+        for T in T_PR_pos:
+            if T < 2 or T > len(x_ma) - 2:
+                raise IndexError("The peak is too close to the edge of the time series.")
+            PR_pos.append((y_ma[T + 2] - y_ma[T - 2]) / (x_ma[T + 2] - x_ma[T - 2]))
+
+        for T in T_PR_neg:
+            if T < 1 or T > len(x_ma) - 2:
+                raise IndexError("The peak is too close to the edge of the time series.")
+            PR_neg.append((y_ma[T + 2] - y_ma[T - 1]) / (x_ma[T + 2] - x_ma[T - 1]))
+
+    elif method == "loess":
+        fANCOVA = importr("fANCOVA")
+        x_r = FloatVector(x)
+        y_r = FloatVector(y)
+        loess_fit = fANCOVA.loess_as(x_r, y_r, degree=2, criterion="gcv")
+        x_loess = np.array(loess_fit.rx2("x")).reshape(len(x),)
+        y_loess = np.array(loess_fit.rx2("fitted"))
+
+        y_diff = np.diff(y_loess) / np.diff(x_loess)
+
+        peaks_pos = find_peaks(y_diff, height=0)
+        peaks_neg = find_peaks(-y_diff, height=0)
+        # define sort in descending order of values
+        T_PR_pos = peaks_pos[0][np.argsort(-peaks_pos[1]["peak_heights"])[:n_pos]] if n_pos > 0 else []
+        T_PR_neg = peaks_neg[0][np.argsort(-peaks_neg[1]["peak_heights"])[:n_neg]] if n_neg > 0 else []
+        
+        for T in T_PR_pos:
+            if T < 2 or T > len(x_loess) - 2:
+                raise IndexError("The peak is too close to the edge of the time series.")
+            PR_pos.append(y_diff[T])
+        
+        for T in T_PR_neg:
+            if T < 1 or T > len(x_loess) - 2:
+                raise IndexError("The peak is too close to the edge of the time series.")
+            PR_neg.append(y_diff[T])
 
     return T_PR_pos, T_PR_neg, PR_pos, PR_neg

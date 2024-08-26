@@ -346,21 +346,19 @@ if __name__ == "__main__":
         # * Feature4: Early/Late Peak Emptying Rate
         # Ref https://pubmed.ncbi.nlm.nih.gov/30128617/
         V_LA = V["LA_bip"]
-        # V_LA_lowess = sm.nonparametric.lowess(V_LA, time_grid_real, frac=0.1)
-        # V_LA_lowess_x = V_LA_lowess[:, 0]
-        # V_LA_lowess_y = V_LA_lowess[:, 1]
+
         fANCOVA = importr("fANCOVA")
         x_r = FloatVector(time_grid_real)
         y_r = FloatVector(V_LA)
-        # * We use the lowess provided by R that has Generalized Cross Validation as its criterion
+        # * We use the loess provided by R that has Generalized Cross Validation as its criterion
         loess_fit = fANCOVA.loess_as(x_r, y_r, degree=2, criterion="gcv")
-        V_LA_lowess_x = np.array(loess_fit.rx2("x")).reshape(
+        V_LA_loess_x = np.array(loess_fit.rx2("x")).reshape(
             T,
         )
-        V_LA_lowess_y = np.array(loess_fit.rx2("fitted"))
+        V_LA_loess_y = np.array(loess_fit.rx2("fitted"))
 
-        V_LA_diff_y = np.diff(V_LA_lowess_y) / np.diff(V_LA_lowess_x) * 1000  # unit: mL/s
-        V_LA_diff_x = (V_LA_lowess_x[:-1] + V_LA_lowess_x[1:]) / 2
+        V_LA_diff_y = np.diff(V_LA_loess_y) / np.diff(V_LA_loess_x) * 1000  # unit: mL/s
+        V_LA_diff_x = (V_LA_loess_x[:-1] + V_LA_loess_x[1:]) / 2
 
         try:
             L1 = T_max
@@ -392,7 +390,7 @@ if __name__ == "__main__":
         colors[T_peak_neg_2] = "yellow"
 
         plt.subplot(1, 2, 1)
-        plt.plot(V_LA_lowess_x, V_LA_lowess_y, color="blue")
+        plt.plot(V_LA_loess_x, V_LA_loess_y, color="blue")
         plt.scatter(time_grid_real, V_LA, color="blue")
         plt.xlabel("Time [ms]")
         plt.ylabel("Volume [mL]")
@@ -404,7 +402,7 @@ if __name__ == "__main__":
         plt.savefig(f"{sub_dir}/timeseries/atrium_volume_diff.png")
         plt.close()
 
-        # * Instead of using derivative of LOWESS, we use moving average instead as former tend to yield large values
+        # * Instead of using derivative of loess, we use moving average instead as former tend to yield large values
         try:
             _, T_PER, _, PER = analyze_time_series_derivative(time_grid_real, V_LA, n_pos=0, n_neg=2)
             logger.info(f"{subject}: Implementing peak emptying rate features")
@@ -468,7 +466,7 @@ if __name__ == "__main__":
                 fig, ax1, ax2 = plot_time_series_double_x_y(
                     time_grid_point,
                     time_grid_real,
-                    V_LA_lowess_y,
+                    V_LA_loess_y,
                     V["LA_bip"],
                     "Time [frame]",
                     "Time [ms]",

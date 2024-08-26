@@ -117,7 +117,7 @@ def la_pass_quality_control(seg_la_name, t=0):
 
 
 def atrium_pass_quality_control(label, label_dict):
-    """Quality control for atrial volume estimation from long_axis"""
+    """Quality control for atrial volume estimation using long axis"""
     if label.ndim != 4:
         raise ValueError("The label should be 3D + t.")
 
