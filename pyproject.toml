@@ -1,28 +1,24 @@
 [tool.ruff]
 line-length = 120
 
-# todo 'common','util' and 'src' need to be completed in the future
 exclude = [
-    "common", 
     "utils/slicer.py",
     "utils/ukb_field_categories.py",
     "utils/propagate_aortic_annotation.py",
     "utils/execute.py",
     "utils/download_data_ukbb_general.py",
     "utils/convert_data_ukbb2964.py",
-    "src/segmentation",
-    "src/feature_extraction/aortic",    
+    "src/segmentation",    
     "src/registration/",
     ".git",
     "archive",
     "data",
     "doc",
-    "others",
-    "par",
     "test",
+    "temp",
+    "tasks",
     "third_party",
     "model",
-    "others"
 ]
 
 [tool.ruff.lint]

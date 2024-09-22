@@ -1,7 +1,7 @@
 import os
 import logging
 
-# * Configure paths to data --------------------------------------------
+# * Configure paths to bulk data --------------------------------------------
 
 # The main directory of the pipeline
 pipeline_dir = '/work/users/y/u/yuukias/Heart_Pipeline'  
@@ -25,15 +25,21 @@ data_failed_visit2_dir = os.path.join(data_failed_dir, 'visit2', 'nii')
 
 # The directory to store all features
 features_dir = '/work/users/y/u/yuukias/Heart_Pipeline/doc/Pipeline_Result/'
-# * The final results will be stored in 'comprehensive' subfolder
+# * Note: The final results will be stored in 'comprehensive' subfolder
 features_visit1_dir = os.path.join(features_dir, 'visit1')
 features_visit2_dir = os.path.join(features_dir, 'visit2')
+
+# * Configure paths to bulk data --------------------------------------------
+# * Note: All csv files should contain column 'eid' as identifier for subjects
 
 # The file to store BSA information
 # Define We use Du Bois formula: BSA = 0.007184 * weight^0.425 * height^0.725
 BSA_file = '/work/users/y/u/yuukias/database/UKBiobank/data_field/Personal_Features/BSA.csv'
-# The column name for BSA in the BSA_file, should contain column 'eid' as identifier
 BSA_col_name = 'BSA [m^2]'
+
+# Central pulse pressure: difference between systolic and diastolic blood pressure
+pressure_file = "/work/users/y/u/yuukias/database/UKBiobank/data_field/Cardiac_Features/12678_central_pulse.csv"
+pressure_col_name = '12678-2.0'
 
 # * Configure the parameters for data processing -----------------------------------------
 
@@ -41,8 +47,9 @@ BSA_col_name = 'BSA [m^2]'
 retest_suffix = 'retest'   # e.g. This will recognize 20208_retest in data_raw_dir
 
 # Modify here to select the modality you want to use
-modality = ['la', 'sa']
-# modality = ['la', 'sa', 'aor', 'tag', 'lvot', 'blood', 't1']
+# modality = ['la', 'sa']
+# This is all the CMR modalities in UKBiobank
+modality = ['scout', 'la', 'sa', 'aorta', 'tag', 'lvot', 'flow', 't1']
 
 # Please also run step1_preaprare_data_ecg.py so that ECG-related features can be generated
 useECG = True

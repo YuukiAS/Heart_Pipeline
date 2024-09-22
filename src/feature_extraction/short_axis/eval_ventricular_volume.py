@@ -148,7 +148,7 @@ if __name__ == "__main__":
         try:
             BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
             BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
-        except IndexError:
+        except (FileNotFoundError, IndexError):
             logger.error(f"{subject}: BSA information not found, skipped.")
             # As BSA is a crucial feature, we skip the subject if BSA is not found
             continue

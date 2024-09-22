@@ -27,9 +27,7 @@ def prepare_files_rest(pipeline_dir, data_raw_dir, retest_suffix=None):
         ecg_dir = os.path.join(data_raw_dir, "20205")
     else:
         data_dir = config.data_visit2_dir
-        ecg_dir = os.path.join(data_raw_dir, "20205")
-        # todo When revisit XML have been downloaded, use the line below
-        # ecg_dir = os.path.join(data_raw_dir, f"20205_{retest_suffix}/")
+        ecg_dir = os.path.join(data_raw_dir, f"20205_{retest_suffix}/")
 
     sub_total = os.listdir(ecg_dir)
     sub_total = [x.split("_")[0] for x in sub_total]
@@ -62,7 +60,6 @@ def prepare_files_exercise(pipeline_dir, data_raw_dir, retest_suffix=None):
         ecg_dir = os.path.join(data_raw_dir, "6025")
     else:
         data_dir = config.data_visit2_dir
-        ecg_dir = os.path.join(data_raw_dir, "6025")
         ecg_dir = os.path.join(data_raw_dir, f"6025_{retest_suffix}/")
 
     sub_total = os.listdir(ecg_dir)

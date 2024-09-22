@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         if not sa_pass_quality_control(seg_sa_name):  # default t = 0
             # If the segmentation quality is low, evaluation of wall thickness may fail.
-            logger.error(f"{subject}: seg_sa does not pass sa_pass_quality_control, skipped.")
+            logger.error(f"{subject}: seg_sa does not pass quality control, skipped.")
             continue
 
         feature_dict = {
@@ -139,7 +139,7 @@ if __name__ == "__main__":
                     "Myo: Radius [cm]": radius,
                     "Myo: Thickness [cm]": thickness,
                 }, raw_file)
-        except IndexError:
+        except (FileNotFoundError, IndexError):
             logger.error(f"{subject}: BSA information not found, skip disparity features.")
             continue
 

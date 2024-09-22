@@ -28,7 +28,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
 
     with open(os.path.join(code_step2_dir, "batAll.sh"), "w") as file_submit:
         file_submit.write("#!/bin/bash\n")
-        for file_i in tqdm(range(num_files)):
+        for file_i in tqdm(range(1, num_files + 1)):
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
             with open(os.path.join(code_step2_dir, f"bat{file_i}.pbs"), "w") as file_script:
                 file_script.write("#!/bin/bash\n")
@@ -48,8 +48,8 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
                 file_script.write(f"cd {pipeline_dir}\n")
 
                 for sub_i in range(
-                    file_i * num_subjects_per_file + 1,
-                    min((file_i + 1) * num_subjects_per_file + 1, length_total + 1),
+                    (file_i - 1) * num_subjects_per_file + 1,
+                    min(file_i * num_subjects_per_file + 1, length_total + 1),
                 ):
                     sub_id = sub_total[sub_i - 1]
                     sub_id_dir = os.path.join(data_dir, sub_id)
@@ -98,15 +98,17 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
                             )
                         else:
                             logger.warning(f"{sub_id}: Segmentation for short axis already exists.")
-                    if "aor" in modality:
-                        # file_script.write(
-                        #     f"echo ' {sub_id}: Generate segmentation scripts for aorta'\n"
-                        # )
-                        # file_script.write(
-                        #     f"python ./src/segmentation/deploy_network.py --seq_name ao "\
-                        #     f"--data_dir {sub_id_dir} --model_path ./model/UNet-LSTM_ao\n"
-                        # )
-                        pass
+                    if "aorta" in modality:
+                        if not check_existing_file(["seg_aorta.nii.gz"], sub_id_dir):
+                            file_script.write(
+                                f"echo ' {sub_id}: Generate segmentation scripts for aorta'\n"
+                            )
+                            file_script.write(
+                                f"python ./src/segmentation/deploy_network_ao.py --seq_name aorta "
+                                f"--data_dir {sub_id_dir} --model_path ./model/UNet-LSTM_ao\n"
+                            )
+                        else:
+                            logger.warning(f"{sub_id}: Segmentation for aorta already exists.")
                     if "tag" in modality:
                         # todo No segmentation network right now
                         pass
@@ -119,6 +121,8 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
                     if "t1" in modality:
                         # todo No segmentation network right now
                         pass
+            
+                file_script.write("echo 'Finished!'\n")
 
 
 if __name__ == "__main__":

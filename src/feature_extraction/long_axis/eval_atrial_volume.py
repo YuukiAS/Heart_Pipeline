@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
             # Perform quality control for the segmentation
             if not atrium_pass_quality_control(seg_la_2ch, {"LA": 1}):
-                logger.error(f"{subject}: seg_la_2ch does not pass atrium_pass_quality_control, skipped.")
+                logger.error(f"{subject}: seg_la_2ch does not pass quality control, skipped.")
                 continue
 
             A["LA_2ch"] = np.zeros(T)
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
             # Perform quality control for the segmentation
             if not atrium_pass_quality_control(seg_la_4ch, {"LA": 1, "RA": 2}):
-                logger.error(f"{subject} seg_la_4ch does not pass atrium_pass_quality_control, skipped.")
+                logger.error(f"{subject} seg_la_4ch does not pass quality control, skipped.")
                 continue
 
             A["LA_4ch"] = np.zeros(T)
@@ -292,7 +292,7 @@ if __name__ == "__main__":
         try:
             BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
             BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
-        except IndexError:
+        except (FileNotFoundError, IndexError):
             logger.error(f"{subject}: BSA information not found, skipped.")
             # As BSA is a crucial feature, we skip the subject if BSA is not found
             continue
