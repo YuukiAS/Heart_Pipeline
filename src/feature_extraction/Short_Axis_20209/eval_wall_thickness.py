@@ -56,12 +56,12 @@ if __name__ == "__main__":
 
         nim_sa = nib.load(sa_name)
         nim_sa_ED = nib.load(sa_ED_name)
-        nim_seg_sa = nib.load(seg_sa_name)
-        nim_seg_sa_ED = nib.load(seg_sa_ED_name)
-        seg_sa = nim_seg_sa.get_fdata()
-        seg_sa_ED = nim_seg_sa_ED.get_fdata()
 
         # Quality control for segmentation at ED
+
+        if not os.path.exists(sa_name):
+            logger.error(f"Short axis file for {subject} does not exist")
+            continue
 
         if not os.path.exists(seg_sa_name):
             logger.error(f"Segmentation of short axis file for {subject} does not exist")
@@ -71,6 +71,11 @@ if __name__ == "__main__":
             # If the segmentation quality is low, evaluation of wall thickness may fail.
             logger.error(f"{subject}: seg_sa does not pass quality control, skipped.")
             continue
+
+        nim_seg_sa = nib.load(seg_sa_name)
+        nim_seg_sa_ED = nib.load(seg_sa_ED_name)
+        seg_sa = nim_seg_sa.get_fdata()
+        seg_sa_ED = nim_seg_sa_ED.get_fdata()
 
         feature_dict = {
             "eid": subject,

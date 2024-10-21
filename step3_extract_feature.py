@@ -202,7 +202,28 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                 if "blood" in modality:
                     pass
                 if "t1" in modality:
-                    pass
+                    file_script.write("echo 'Extract features for native T1 (uncorrected)'\n")
+                    file_script.write(
+                        f"python -u ./src/feature_extraction/native_t1/eval_native_t1.py "
+                        f"{retest_str} --file_name=native_t1_uncorrected_{file_i} --data_list {sub_file_i_str} \n"
+                    )
+
+                    # Script for aggregating separate feature files
+                    if file_i == 1:
+                        if retest_suffix is None:
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'native_t1')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                "--prefix=native_t1_uncorrected\n"
+                            )
+                        else:
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'native_t1')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                "--prefix=native_t1_uncorrected\n"
+                            )
 
                 file_script.write("echo 'Done!'\n")
 

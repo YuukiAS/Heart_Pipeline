@@ -9,10 +9,10 @@ def aggregate_csv(csv_dir, target_dir, prefix):
     Aggregate csv files with the same prefix in the csv_dir. `eid` column must be present in each csv files.
     """
     csv_files = glob.glob(os.path.join(csv_dir, f"{prefix}*.csv"))
-
+    print(csv_files)
     comprehensive_df = pd.DataFrame()
     for csv_file in csv_files:
-        df = pd.read_csv(csv_file, index_col=0)
+        df = pd.read_csv(csv_file)
         comprehensive_df = pd.concat([comprehensive_df, df], ignore_index=True)
     comprehensive_df = comprehensive_df.sort_values("eid")
     os.makedirs(target_dir, exist_ok=True)

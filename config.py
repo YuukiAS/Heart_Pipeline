@@ -49,7 +49,8 @@ retest_suffix = 'retest'   # e.g. This will recognize 20208_retest in data_raw_d
 # Modify here to select the modality you want to use
 # modality = ['la', 'sa']
 # This is all the CMR modalities in UKBiobank
-modality = ['scout', 'la', 'sa', 'aorta', 'tag', 'lvot', 'flow', 't1']
+modality = ['t1']
+# modality = ['scout', 'la', 'sa', 'aorta', 'tag', 'lvot', 'flow', 't1']
 
 # Please also run step1_preaprare_data_ecg.py so that ECG-related features can be generated
 useECG = True

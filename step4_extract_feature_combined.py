@@ -96,6 +96,28 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
                                 "--prefix=ventricular_atrial_feature\n"
                             )
 
+                if "t1" in modality:
+                    file_script.write("echo 'Extract features for native T1 (corrected)'\n")
+                    file_script.write(
+                        f"python -u ./src/feature_extraction/combined/eval_native_t1.py "
+                        f"{retest_str} --file_name=native_t1_corrected_{file_i} --data_list {sub_file_i_str} \n"
+                    )
+                    if file_i == 1:
+                        if retest_suffix is None:
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'combined')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                "--prefix=native_t1_corrected\n"
+                            )
+                        else:
+                            file_aggregate.write(
+                                "python ./script/aggregate_csv.py "
+                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'combined')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                "--prefix=native_t1_corrected\n"
+                            )                    
+
                 file_script.write("echo 'Done!'\n")
 
         file_aggregate.write("echo 'Done!'\n")

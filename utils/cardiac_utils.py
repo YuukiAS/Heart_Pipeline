@@ -23,9 +23,11 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import Tuple
 from vtk.util import numpy_support
+import porespy as ps
 from scipy import interpolate
 from scipy.stats import linregress
-import porespy as ps
+from scipy.spatial.distance import cdist
+from scipy.ndimage import binary_dilation, binary_erosion
 
 # import skimage.measure
 from .image_utils import (
@@ -1163,6 +1165,7 @@ def determine_axes(label_i, nim, long_axis):
         x = points_label[0][j]
         y = points_label[1][j]
         # np.dot(nim.affine, np.array([x, y, 0, 1]))[:3] is equivalent to apply_affine(nim.affine, [x, y, 0])
+        # define (0,1): 0 means it is 2D image, 1 means homogeneous coordinate
         points += [[x, y, np.dot(np.dot(nim.affine, np.array([x, y, 0, 1]))[:3], long_axis)]]
     points = np.array(points)
     points = points[points[:, 2].argsort()]
@@ -2692,3 +2695,120 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         )
 
     return torsion_endo, torsion_epi, torsion_global, basal_slice, apical_slice
+
+
+def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple[float, float], labels):
+    seg_LV = np.zeros_like(seg_ShMOLLI)
+    seg_RV = np.zeros_like(seg_ShMOLLI)
+    seg_LV = np.where(seg_ShMOLLI == labels["LV"], 1, seg_LV)
+    seg_RV = np.where(seg_ShMOLLI == labels["RV"], 1, seg_RV)
+    seg_LV = get_largest_cc(seg_LV)
+    seg_RV = get_largest_cc(seg_RV)
+    seg_LV_dilated = seg_LV.copy()
+    seg_RV_dilated = seg_RV.copy()
+    dilation_threshold = 12
+    intersection_threshold = 400
+    dilation_value = 0
+    while (dilation_value < dilation_threshold):
+        seg_LV_dilated = binary_dilation(seg_LV_dilated)
+        seg_RV_dilated = binary_dilation(seg_RV_dilated)
+        dilation_value += 1
+        # Stop if there is intersection between LV and RV
+        if np.sum(seg_LV_dilated * seg_RV_dilated) > intersection_threshold:
+            logger.info(f"Times of dilation to determine septum: {dilation_value}")
+            # plt.imshow(seg_LV_dilated, cmap='gray')
+            # plt.imshow(seg_RV_dilated, cmap='gray', alpha=0.5)   
+            break
+
+    if dilation_value == dilation_threshold:
+        raise ValueError("Exceeds dilation threshold when trying to determine septum.")
+
+    # Determine two landmarks
+    seg_intersection = seg_LV_dilated * seg_RV_dilated
+    seg_intersection_contours, _ = cv2.findContours(seg_intersection.astype(np.uint8), 
+                                                    cv2.RETR_EXTERNAL, 
+                                                    cv2.CHAIN_APPROX_SIMPLE)    
+    seg_intersection_points = np.vstack([contour.reshape(-1, 2) for contour in seg_intersection_contours])        
+
+    # Compute the cross distance between two sets
+    dist_matrix = cdist(seg_intersection_points, seg_intersection_points, 'euclidean')
+    # Convert flat index to 2D index
+    max_distance_idx = np.unravel_index(dist_matrix.argmax(), dist_matrix.shape)
+
+    lm1 = seg_intersection_points[max_distance_idx[0]]
+    lm2 = seg_intersection_points[max_distance_idx[1]]
+    logger.info("Landmarks for IVS are determined.")
+
+    LV_barycenter = np.mean(np.argwhere(seg_LV_dilated), axis=0)
+    # swap axis to align with lm
+    LV_barycenter = np.array([LV_barycenter[1], LV_barycenter[0]])
+
+    # todo: This part may be improved, as we don't have accurate segmentation of myo
+    seg_LV_dilated_for_myo = binary_dilation(seg_LV, iterations=6)
+    seg_myo = np.where((seg_LV_dilated_for_myo == 1) & (seg_LV == 0), 1, 0)
+
+    seg_myo_IVS = np.zeros_like(seg_ShMOLLI, dtype=np.uint8)  # define intraventricular septum
+    seg_myo_IVS = np.ascontiguousarray(seg_myo_IVS)
+    seg_myo_FW = np.zeros_like(seg_ShMOLLI, dtype=np.uint8)  # define free-wall
+    seg_myo_FW = np.ascontiguousarray(seg_myo_FW)
+
+    # We need to make sure the triangle covers the mask
+    # Draw a line between lm and barycenter to get a more distant point
+    dir_lm1_barycenter = np.array(lm1) - np.array(LV_barycenter)
+    lm1_distant = lm1 + dir_lm1_barycenter * 2
+    dir_lm2_barycenter = np.array(lm2) - np.array(LV_barycenter)
+    lm2_distant = lm2 + dir_lm2_barycenter * 2
+
+    triangle_contour = np.array([lm1_distant, lm2_distant, LV_barycenter]).astype(int)
+    cv2.fillPoly(seg_myo_IVS, [triangle_contour], 1)
+    seg_myo_IVS = seg_myo_IVS & seg_myo
+    seg_myo_FW = seg_myo - seg_myo_IVS
+
+    seg_myo_IVS_eroded = binary_erosion(get_largest_cc(seg_myo_IVS), iterations=2)
+    seg_myo_FW_eroded = binary_erosion(get_largest_cc(seg_myo_FW), iterations=2)
+    seg_myo_eroded = seg_myo_IVS_eroded + seg_myo_FW_eroded
+
+    # * The LV/RV blood pool segmentations are eroded until 1/3 area of original mask
+    area_LV = np.sum(seg_LV)
+    area_RV = np.sum(seg_RV)
+    seg_LV_eroded = seg_LV.copy()
+    seg_RV_eroded = seg_RV.copy()
+    while (np.sum(seg_LV_eroded) > 0.34 * area_LV):
+        seg_LV_eroded = binary_erosion(seg_LV_eroded)
+    while (np.sum(seg_RV_eroded) > 0.34 * area_RV):
+        seg_RV_eroded = binary_erosion(seg_RV_eroded)
+    logger.info("Blood pools are eroded.")
+
+    # * To ensure no papillary muscles are included, any pixel whose T1 value was less than Q1-1.5*IQR is excluded
+    T1_LV_raw = img_ShMOLLI[seg_LV_eroded == 1]
+    Q1_LV_raw = np.percentile(T1_LV_raw, 25)
+    Q3_LV_raw = np.percentile(T1_LV_raw, 75)
+    IQR_LV_raw = Q3_LV_raw - Q1_LV_raw
+    seg_LV_eroded = np.where(img_ShMOLLI < Q1_LV_raw - 1.5 * IQR_LV_raw, 0, seg_LV_eroded)
+    T1_RV_raw = img_ShMOLLI[seg_RV_eroded == 1]
+    Q1_RV_raw = np.percentile(T1_RV_raw, 25)
+    Q3_RV_raw = np.percentile(T1_RV_raw, 75)
+    IQR_RV_raw = Q3_RV_raw - Q1_RV_raw
+    seg_RV_eroded = np.where(img_ShMOLLI < Q1_RV_raw - 1.5 * IQR_RV_raw, 0, seg_RV_eroded)
+    seg_blood_eroded = seg_LV_eroded + seg_RV_eroded
+
+    T1_global = img_ShMOLLI[seg_myo_eroded == 1]
+    T1_IVS = img_ShMOLLI[seg_myo_IVS_eroded == 1]
+    T1_FW = img_ShMOLLI[seg_myo_FW_eroded == 1]
+    T1_blood = img_ShMOLLI[seg_blood_eroded == 1]
+
+    # visualization
+    figure = plt.figure(figsize=(15, 5))
+    plt.subplot(1, 3, 1)
+    plt.imshow(img_ShMOLLI, cmap="gray")
+    plt.imshow(seg_myo_IVS_eroded, cmap="gray", alpha=0.5)
+    plt.scatter(lm1[0], lm1[1], c="r")
+    plt.scatter(lm2[0], lm2[1], c="r")
+    plt.scatter(LV_barycenter[0], LV_barycenter[1], c="blue")
+    plt.subplot(1, 3, 2)
+    plt.imshow(img_ShMOLLI, cmap="gray")
+    plt.imshow(seg_myo_FW_eroded, cmap="gray", alpha=0.5)
+    plt.subplot(1, 3, 3)
+    plt.imshow(img_ShMOLLI, cmap="gray")
+    plt.imshow(seg_blood_eroded, cmap="gray", alpha=0.5)
+    return (T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood.mean(), figure)

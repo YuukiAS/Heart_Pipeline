@@ -88,9 +88,9 @@ def la_pass_quality_control(seg_la_name, t=0):
     seg_z = seg[:, :, 0]
 
     # Label class in the segmentation
-    label = {"LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
+    label_dict = {"LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
 
-    for l_name, l_value in label.items():
+    for l_name, l_value in label_dict.items():
         # Criterion 1: every class exists and the area is above a threshold
         pixel_thres = 10
         if np.sum(seg_z == l_value) < pixel_thres:
@@ -101,9 +101,9 @@ def la_pass_quality_control(seg_la_name, t=0):
             return False
 
     # Criterion 2: the area is above a threshold after connected component analysis
-    endo = (seg_z == label["LV"]).astype(np.uint8)
+    endo = (seg_z == label_dict["LV"]).astype(np.uint8)
     endo = get_largest_cc(endo).astype(np.uint8)
-    myo = (seg_z == label["Myo"]).astype(np.uint8)
+    myo = (seg_z == label_dict["Myo"]).astype(np.uint8)
     myo = remove_small_cc(myo).astype(np.uint8)
     epi = (endo | myo).astype(np.uint8)
     epi = get_largest_cc(epi).astype(np.uint8)
@@ -116,19 +116,19 @@ def la_pass_quality_control(seg_la_name, t=0):
     return True
 
 
-def atrium_pass_quality_control(label, label_dict):
+def atrium_pass_quality_control(seg, label_dict):
     """Quality control for atrial volume estimation using long axis"""
-    if label.ndim != 4:
+    if seg.ndim != 4:
         raise ValueError("The label should be 3D + t.")
 
     for l_name, l_value in label_dict.items():
         # Criterion: the atrium does not disappear (above a threshold) at any time point so that we can
         # measure the area and length.
-        T = label.shape[3]
+        T = seg.shape[3]
         pixel_thres = 10
         for t in range(T):
-            label_t = label[:, :, 0, t]
-            area = np.sum(get_largest_cc(label_t == l_value))
+            seg_t = seg[:, :, 0, t]
+            area = np.sum(get_largest_cc(seg_t == l_value))
             if area < pixel_thres:
                 print("The area of {0} almost vanishes at time frame {1}.".format(l_name, t))
                 return False
@@ -186,4 +186,23 @@ def aorta_pass_quality_control(image, seg):
             if ratio >= 2 or ratio <= 0.5:
                 print("There is abrupt change of area at time frame {0}.".format(t))
                 return False
+    return True
+
+
+def t1_pass_quality_control(seg_ShMOLLI_name, label_dict):
+    nim = nib.load(seg_ShMOLLI_name)
+    seg = nim.get_fdata()
+    if seg.ndim != 2:
+        raise ValueError("The segmentation should be 2D.")
+
+    for l_name, l_value in label_dict.items():
+        # Criterion 1: every class exists and the area is above a threshold
+        pixel_thres = 20
+        if np.sum(seg == l_value) < pixel_thres:
+            print(
+                "{0}: The segmentation for class {1} is smaller than {2} pixels. "
+                "It does not pass the quality control.".format(seg_ShMOLLI_name, l_name, pixel_thres)
+            )
+            return False
+    
     return True
