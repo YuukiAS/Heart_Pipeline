@@ -33,6 +33,14 @@ import SimpleITK as sitk
 import numpy as np
 import nibabel as nib
 
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+import config
+from utils.log_utils import setup_logging
+
+logger = setup_logging("biobank_utils")
+
 
 def repl(m):
     """Function for reformatting the date"""
@@ -78,31 +86,25 @@ class Biobank_Dataset(object):
 
         # Find and sort the DICOM sub directories
         subdirs = sorted(os.listdir(input_dir))
-        scout_dir = []
-        sax_dir = []
-        sax_mix_dir = []
+        aortic_scout_dir = []
         lax_2ch_dir = []
         lax_3ch_dir = []
         lax_4ch_dir = []
         lax_mix_dir = []
-        aorta_dir = []
+        sax_mix_dir = []
+        sax_dir = []
+        aortic_dist_dir = []  # distensibility
+        tag_dir = []
         lvot_dir = []
-        flow_dir = []
-        flow_mag_dir = []  # magnitude
-        flow_pha_dir = []  # phase
+        aortic_flow_dir = []  # morphologic
+        aortic_flow_mag_dir = []  # magnitude
+        aortic_flow_pha_dir = []  # phase
         shmolli_dir = []
         shmolli_fitpar_dir = []  # fit parameters
         shmolli_t1map_dir = []  # T1 map
-        tag_dir = []
         for s in subdirs:
-            m = re.match("CINE_segmented_SAX_b(\d*)$", s)
-            # 20209
-            if m:
-                sax_dir += [(os.path.join(input_dir, s), int(m.group(1)))]
-            elif re.match("CINE_segmented_SAX$", s):
-                sax_mix_dir = os.path.join(input_dir, s)
             # 20208
-            elif re.match("CINE_segmented_LAX_2Ch$", s):
+            if re.match("CINE_segmented_LAX_2Ch$", s):
                 lax_2ch_dir = os.path.join(input_dir, s)
             elif re.match("CINE_segmented_LAX_3Ch$", s):
                 lax_3ch_dir = os.path.join(input_dir, s)
@@ -110,51 +112,50 @@ class Biobank_Dataset(object):
                 lax_4ch_dir = os.path.join(input_dir, s)
             elif re.match("CINE_segmented_LAX$", s):
                 lax_mix_dir = os.path.join(input_dir, s)
-            # 20207:
-            elif re.match("Thorax_Cor_Tra", s):
-                scout_dir = os.path.join(input_dir, s)
+            elif re.match("CINE_segmented_SAX$", s):
+                sax_mix_dir = os.path.join(input_dir, s)
             # 20210
             elif re.match("CINE_segmented_Ao_dist$", s):
-                aorta_dir = os.path.join(input_dir, s)
+                aortic_dist_dir = os.path.join(input_dir, s)
             # 20212
             elif re.match("CINE_segmented_LVOT$", s):
                 lvot_dir = os.path.join(input_dir, s)
             # 20213
-            elif re.match("flow_250_tp_AoV_bh_ePAT@c$", s):
-                flow_dir = os.path.join(input_dir, s)
-            elif re.match("flow_250_tp_AoV_bh_ePAT@c_MAG$", s):
-                flow_mag_dir = os.path.join(input_dir, s)
-            elif re.match("flow_250_tp_AoV_bh_ePAT@c_P$", s):
-                flow_pha_dir = os.path.join(input_dir, s)
+            elif re.match("aortic_flow_250_tp_AoV_bh_ePAT@c$", s):
+                aortic_flow_dir = os.path.join(input_dir, s)
+            elif re.match("aortic_flow_250_tp_AoV_bh_ePAT@c_MAG$", s):
+                aortic_flow_mag_dir = os.path.join(input_dir, s)
+            elif re.match("aortic_flow_250_tp_AoV_bh_ePAT@c_P$", s):
+                aortic_flow_pha_dir = os.path.join(input_dir, s)
             # 20214
-            elif re.match("ShMOLLI_192i_SAX_b2s$", s):
-                shmolli_dir = os.path.join(input_dir, s)
-            elif re.match("ShMOLLI_192i_SAX_b2s_SAX_b2s_FITPARAMS$", s):
-                shmolli_fitpar_dir = os.path.join(input_dir, s)
+            # * Currently, we only make use of the T1 mapping.
+            # elif re.match("ShMOLLI_192i_SAX_b2s$", s):
+            #     shmolli_dir = os.path.join(input_dir, s)
+            # elif re.match("ShMOLLI_192i_SAX_b2s_SAX_b2s_FITPARAMS$", s):
+            #     shmolli_fitpar_dir = os.path.join(input_dir, s)
             elif re.match("ShMOLLI_192i_SAX_b2s_SAX_b2s_SAX_b2s_T1MAP$", s):
                 shmolli_t1map_dir = os.path.join(input_dir, s)
+
+            # * These three modalities contain multiple series
+            # 20207:
+            match_20207 = re.match("Thorax_Cor_Tra_b(\d*)$", s)
+            if match_20207:
+                # aortic_scout_dir = os.path.join(input_dir, s)
+                aortic_scout_dir += [(os.path.join(input_dir, s), int(match_20207.group(1)))]
+
+            # 20209
+            match_20209 = re.match("CINE_segmented_SAX_b(\d*)$", s)
+            if match_20209:
+                sax_dir += [(os.path.join(input_dir, s), int(match_20209.group(1)))]
+
             # 20211
-            m = re.match("cine_tagging_3sl_SAX_b(\d*)s$", s)
-            if m:
-                tag_dir += [(os.path.join(input_dir, s), int(m.group(1)))]
+            match_20211 = re.match("cine_tagging_3sl_SAX_b(\d*)s$", s)
+            if match_20211:
+                tag_dir += [(os.path.join(input_dir, s), int(match_20211.group(1)))]
 
-        if not sax_dir:
-            print("Warning: SAX subdirectories not found!")
-            if sax_mix_dir:
-                print("But a mixed SAX directory has been found. " "We will sort it into directories for each slice.")
-                list = sorted(os.listdir(sax_mix_dir))
-                d = dicom.read_file(os.path.join(sax_mix_dir, list[0]))
-                T = d.CardiacNumberOfImages
-                Z = int(np.floor(len(list) / float(T)))
-                for z in range(Z):
-                    s = os.path.join(input_dir, "CINE_segmented_SAX_b{0}".format(z))
-                    os.mkdir(s)
-                    for f in list[z * T : (z + 1) * T]:
-                        os.system("mv {0}/{1} {2}".format(sax_mix_dir, f, s))
-                    sax_dir += [(s, z)]
-
+        # * For short axis and long axis, there may be mixed directories.
         if not lax_2ch_dir and not lax_3ch_dir and not lax_4ch_dir:
-            print("Warning: LAX subdirectories not found!")
+            logger.warning("LAX subdirectories not found!")
             if lax_mix_dir:
                 print(
                     "But a mixed LAX directory has been found. "
@@ -181,32 +182,62 @@ class Biobank_Dataset(object):
                     for f in list[2 * T : 3 * T]:
                         os.system("mv {0}/{1} {2}".format(lax_mix_dir, f, lax_2ch_dir))
 
+        if not sax_dir:
+            logger.warning("SAX subdirectories not found!")
+            if sax_mix_dir:
+                print("But a mixed SAX directory has been found. " "We will sort it into directories for each slice.")
+                list = sorted(os.listdir(sax_mix_dir))
+                d = dicom.read_file(os.path.join(sax_mix_dir, list[0]))
+                T = d.CardiacNumberOfImages
+                Z = int(np.floor(len(list) / float(T)))
+                for z in range(Z):
+                    s = os.path.join(input_dir, "CINE_segmented_SAX_b{0}".format(z))
+                    os.mkdir(s)
+                    for f in list[z * T : (z + 1) * T]:
+                        os.system("mv {0}/{1} {2}".format(sax_mix_dir, f, s))
+                    sax_dir += [(s, z)]
+
+        if not aortic_scout_dir:
+            logger.warning("Aorta scout subdirectory not found!")
+        if not aortic_dist_dir:
+            logger.warning("Aorta distensibility subdirectory not found!")
+        if not tag_dir:
+            logger.warning("Tagging subdirectory not found!")
+        if not lvot_dir:
+            logger.warning("LVOT subdirectory not found!")
+        if not aortic_flow_dir or not aortic_flow_mag_dir or not aortic_flow_pha_dir:
+            logger.warning("Aorta flow subdirectory not found!")
+        # if not shmolli_dir or not shmolli_fitpar_dir or not shmolli_t1map_dir:
+        if not shmolli_t1map_dir:
+            logger.warning("ShMOLLI subdirectory not found!")
+
         self.subdir = {}
         if sax_dir:
             sax_dir = sorted(sax_dir, key=lambda x: x[1])
-            self.subdir["sa"] = [x for x, y in sax_dir]
+            self.subdir["sa"] = [x for x, _ in sax_dir]
         if lax_2ch_dir:
             self.subdir["la_2ch"] = [lax_2ch_dir]
         if lax_3ch_dir:
             self.subdir["la_3ch"] = [lax_3ch_dir]
         if lax_4ch_dir:
             self.subdir["la_4ch"] = [lax_4ch_dir]
-        if scout_dir:
-            self.subdir["scout"] = [scout_dir]
-        if aorta_dir:
-            self.subdir["aorta"] = [aorta_dir]
+        if aortic_scout_dir:
+            aortic_scout_dir = sorted(aortic_scout_dir, key=lambda x: x[1])
+            self.subdir["aortic_scout"] = [x for x, _ in aortic_scout_dir]
+        if aortic_dist_dir:
+            self.subdir["aortic_dist"] = [aortic_dist_dir]
         if lvot_dir:
             self.subdir["lvot"] = [lvot_dir]
-        if flow_dir:
-            self.subdir["flow"] = [flow_dir]
-        if flow_mag_dir:
-            self.subdir["flow_mag"] = [flow_mag_dir]
-        if flow_pha_dir:
-            self.subdir["flow_pha"] = [flow_pha_dir]
-        if shmolli_dir:
-            self.subdir["shmolli"] = [shmolli_dir]
-        if shmolli_fitpar_dir:
-            self.subdir["shmolli_fitpar"] = [shmolli_fitpar_dir]
+        if aortic_flow_dir:
+            self.subdir["aortic_flow"] = [aortic_flow_dir]
+        if aortic_flow_mag_dir:
+            self.subdir["aortic_aortic_flow_mag"] = [aortic_flow_mag_dir]
+        if aortic_flow_pha_dir:
+            self.subdir["aortic_aortic_flow_pha"] = [aortic_flow_pha_dir]
+        # if shmolli_dir:
+        #     self.subdir["shmolli"] = [shmolli_dir]
+        # if shmolli_fitpar_dir:
+        #     self.subdir["shmolli_fitpar"] = [shmolli_fitpar_dir]
         if shmolli_t1map_dir:
             self.subdir["shmolli_t1map"] = [shmolli_t1map_dir]
         if tag_dir:
@@ -251,18 +282,21 @@ class Biobank_Dataset(object):
             files = sorted(series[choose_suid])
 
         if len(files) < T:
-            print(
-                "Warning: {0}: Number of files < CardiacNumberOfImages! "
-                "We will fill the missing files using duplicate slices.".format(dir_name)
+            logger.warning(
+                f"{dir_name}: Number of files < CardiacNumberOfImages! We will fill the missing files using duplicate slices."
             )
+            # print(
+            #     "Warning: {0}: Number of files < CardiacNumberOfImages! "
+            #     "We will fill the missing files using duplicate slices.".format(dir_name)
+            # )
         return files
 
+    # todo Recheck 20214
     def read_dicom_images(self):
         """Read dicom images and store them in a 3D-t volume."""
         for name, dir in sorted(self.subdir.items()):
             # Read the image volume
-            # Number of slices
-            Z = len(dir)
+            Z = len(dir)  # Number of slices
 
             # Read a dicom file at the first slice to get the temporal information
             # We need the number of images in a sequence to check whether multiple sequences are recorded
@@ -270,7 +304,8 @@ class Biobank_Dataset(object):
             try:
                 T = d.CardiacNumberOfImages
             except AttributeError:
-                T = 1  # For Shmolli (20214), there is no such field and only one frame
+                # * For Scout and Shmolli (20214), there is no such field and only one frame
+                T = 1
 
             # Read a dicom file from the correct series when there are multiple time sequences
             d = dicom.read_file(os.path.join(dir[0], self.find_series(dir[0], T)[0]))
@@ -320,10 +355,10 @@ class Biobank_Dataset(object):
             if hasattr(d, "SpacingBetweenSlices"):
                 dz = float(d.SpacingBetweenSlices)
             elif Z >= 2:
-                print("Warning: can not find attribute SpacingBetweenSlices. " "Calculate from two successive slices.")
+                logger.warning("Can not find attribute SpacingBetweenSlices. Calculate from two successive slices.")
                 dz = float(np.linalg.norm(pos_ul2 - pos_ul))
             else:
-                print("Warning: can not find attribute SpacingBetweenSlices. " "Use attribute SliceThickness instead.")
+                logger.warning("Can not find attribute SpacingBetweenSlices. Use attribute SliceThickness instead.")
                 dz = float(d.SliceThickness)
 
             # Affine matrix which converts the voxel coordinate to world coordinate
@@ -372,23 +407,23 @@ class Biobank_Dataset(object):
                         d = dicom.read_file(os.path.join(dir[z], f))
                         volume[:, :, z, t] = d.pixel_array.transpose()
                     except IndexError:
-                        print(
-                            "Warning: dicom file missing for {0}: time point {1}. "
-                            "Image will be copied from the previous time point.".format(dir[z], t)
-                        )
+                        logger.warning(f"""
+                        Dicom file missing for {dir[z]}: time point {t}. 
+                        Image will be copied from the previous time point.
+                                       """)
                         volume[:, :, z, t] = volume[:, :, z, t - 1]
                     except (ValueError, TypeError):
-                        print(
-                            "Warning: failed to read pixel_array from file {0}. "
-                            "Image will be copied from the previous time point.".format(os.path.join(dir[z], f))
-                        )
+                        logger.warning(f"""
+                        Failed to read pixel_array from file {os.path.join(dir[z], f)}.
+                        Image will be copied from the previous time point.
+                        """)
                         volume[:, :, z, t] = volume[:, :, z, t - 1]
                     except NotImplementedError:
-                        print(
-                            "Warning: failed to read pixel_array from file {0}. "
-                            "pydicom cannot handle compressed dicom files. "
-                            "Switch to SimpleITK instead.".format(os.path.join(dir[z], f))
-                        )
+                        logger.warning(f"""
+                        Failed to read pixel_array from file {os.path.join(dir[z], f)}.
+                        Pydicom cannot handle compressed dicom files.
+                        Switch to SimpleITK instead.
+                        """)
                         reader = sitk.ImageFileReader()
                         reader.SetFileName(os.path.join(dir[z], f))
                         img = sitk.GetArrayFromImage(reader.Execute())
@@ -455,7 +490,11 @@ class Biobank_Dataset(object):
                                 label[:, :, z, t] = lab_up[::up, ::up].transpose()
 
             # Temporal spacing
-            dt = (files_time[1][1] - files_time[0][1]) * 1e-3
+            if T > 1:
+                dt = (files_time[1][1] - files_time[0][1]) * 1e-3
+            else:
+                # * For aortic scout (20207) data, there is no temporal spacing as there is only one frame
+                dt = 1
 
             # Store the image
             self.data[name] = BaseImage()

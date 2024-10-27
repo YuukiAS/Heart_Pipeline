@@ -111,20 +111,20 @@ def generate_scripts(
                 ):
                     sub_id = sub_total[sub_i - 1]
                     option_str = ""
-                    if "scout" in modality:
-                        option_str += " --scout=" + scout
+                    if "aortic_scout" in modality:
+                        option_str += " --aortic_scout=" + scout
                     if "la" in modality:
                         option_str += " --long_axis=" + long_axis
                     if "sa" in modality:
                         option_str += " --short_axis=" + short_axis
-                    if "aorta" in modality:
-                        option_str += " --aortic=" + aortic
+                    if "aortic_dist" in modality:
+                        option_str += " --aortic_dist=" + aortic
                     if "tag" in modality:
                         option_str += " --tag=" + tagging
                     if "lvot" in modality:
                         option_str += " --lvot=" + LVOT
-                    if "flow" in modality:
-                        option_str += " --blood_flow=" + blood_flow
+                    if "aortic_flow" in modality:
+                        option_str += " --aortic_blood_flow=" + blood_flow
                     if "t1" in modality:
                         option_str += " --T1=" + T1
                     file_script.write(
