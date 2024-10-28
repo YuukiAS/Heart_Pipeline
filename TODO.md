@@ -8,7 +8,7 @@ they don't use 20210?
 - [ ] Incorporate existing repo: https://github.com/cams2b/ukb_aorta/
 
 ## 20208 Long Axis
-- [ ] Get Mitral valve and Tricuspid valve diameter: *Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions* 
+- [ ] Get Mitral valve and Tricuspid 8888yu778valve diameter: *Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions* 
 - [ ] Extract landmarks on 3-chamber view: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9708771/pdf/10554_2022_Article_2724.pdf
 
 ## 20209 Short Axis
@@ -32,8 +32,9 @@ they don't use 20210?
 - [ ] Correct some annotations that exceed the myocardium at the bottom
 
 # Other Modality
-- [ ] Check Data fields such as PWV https://biobank.ndph.ox.ac.uk/ukb/label.cgi?id=100007
-- [ ] ICD coding such as https://biobank.ndph.ox.ac.uk/ukb/label.cgi?id=1712 (Check https://openheart.bmj.com/content/openhrt/9/2/e002039.full.pdf for details)
+**(We only focus on CMR features right now)**
+- [x] Check Data fields such as PWV https://biobank.ndph.ox.ac.uk/ukb/label.cgi?id=100007
+- [x] ICD coding such as https://biobank.ndph.ox.ac.uk/ukb/label.cgi?id=1712 (Check https://openheart.bmj.com/content/openhrt/9/2/e002039.full.pdf for details)
 
 # All Modality
 

@@ -181,11 +181,15 @@ if os.path.exists(cvi42_contours_file):
     parse_cvi42_xml.parseFile(cvi42_contours_file, cvi42_contours_dir)
 
 # * Before converting DICOM to Nifti, scout data should be arranged so that it can be recognized as multi-slice file
+# Ref Beeche, Cameron et al. “Thoracic Aortic 3-Dimensional Geometry: Effects of Aging and Genetic Determinants.”
 if args.aortic_scout:
     aortic_scout_files = []
     for dicom_file in os.listdir(os.path.join(dicom_dir, "Thorax_Cor_Tra")):
         if dicom_file.endswith(".dcm"):
             dicom_data = dicom.dcmread(os.path.join(dicom_dir, "Thorax_Cor_Tra", dicom_file))
+            orientation = dicom_data.ImageOrientationPatient
+            if str(orientation) != "[1, 0, 0, 0, 1, 0]":
+                continue
             slice_location = dicom_data.SliceLocation
             aortic_scout_files.append((dicom_file, slice_location))
 
@@ -207,7 +211,7 @@ dataset.read_dicom_images()
 dataset.convert_dicom_to_nifti(nii_dir)
 
 # clean up the temporary directories
-# shutil.rmtree(dicom_dir)
+shutil.rmtree(dicom_dir)
 shutil.rmtree(cvi42_contours_dir)
 
 logger.info(f"{args.sub_id}: Generated Nifti files has been stored in {nii_dir}")
