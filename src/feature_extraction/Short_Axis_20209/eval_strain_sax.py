@@ -28,7 +28,7 @@ from rpy2.robjects.vectors import FloatVector
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from ecg.ecg_processor import ECG_Processor
+from ECG_6025_20205.ecg_processor import ECG_Processor
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config

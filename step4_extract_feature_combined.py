@@ -85,14 +85,14 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
                             file_aggregate.write(
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit1_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'aggregated')} "
                                 "--prefix=ventricular_atrial_feature\n"
                             )
                         else:
                             file_aggregate.write(
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit2_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'aggregated')} "
                                 "--prefix=ventricular_atrial_feature\n"
                             )
 
@@ -107,16 +107,16 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
                             file_aggregate.write(
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit1_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit1_dir, 'comprehensive')} "
+                                f"--target_dir={os.path.join(config.features_visit1_dir, 'aggregated')} "
                                 "--prefix=native_t1_corrected\n"
                             )
                         else:
                             file_aggregate.write(
                                 "python ./script/aggregate_csv.py "
                                 f"--csv_dir={os.path.join(config.features_visit2_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit2_dir, 'comprehensive')} "
+                                f"--target_dir={os.path.join(config.features_visit2_dir, 'aggregated')} "
                                 "--prefix=native_t1_corrected\n"
-                            )                    
+                            )
 
                 file_script.write("echo 'Done!'\n")
 

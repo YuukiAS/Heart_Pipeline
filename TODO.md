@@ -40,4 +40,8 @@ they don't use 20210?
 
 - [ ] Add some visualization for quality check
 - [ ] Add scripts for segmentation based on nnU-Net or U-Mamba
+- [ ] Enhancement1: Add time series features at step4
+- [ ] Enhancement2: Interact with LLM, giving an input figure
+- [ ] Use Atlas for remaining modalities?
+- [ ] Some simple analysis, see Bin Xing's paper
 

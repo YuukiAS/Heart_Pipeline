@@ -28,9 +28,9 @@ if __name__ == "__main__":
     data_dir = config.data_visit2_dir if args.retest else config.data_visit1_dir
     features_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
 
-    ventricular_features_csv = os.path.join(features_dir, "comprehensive", "ventricular_volume.csv")
+    ventricular_features_csv = os.path.join(features_dir, "aggregated", "ventricular_volume.csv")
     ventricular_features_csv = pd.read_csv(ventricular_features_csv)
-    atrial_features_csv = os.path.join(features_dir, "comprehensive", "atrial_volume.csv")
+    atrial_features_csv = os.path.join(features_dir, "aggregated", "atrial_volume.csv")
     atrial_features_csv = pd.read_csv(atrial_features_csv)
 
     df = pd.DataFrame()
@@ -88,10 +88,12 @@ if __name__ == "__main__":
                 raise ValueError()
             IPVT_ratio = IPVT / atrial_features["LA: Total SV(bip) [mL]"].values[0]
             logger.info(f"{subject}: Extract IPVT features")
-            feature_dict.update({
-                "IPVT": IPVT,
-                "IPVT Ratio": IPVT_ratio,
-            })
+            feature_dict.update(
+                {
+                    "IPVT": IPVT,
+                    "IPVT Ratio": IPVT_ratio,
+                }
+            )
         except ValueError:
             logger.error(f"{subject}: IPVT is negative, skipped.")
 
@@ -110,11 +112,13 @@ if __name__ == "__main__":
             Contribution_AC_LVSV = (LVEDV - LV_pre_a) / (LVEDV - LVESV)
             Contribution_AC_LVEDV = (LVEDV - LV_pre_a) / LVEDV
             logger.info(f"{subject}: Extract % AC features")
-            feature_dict.update({
-                "LV: V_pre_a [mL]": LV_pre_a,
-                "% AC to LVSV [%]": Contribution_AC_LVSV * 100,
-                "% AC to LVEDV [%]": Contribution_AC_LVEDV * 100,
-            })
+            feature_dict.update(
+                {
+                    "LV: V_pre_a [mL]": LV_pre_a,
+                    "% AC to LVSV [%]": Contribution_AC_LVSV * 100,
+                    "% AC to LVEDV [%]": Contribution_AC_LVEDV * 100,
+                }
+            )
         except KeyError:
             logger.warning(f"{subject}: Pre-contraction time point not found, % AC will not be extracted")
         except ValueError:
@@ -131,9 +135,11 @@ if __name__ == "__main__":
         try:
             AVPD = evaluate_AVPD(seg4_la_4ch.astype(np.uint8), nim_la_4ch, long_axis, T_ED, T_ES)
             logger.info(f"{subject}: Extract AVPD features")
-            feature_dict.update({
-                "AVPD [mm]": AVPD,
-        })
+            feature_dict.update(
+                {
+                    "AVPD [mm]": AVPD,
+                }
+            )
         except ValueError as e:
             logger.error(f"{subject}: AVPD extraction failed due to reason: {e}")
 

@@ -29,11 +29,11 @@ if __name__ == "__main__":
     data_dir = config.data_visit2_dir if args.retest else config.data_visit1_dir
     if not args.retest:
         # Name of the csv file to save the features
-        file_rest_name = f"{config.features_visit1_dir}/comprehensive/ecg_rest_neurokit.csv"
-        file_exercise_name = f"{config.features_visit1_dir}/comprehensive/ecg_exercise_neurokit.csv"
+        file_rest_name = f"{config.features_visit1_dir}/aggregated/ecg_rest_neurokit.csv"
+        file_exercise_name = f"{config.features_visit1_dir}/aggregated/ecg_exercise_neurokit.csv"
     else:
-        file_rest_name = f"{config.features_visit2_dir}/comprehensive/ecg_rest_neurokit.csv"
-        file_exercise_name = f"{config.features_visit2_dir}/comprehensive/ecg_exercise_neurokit.csv"
+        file_rest_name = f"{config.features_visit2_dir}/aggregated/ecg_rest_neurokit.csv"
+        file_exercise_name = f"{config.features_visit2_dir}/aggregated/ecg_exercise_neurokit.csv"
 
     subjects = os.listdir(data_dir)
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
                         features_nonlinear = nk.hrv_nonlinear(data_exercise, sampling_rate=SAMPLING_RATE)
                         features_nonlinear = features_nonlinear.add_prefix(f"{phase}_lead{lead_name}_")
                         df_exercise_row = pd.concat([df_exercise_row, features_nonlinear], axis=1)
-            
+
             logger.info(f"{subject}: Generate features for ECG exercise data")
             df_exercise_row["eid"] = subject
             df_exercise = pd.concat([df_exercise, df_exercise_row], ignore_index=True)

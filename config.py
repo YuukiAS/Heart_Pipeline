@@ -25,12 +25,15 @@ data_failed_dir = os.path.join(os.path.dirname(data_dir), "data_failed")
 data_failed_visit1_dir = os.path.join(data_failed_dir, "visit1", "nii")
 data_failed_visit2_dir = os.path.join(data_failed_dir, "visit2", "nii")
 
+# The directory to store all external codes
+lib_dir = "/work/users/y/u/yuukias/Heart_Pipeline/lib"
+
 # The directory to store all trained weights of DL models
 model_dir = "/work/users/y/u/yuukias/Heart_Pipeline/model"
 
 # The directory to store all features
 features_dir = "/work/users/y/u/yuukias/Heart_Pipeline/doc/Pipeline_Result/"
-# * Note: The final results will be stored in 'comprehensive' subfolder
+# * Note: The final results will be stored in 'aggregated' subfolder
 features_visit1_dir = os.path.join(features_dir, "visit1")
 features_visit2_dir = os.path.join(features_dir, "visit2")
 
@@ -52,7 +55,7 @@ pressure_col_name = "12678-2.0"
 retest_suffix = "retest"  # e.g. This will recognize 20208_retest in data_raw_dir
 
 # Modify here to select the modality you want to use
-modality = ['aortic_scout']  # in development
+modality = ["aortic_scout"]  # in development
 # These are all the CMR modalities provided by UKBiobank
 # modality = ['aortic_scout', 'la', 'sa', 'aortic_dist', 'tag', 'lvot', 'aortic_blood_flow', 'shmolli']
 

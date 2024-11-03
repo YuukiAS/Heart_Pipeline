@@ -20,9 +20,12 @@ import numpy as np
 import nibabel as nib
 import tensorflow as tf
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
+import config
+from utils.log_utils import setup_logging
 from utils.image_utils import rescale_intensity, normalise_intensity
 
+logger = setup_logging("segment_aortic_dist_network")
 
 """ Deployment parameters """
 # args = tf.compat.v1.args.args
@@ -55,18 +58,16 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--time_step', type=int, default=1,
                     help='Time step during deployment of LSTM.')
-parser.add_argument('--seq_name', type=str, default='aorta',
-                    choices=['aorta'],
+parser.add_argument('--seq_name', type=str, default='aortic_dist',
+                    choices=['aortic_dist'],
                     help='Sequence name.')
 parser.add_argument('--model', type=str, default='UNet-LSTM',
                     choices=['UNet', 'UNet-LSTM', 'Temporal-UNet'],
                     help='Model name.')
 parser.add_argument('--data_dir', type=str,
-                    default='/vol/medic02/users/wbai/data/cardiac_atlas/Biobank_ao/validation',
                     help='Path to the test set directory, under which images '
                          'are organised in subdirectories for each subject.')
 parser.add_argument('--model_path', type=str,
-                    default='/vol/biomedic2/wbai/ukbb_cardiac/UKBB_18545/model/UNet-LSTM_ao_level5_filter16_22222_batch1_iter20000_lr0.001_zscore_tw9_h16_bidir_seq2seq_wR5_wr0.1_joint/UNet-LSTM_ao_level5_filter16_22222_batch1_iter20000_lr0.001_zscore_tw9_h16_bidir_seq2seq_wR5_wr0.1_joint.ckpt-20000',
                     help='Path to the saved trained model.')
 parser.add_argument('--process_seq', type=int, default=1,
                     help='Process a time sequence of images.')
@@ -98,7 +99,7 @@ if __name__ == '__main__':
         saver = tf.compat.v1.train.import_meta_graph(gd)
         saver.restore(sess, '{0}'.format(args.model_path))
 
-        print('Start deployment on the data set using model {0}'.format(args.model))
+        logger.info('Start deployment on the data set using model {0}'.format(args.model))
 
         # Process each subject subdirectory
         data_dir = args.data_dir
@@ -108,12 +109,12 @@ if __name__ == '__main__':
             image_name = '{0}/{1}.nii.gz'.format(data_dir, args.seq_name)
 
             if not os.path.exists(image_name):
-                print('  Directory {0} does not contain an image with file name {1}. '
+                logger.info('  Directory {0} does not contain an image with file name {1}. '
                         'Skip.'.format(data_dir, os.path.basename(image_name)))
                 exit(1)
 
             # Read the image
-            print('  Reading {} ...'.format(image_name))
+            logger.info('  Reading {} ...'.format(image_name))
             nim = nib.load(image_name)
             dx, dy, dz, dt = nim.header['pixdim'][1:5]
             area_per_pixel = dx * dy
@@ -121,7 +122,7 @@ if __name__ == '__main__':
             X, Y, Z, T = image.shape
             orig_image = image
 
-            print('  Segmenting full sequence ...')
+            logger.info('  Segmenting full sequence ...')
 
             # Intensity normalisation
             if args.z_score:
@@ -216,7 +217,7 @@ if __name__ == '__main__':
                 # Average probability
                 prob /= weight
             else:
-                print('Error: unknown model {0}.'.format(args.model))
+                logger.info('Error: unknown model {0}.'.format(args.model))
                 exit(1)
 
             # Segmentation
@@ -224,13 +225,13 @@ if __name__ == '__main__':
 
             # Save the segmentation
             if args.save_seg:
-                print('  Saving segmentation ...')
+                logger.info('  Saving segmentation ...')
                 nim2 = nib.Nifti1Image(pred, nim.affine)
                 nim2.header['pixdim'] = nim.header['pixdim']
                 nib.save(nim2, '{0}/seg_{1}.nii.gz'.format(data_dir, args.seq_name))
         else:
             if args.model == 'UNet-LSTM':
-                print('UNet-LSTM does not support frame-wise segmentation. '
+                logger.info('UNet-LSTM does not support frame-wise segmentation. '
                         'Please use the -process_seq flag.')
                 exit(1)
 
@@ -238,7 +239,7 @@ if __name__ == '__main__':
             image_ED_name = '{0}/{1}_{2}.nii.gz'.format(data_dir, args.seq_name, 'ED')
             image_ES_name = '{0}/{1}_{2}.nii.gz'.format(data_dir, args.seq_name, 'ES')
             if not os.path.exists(image_ED_name) or not os.path.exists(image_ES_name):
-                print('  Directory {0} does not contain an image with file name {1} or {2}. '
+                logger.info('  Directory {0} does not contain an image with file name {1} or {2}. '
                         'Skip.'.format(data_dir, os.path.basename(image_ED_name), os.path.basename(image_ES_name)))
                 exit(1)
 
@@ -248,14 +249,14 @@ if __name__ == '__main__':
 
                 # Read the image
                 # image: XYZ
-                print('  Reading {} ...'.format(image_name))
+                logger.info('  Reading {} ...'.format(image_name))
                 nim = nib.load(image_name)
                 dx, dy, dz, dt = nim.header['pixdim'][1:5]
                 area_per_pixel = dx * dy
                 image = nim.get_fdata()
                 X, Y = image.shape[:2]
 
-                print('  Segmenting {} frame ...'.format(fr))
+                logger.info('  Segmenting {} frame ...'.format(fr))
 
                 # Intensity normalisation
                 if args.z_score:
@@ -287,7 +288,7 @@ if __name__ == '__main__':
 
                 # Save the segmentation
                 if args.save_seg:
-                    print('  Saving segmentation ...')
+                    logger.info('  Saving segmentation ...')
                     nim2 = nib.Nifti1Image(pred, nim.affine)
                     nim2.header['pixdim'] = nim.header['pixdim']
                     nib.save(nim2, '{0}/seg_{1}_{2}.nii.gz'.format(data_dir, args.seq_name, fr))

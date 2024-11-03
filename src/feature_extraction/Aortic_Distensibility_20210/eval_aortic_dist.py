@@ -14,6 +14,9 @@
 # ==============================================================================
 import os
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import math
 import nibabel as nib
 import pandas as pd
 import argparse
@@ -51,24 +54,23 @@ if __name__ == "__main__":
     # brachial-to-aortic transfer function. What I observed from the data and Figure 5 in the SOP pdf
     # (https://biobank.ctsu.ox.ac.uk/crystal/docs/vicorder_in_cmri.pdf) is that after the transfer, the DBP
     # keeps the same as the brachial DBP, but the SBP is different.
-    df_info = pd.read_csv(args.pressure_csv, header=[0, 1], index_col=0)
-    central_pp = df_info["Central pulse pressure during PWA"][["12678-2.0", "12678-2.1"]].mean(axis=1)
+    df_info = pd.read_csv(config.pressure_file, header=[0, 1], index_col=0)
+    central_pp = df_info[config.pressure_col_name].values
 
     # Discard central blood pressure < 10 mmHg
     central_pp[central_pp < 10] = np.nan
-
-    data_path = args.data_dir
 
     for subject in tqdm(args.data_list):
         subject = str(subject)
         logger.info(f"Calculating aortic area and distensibility for subject {subject}")
         sub_dir = os.path.join(data_dir, subject)
 
-        aorta_name = os.path.join(sub_dir, "aorta_dist.nii.gz")
+        aorta_name = os.path.join(sub_dir, "aortic_dist.nii.gz")
         # 1 is ascending aorta, 2 is descending aorta
-        seg_aorta_name = os.path.join(sub_dir, "seg_aorta_dist.nii.gz")
+        seg_aorta_name = os.path.join(sub_dir, "seg_aortic_dist.nii.gz")
         nim_aorta = nib.load(aorta_name)
         nim_seg_aorta = nib.load(seg_aorta_name)
+        T = nim_aorta.header["dim"][4]
         aorta = nim_aorta.get_fdata()
         seg_aorta = nim_seg_aorta.get_fdata()
 
@@ -89,11 +91,21 @@ if __name__ == "__main__":
 
         logger.info(f"{subject}: Measuring area for the ascending and descending aorta")
         areas = {}
+        # Ref Turkbey, Evrim B., et al. “Determinants and Normal Values of ... in the MESA”  for reference range
+        diameters = {}  # luminal diameter
+        T_area = {}  # record the time frame of maximum and minimum area
         for label, value in [("AAo", 1), ("DAo", 2)]:
             areas[label] = {}
+            diameters[label] = {}
+            T_area[label] = {}
+
             A_label = np.sum(seg_aorta == value, axis=(0, 1, 2)) * area_per_pixel
             areas[label]["max"] = A_label.max()
             areas[label]["min"] = A_label.min()
+            diameters[label]["max"] = 2 * math.sqrt(A_label.max() / np.pi)
+            diameters[label]["min"] = 2 * math.sqrt(A_label.min() / np.pi)
+            T_area[label]["max"] = np.argmax(A_label)
+            T_area[label]["min"] = np.argmin(A_label)
 
         feature_dict.update(
             {
@@ -101,8 +113,53 @@ if __name__ == "__main__":
                 "Ascending Aorta: Minimum Area [mm^2]": areas["AAo"]["min"],
                 "Descending Aorta: Maxium Area [mm^2]": areas["DAo"]["max"],
                 "Descending Aorta: Minimum Area [mm^2]": areas["DAo"]["min"],
+                "Ascending Aorta: Maxium Diameter [mm]": diameters["AAo"]["max"],
+                "Ascending Aorta: Minimum Diameter [mm]": diameters["AAo"]["min"],
+                "Descending Aorta: Maxium Diameter [mm]": diameters["DAo"]["max"],
+                "Descending Aorta: Minimum Diameter [mm]": diameters["DAo"]["min"],
             }
         )
+
+        # Visualize segmentation for maximum and minimum area frame based on ascending aorta
+        seg_aorta_nan = np.where(seg_aorta == 0, np.nan, seg_aorta)
+        plt.figure(figsize=(15, 6))
+        plt.subplot(1, 2, 1)
+        plt.imshow(aorta[:, :, 0, T_area["AAo"]["max"]], cmap="gray")
+        plt.imshow(seg_aorta_nan[:, :, 0, T_area["AAo"]["max"]], cmap="jet", alpha=0.5)
+        plt.title("Ascending Aorta: Maximum Area")
+        ascending_aorta_patch = mpatches.Patch(color='blue', label='Ascending Aorta')
+        descending_aorta_patch = mpatches.Patch(color='red', label='Descending Aorta')
+        plt.legend(handles=[ascending_aorta_patch, descending_aorta_patch], loc='upper right')
+        plt.axis("off")
+        plt.subplot(1, 2, 2)
+        plt.imshow(aorta[:, :, 0, T_area["AAo"]["min"]], cmap="gray")
+        plt.imshow(seg_aorta_nan[:, :, 0, T_area["AAo"]["min"]], cmap="jet", alpha=0.5)
+        plt.title("Ascending Aorta: Minimum Area")
+        ascending_aorta_patch = mpatches.Patch(color='blue', label='Ascending Aorta')
+        descending_aorta_patch = mpatches.Patch(color='red', label='Descending Aorta')
+        plt.legend(handles=[ascending_aorta_patch, descending_aorta_patch], loc='upper right')
+        os.makedirs(os.path.join(sub_dir, "visualization"), exist_ok=True)
+        plt.savefig(os.path.join(sub_dir, "visualization", "aortic_area.png"))
+        plt.close()
+
+        areas_list = {}
+        areas_list["AAo"] = []
+        areas_list["DAo"] = []
+        for i in range(T):
+            for label, value in [("AAo", 1), ("DAo", 2)]:
+                A_label = np.sum(seg_aorta[:, :, 0, i] == value) * area_per_pixel
+                areas_list[label].append(A_label)
+
+        # Time series plot of areas
+        os.makedirs(os.path.join(sub_dir, "time_series"), exist_ok=True)
+        plt.plot(areas_list["AAo"], label="Ascending Aorta")
+        plt.plot(areas_list["DAo"], label="Descending Aorta")
+        plt.xlabel("Time Frame")
+        plt.ylabel("Area [mm^2]")
+        plt.legend()
+        plt.title("Aortic Area Time Series")
+        plt.savefig(os.path.join(sub_dir, "time_series", "aortic_area.png"))
+        plt.close()
 
         try:
             # define: Central pulse pressure, which is the difference between systolic and diastolic blood pressure

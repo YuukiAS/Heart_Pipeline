@@ -2,14 +2,14 @@ import os
 import argparse
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 from utils.log_utils import setup_logging
 
 logger = setup_logging("segment_aortic_dist")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_dir", type = str, help="Folder for one subject that contains Nifti files", type=int, required=True)
+parser.add_argument("--data_dir", type = str, help="Folder for one subject that contains Nifti files", required=True)
 
 
 if __name__ == "__main__":
@@ -19,5 +19,5 @@ if __name__ == "__main__":
 
     model_dir = config.model_dir
 
-    os.system("python ./src/segmentation/deploy_network_ao.py --seq_name aorta "
+    os.system("python ./deploy_network_ao.py --seq_name aortic_dist "
               f"--data_dir {data_dir} --model_path {model_dir}/Aortic_Distensibility_20210/UNet-LSTM_ao\n")

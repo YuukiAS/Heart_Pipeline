@@ -52,6 +52,7 @@ if __name__ == "__main__":
         }
 
         df_row = pd.DataFrame([feature_dict])
+        # todo: Add quality control
         df_phenotype = single_image_inference(image_path=aorta_name, 
                         label_path=seg_aorta_name,
                         data_output_path=os.path.join(data_dir, "mesh"))

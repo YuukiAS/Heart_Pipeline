@@ -99,8 +99,8 @@ class Biobank_Dataset(object):
         aortic_flow_dir = []  # morphologic
         aortic_flow_mag_dir = []  # magnitude
         aortic_flow_pha_dir = []  # phase
-        shmolli_dir = []
-        shmolli_fitpar_dir = []  # fit parameters
+        # shmolli_dir = []  # T1 morphologic, not usage yet
+        # shmolli_fitpar_dir = []  
         shmolli_t1map_dir = []  # T1 map
         for s in subdirs:
             # 20208
@@ -144,6 +144,7 @@ class Biobank_Dataset(object):
                 aortic_scout_dir += [(os.path.join(input_dir, s), int(match_20207.group(1)))]
 
             # 20209
+            # * b1 is the basal slice, the largest slice number corresponds to the apical one.
             match_20209 = re.match("CINE_segmented_SAX_b(\d*)$", s)
             if match_20209:
                 sax_dir += [(os.path.join(input_dir, s), int(match_20209.group(1)))]
@@ -291,7 +292,6 @@ class Biobank_Dataset(object):
             # )
         return files
 
-    # todo Recheck 20214
     def read_dicom_images(self):
         """Read dicom images and store them in a 3D-t volume."""
         for name, dir in sorted(self.subdir.items()):
