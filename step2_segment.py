@@ -1,5 +1,6 @@
 import os
 import shutil
+import argparse
 from tqdm import tqdm
 
 import sys
@@ -15,9 +16,19 @@ from utils.log_utils import setup_logging
 
 logger = setup_logging("main: segment(baseline)")
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--overwrite", action="store_true", help="Overwrite the existing segmentation files")
+
 
 def generate_scripts(
-    pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=100, retest_suffix=None, cpu=True
+    pipeline_dir, 
+    data_dir, 
+    code_dir, 
+    modality, 
+    num_subjects_per_file=100, 
+    retest_suffix=None, 
+    cpu=True, 
+    overwrite=False
 ):
     if retest_suffix is None:
         code_step2_dir = os.path.join(code_dir, "segment_visit1")
@@ -66,75 +77,74 @@ def generate_scripts(
                     sub_dir = os.path.join(data_dir, subject)
 
                     if "aortic_scout" in modality:
-                        if not check_existing_file(["aortic_scout.nii.gz"], sub_dir):
+                        if not check_existing_file(["aortic_scout.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for aortic scout'\n")
                             file_script.write(
-                                "python ./src/segmentation/Aortic_Scout_20207/segment_aortic_scout.py "
-                                f"--data_dir {sub_dir}\n"
+                                "python ./src/segmentation/Aortic_Scout_20207/segment_aortic_scout.py " f"--data_dir {sub_dir}\n"
                             )
 
                     if "la" in modality:
-                        if not check_existing_file(["seg_la_2ch.nii.gz"], sub_dir):
+                        if not check_existing_file(["seg_la_2ch.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for vertical long axis'\n")
                             file_script.write(
-                                "python ./src/segmentation/Long_Axis_20208/segment_la.py "
-                                f"--modality 2ch --data_dir {sub_dir}"
+                                "python ./src/segmentation/Long_Axis_20208/segment_la.py " f"--modality 2ch --data_dir {sub_dir}"
                             )
                         else:
                             logger.info(f"{subject}: Segmentation for vertical long axis already exists, skip.")
 
                         # Segmentation that include only atriums
-                        if not check_existing_file(["seg_la_4ch.nii.gz"], sub_dir):
+                        if not check_existing_file(["seg_la_4ch.nii.gz"], sub_dir) or overwrite:
+                            file_script.write(f"echo '{subject}: Generate segmentation for horizontal long axis (2 chambers)'\n")
                             file_script.write(
-                                f"echo '{subject}: Generate segmentation for horizontal long axis (2 chambers)'\n"
-                            )
-                            file_script.write(
-                                "python ./src/segmentation/Long_Axis_20208/segment_la.py"
-                                f"--modality 4ch --data_dir {sub_dir}"
+                                "python ./src/segmentation/Long_Axis_20208/segment_la.py" f"--modality 4ch --data_dir {sub_dir}"
                             )
                         else:
-                            logger.info(
-                                f"{subject}: Segmentation for horizontal long axis (2 chambers) already exists, skip."
-                            )
+                            logger.info(f"{subject}: Segmentation for horizontal long axis (2 chambers) already exists, skip.")
 
                         # Segmentation that include all four ventricles and atriums
-                        if not check_existing_file(["seg4_la_4ch.nii.gz"], sub_dir):
-                            file_script.write(
-                                f"echo '{subject}: Generate segmentation for horizontal long axis (4 chambers)'\n"
-                            )
+                        if not check_existing_file(["seg4_la_4ch.nii.gz"], sub_dir) or overwrite:
+                            file_script.write(f"echo '{subject}: Generate segmentation for horizontal long axis (4 chambers)'\n")
                             file_script.write(
                                 "python ./src/segmentation/Long_Axis_20208/segment_la.py"
                                 f"--modality 4ch_4chamber --data_dir {sub_dir}"
                             )
                         else:
-                            logger.info(
-                                f"{subject}: Segmentation for horizontal long axis (4 chambers) already exists, skip."
-                            )
+                            logger.info(f"{subject}: Segmentation for horizontal long axis (4 chambers) already exists, skip.")
 
                     if "sa" in modality:
-                        if not check_existing_file(["seg_sa.nii.gz"], sub_dir):
+                        if not check_existing_file(["seg_sa.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for short axis'\n")
-                            file_script.write(
-                                f"python ./src/segmentation/Short_Axis_20209/segment_sa.py --data_dir {sub_dir}\n"
-                            )
+                            file_script.write(f"python ./src/segmentation/Short_Axis_20209/segment_sa.py --data_dir {sub_dir}\n")
                         else:
                             logger.info(f"{subject}: Segmentation for short axis already exists, skip.")
 
                     if "aortic_dist" in modality:
-                        if not check_existing_file(["seg_aortic_dist.nii.gz"], sub_dir):
+                        if not check_existing_file(["seg_aortic_dist.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for aortic distensibility'\n")
                             file_script.write(
                                 "python ./src/segmentation/Aortic_Distensibility_20210/segment_aortic_dist.py "
                                 f"--data_dir {sub_dir}\n"
                             )
                         else:
-                            logger.info(f"{subject}: Segmentation for aorta already exists, skip.")
+                            logger.info(f"{subject}: Segmentation for aortic distensibility already exists, skip.")
                     if "tag" in modality:
-                        # todo No segmentation network right now
+                        # todo Incorporate Segmentation network
                         pass
                     if "lvot" in modality:
-                        # todo No segmentation network right now
-                        pass
+                        if not check_existing_file(["seg_lvot.nii.gz"], sub_dir) or overwrite:
+                            file_script.write(f"echo '{subject}: Generate segmentation for LVOT'\n")
+                            file_script.write(
+                                "python ./src/segmentation/LVOT_20212/preprocess_lvot.py "
+                                f"--data_dir {sub_dir}\n"
+                            )
+                            file_script.write(f"conda activate {config.model_envs[config.model_used['lvot']]}\n")
+                            file_script.write("source ./env_variable.sh\n")
+                            file_script.write(
+                                "python ./src/segmentation/LVOT_20212/segment_lvot.py "
+                                f"--data_dir {sub_dir} --model {config.model_used['lvot']}\n"
+                            )
+                        else:
+                            logger.info(f"{subject}: Segmentation for LVOT already exists, skip.")
                     if "aortic_flow" in modality:
                         # todo No segmentation network right now
                         pass

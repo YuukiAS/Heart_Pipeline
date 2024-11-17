@@ -62,3 +62,4 @@ tasks/*.ipynb
 src/**/*.ipynb
 third_party
 template
+model

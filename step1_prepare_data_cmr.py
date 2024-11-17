@@ -4,19 +4,33 @@ This script is used to prepare the CMR data for the pipeline using zip files
 
 import os
 import shutil
+import argparse
 from tqdm import tqdm
 
 import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
 from utils.slurm_utils import generate_header_cpu, generate_header_gpu
 from utils.log_utils import setup_logging
+
 logger = setup_logging("main: prepare_data_cmr")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--overwrite", action="store_true", help="Overwrite the existing files")
 
 
 def generate_scripts(
-    pipeline_dir, data_raw_dir, code_dir, out_dir, modality, num_subjects_per_file=100, retest_suffix=None, cpu=True
+    pipeline_dir,
+    data_raw_dir,
+    code_dir,
+    out_dir,
+    modality,
+    num_subjects_per_file=100,
+    retest_suffix=None,
+    cpu=True,
+    overwrite=False,
 ):
     if retest_suffix is None:
         code_step1_dir = os.path.join(code_dir, "prepare_data_visit1")
@@ -29,7 +43,7 @@ def generate_scripts(
         tagging = os.path.join(data_raw_dir, "20211/")
         LVOT = os.path.join(data_raw_dir, "20212/")
         blood_flow = os.path.join(data_raw_dir, "20213/")
-        T1 = os.path.join(data_raw_dir, "20214/")
+        shmolli = os.path.join(data_raw_dir, "20214/")
     else:
         code_step1_dir = os.path.join(code_dir, "prepare_data_visit2")
         out_step1_dir = os.path.join(out_dir, "visit2/")
@@ -41,7 +55,7 @@ def generate_scripts(
         tagging = os.path.join(data_raw_dir, f"20211_{retest_suffix}/")
         LVOT = os.path.join(data_raw_dir, f"20212_{retest_suffix}/")
         blood_flow = os.path.join(data_raw_dir, f"20213_{retest_suffix}/")
-        T1 = os.path.join(data_raw_dir, f"20214_{retest_suffix}/")
+        shmolli = os.path.join(data_raw_dir, f"20214_{retest_suffix}/")
 
     if os.path.exists(code_step1_dir):
         shutil.rmtree(code_step1_dir)
@@ -77,9 +91,9 @@ def generate_scripts(
         sub_aortic_flow = [x.split("_")[0] for x in sub_aortic_flow]
         sub_total = sub_total + sub_aortic_flow
     if "shmolli" in modality:
-        sub_t1 = os.listdir(T1)
-        sub_t1 = [x.split("_")[0] for x in sub_t1]
-        sub_total = sub_total + sub_t1
+        sub_shmolli = os.listdir(shmolli)
+        sub_shmolli = [x.split("_")[0] for x in sub_shmolli]
+        sub_total = sub_total + sub_shmolli
 
     length_total = len(sub_total)
     logger.info(f"Total number of zip files: {length_total}")
@@ -131,7 +145,9 @@ def generate_scripts(
                     if "aortic_blood_flow" in modality:
                         options_str += " --aortic_blood_flow=" + blood_flow
                     if "shmolli" in modality:
-                        options_str += " --T1=" + T1
+                        options_str += " --shmolli=" + shmolli
+                    if overwrite:
+                        options_str += " --overwrite"
                     file_script.write(
                         f"python ./script/prepare_data.py --out_dir={out_step1_dir} --sub_id={sub_id} {options_str}\n"
                     )
@@ -150,10 +166,17 @@ if __name__ == "__main__":
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(code_dir, exist_ok=True)
 
+    args = parser.parse_args()
+    overwrite = args.overwrite
+
+    if overwrite:
+        logger.info("Overwrite is set to True, existing files will be overwritten")
     logger.info("Generate scripts for preparing visit1 data")
-    generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, modality)
+    generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, modality, overwrite=overwrite)
     if retest_suffix is not None:
         logger.info("Generate scripts for preparing visit2 data")
-        generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, modality, retest_suffix=retest_suffix)
+        generate_scripts(
+            pipeline_dir, data_raw_dir, code_dir, out_dir, modality, retest_suffix=retest_suffix, overwrite=overwrite
+        )
     else:
         logger.info("No retest_suffix is provided, only visit1 data will be prepared")

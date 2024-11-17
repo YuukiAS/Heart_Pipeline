@@ -5,28 +5,30 @@
 they don't use 20210?
     
     20207 is multi-slice with single time frame while 20210 is a single slice with multiple timeframe.
-- [ ] Incorporate existing repo: https://github.com/cams2b/ukb_aorta/
+- [x] Incorporate existing repo: https://github.com/cams2b/ukb_aorta/
+- [ ] Add units for the extracted features
 
 ## 20208 Long Axis
-- [ ] Get Mitral valve and Tricuspid 8888yu778valve diameter: *Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions* 
+- [ ] Get Mitral valve and Tricuspid valve diameter: *Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions* 
 - [ ] Extract landmarks on 3-chamber view: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9708771/pdf/10554_2022_Article_2724.pdf
 
 ## 20209 Short Axis
+- [ ] Add visualization and change way of storage to npz.
 
 ## 20210 Aortic Distensibility Cine
-- [ ] Extract luminal parameter
+- [x] Extract luminal parameter
 
 ## 20211 Tagged MRI
-- [ ] Incorporate existing repo: https://github.com/EdwardFerdian/mri-tagging-strain
+- [x] Incorporate existing repo: https://github.com/EdwardFerdian/mri-tagging-strain
 
 ## 20212 LVOT Cine
-- [ ] Draw some annotations and train the model
-- [ ] Allow LVOT diameters to be extracted
-- [ ] Determine whether more features can be extracted
+- [x] Draw some annotations and train the model
+- [x] Allow LVOT diameters to be extracted
+- [x] Determine whether more features can be extracted
 
 ## 20213 Phase Contrast
 - [ ] Aortic flow: velocity, volume (VTI), area..
-- [ ] Number of cusp
+- [ ] Number of cusp: Incorporate the code
 
 ## 20214 T1 Mapping
 - [ ] Correct some annotations that exceed the myocardium at the bottom
@@ -40,8 +42,8 @@ they don't use 20210?
 
 - [ ] Add some visualization for quality check
 - [ ] Add scripts for segmentation based on nnU-Net or U-Mamba
-- [ ] Enhancement1: Add time series features at step4
-- [ ] Enhancement2: Interact with LLM, giving an input figure
-- [ ] Use Atlas for remaining modalities?
-- [ ] Some simple analysis, see Bin Xing's paper
+- [ ] Possible Enhancement1: Add time series features at step4
+- [ ] Possible Enhancement2: Voxel-wise analysis
+- [ ] Possible Enhancement3: Interact with LLM, giving an input figure
+- [ ] Use Atlas for 14 landmarks?
 

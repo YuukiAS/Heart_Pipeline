@@ -3,13 +3,11 @@ import logging
 
 # * Configure paths to bulk data --------------------------------------------
 
-# The main directory of the pipeline
-pipeline_dir = "/work/users/y/u/yuukias/Heart_Pipeline"
-temp_dir = os.path.join(pipeline_dir, "temp")
-# The directory for slurm scrips
-code_dir = os.path.join(pipeline_dir, "code")
+pipeline_dir = "/work/users/y/u/yuukias/Heart_Pipeline"  # The main directory of the pipeline
+temp_dir = os.path.join(pipeline_dir, "temp")  # The directory for temporary files
+code_dir = os.path.join(pipeline_dir, "code")  # The directory for slurm scrips
 
-# All instance2(visit1) and instance3(visit2) data should be placed in this folder
+# All instance2 (visit1) and instance3 (visit2) data should be placed in this folder
 data_raw_dir = "/work/users/y/u/yuukias/database/UKBiobank/data_field"
 
 # (Optional) Directory for ground truth contours
@@ -19,11 +17,6 @@ contour_gt_dir = "/work/users/y/u/yuukias/database/UKBiobank/return/contour_cvi4
 data_dir = "/work/users/y/u/yuukias/Heart_Pipeline/data"  # intermedite files will also be generated here
 data_visit1_dir = os.path.join(data_dir, "visit1", "nii")
 data_visit2_dir = os.path.join(data_dir, "visit2", "nii")
-data_visit1_nnunet_dir = os.path.join(data_dir, "visit1", "nii_nnunet")
-data_visit2_nnunet_dir = os.path.join(data_dir, "visit2", "nii_nnunet")
-data_failed_dir = os.path.join(os.path.dirname(data_dir), "data_failed")
-data_failed_visit1_dir = os.path.join(data_failed_dir, "visit1", "nii")
-data_failed_visit2_dir = os.path.join(data_failed_dir, "visit2", "nii")
 
 # The directory to store all external codes
 lib_dir = "/work/users/y/u/yuukias/Heart_Pipeline/lib"
@@ -37,7 +30,7 @@ features_dir = "/work/users/y/u/yuukias/Heart_Pipeline/doc/Pipeline_Result/"
 features_visit1_dir = os.path.join(features_dir, "visit1")
 features_visit2_dir = os.path.join(features_dir, "visit2")
 
-# * Configure paths to bulk data --------------------------------------------
+# * Configure paths to tabular data --------------------------------------------
 # * Note: All csv files should contain column 'eid' as identifier for subjects
 
 # The file to store BSA information
@@ -55,12 +48,25 @@ pressure_col_name = "12678-2.0"
 retest_suffix = "retest"  # e.g. This will recognize 20208_retest in data_raw_dir
 
 # Modify here to select the modality you want to use
-modality = ["aortic_scout"]  # in development
 # These are all the CMR modalities provided by UKBiobank
-# modality = ['aortic_scout', 'la', 'sa', 'aortic_dist', 'tag', 'lvot', 'aortic_blood_flow', 'shmolli']
+# modality = ['lvot']
+modality = ['aortic_scout', 'la', 'sa', 'aortic_dist', 'tag', 'lvot', 'aortic_blood_flow', 'shmolli']
 
 # If set to True, please also run step1_preaprare_data_ecg.py so that ECG-related features can be generated
 useECG = True
+
+# * Configure the parameters for segmentation -----------------------------------------
+# The virtual environment to be activated before prediction
+model_envs = {
+    "nnUNet": "/work/users/y/u/yuukias/Annotation/nnUNet/env_nnUNet",
+    "UMamba": "/work/users/y/u/yuukias/Annotation/UMamba/env_UMamba"
+}
+# The model used for segmentation of each modality
+model_used = {
+    "lvot": "nnUNet",
+    "aortic_blood_flow": None,
+    "shmolli": None
+}
 
 # * Configure the parameters for the logging mechanism ---------------------------
 
