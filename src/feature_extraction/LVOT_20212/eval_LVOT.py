@@ -179,7 +179,6 @@ if __name__ == "__main__":
             plt.savefig(os.path.join(sub_dir, "visualization", "aorta", f"LVOT_{t}.png"))
             plt.close()
 
-        # todo Indexed version
         logger.info(f"{subject}: Aortic annulus and root diameters calculated for {len(L['aortic_sinuses'])} time frames")
 
         feature_dict.update(
@@ -189,6 +188,22 @@ if __name__ == "__main__":
                 "LVOT: Sinotubular Junction Diameter (mm)": np.median(L["sinotubular_junction"]),
             }
         )
+
+        logger.info(f"{subject}: Calculate BSA-indexed aortic annulus and root diameters")
+        try:
+            BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
+            BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
+
+            feature_dict.update(
+                {
+                    "LVOT: Aortic Valve Annulus Diameter/BSA (mm/m^2)": np.median(L["aortic_valve_annulus"]) / BSA_subject,
+                    "LVOT: Aortic Sinuses Diameter/BSA (mm/m^2)": np.median(L["aortic_sinuses"]) / BSA_subject,
+                    "LVOT: Sinotubular Junction Diameter/BSA (mm/m^2)": np.median(L["sinotubular_junction"]) / BSA_subject,
+                }
+            )
+        except (FileNotFoundError, IndexError):
+            logger.warning(f"{subject}: BSA information not found, no indexed version will be calculated")
+            continue
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
