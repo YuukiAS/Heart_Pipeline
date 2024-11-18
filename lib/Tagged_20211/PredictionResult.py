@@ -33,7 +33,7 @@ class PredictionResult:
                 hf[col_name][-dataset.shape[0]:] = dataset
     
     def save_predictions(self, output_dir, output_prefix):
-        output_filename = '{}.result.h5'.format(output_prefix)
+        output_filename = f'{output_prefix}_result.h5'
         # print('Saving prediction as {}'.format(output_filename))
         
         if not os.path.isdir(output_dir):

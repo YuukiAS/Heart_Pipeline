@@ -101,13 +101,17 @@ if __name__ == "__main__":
                 h5_file.create_dataset("image_seqs", data=tag)
 
         logger.info(f"{subject}: Running prediction pipeline for tagged MRI")
-        os.system(f"python {config.lib_dir}/Tagged_20211/prediction_pipeline.py --data_path={sub_dir}/tag_hdf5")
+        os.makedirs(os.path.join(sub_dir, "visualization", "ventricle"), exist_ok=True)
+        gif_path = os.path.join(sub_dir, "visualization", "ventricle")
+        os.system(
+            f"python {config.lib_dir}/Tagged_20211/prediction_pipeline.py --data_path={sub_dir}/tag_hdf5 --gif_path={gif_path}"
+        )
 
         logger.info(f"{subject}: Extracting strain features from prediction pipeline")
         names = ["basal", "mid", "apical"]
-        os.makedirs(os.path.join(sub_dir, "time_series"), exist_ok=True)
+        os.makedirs(os.path.join(sub_dir, "timeseries"), exist_ok=True)
         for i, _ in enumerate(tags):
-            with h5py.File(os.path.join(sub_dir, f"tag{i + 1}.result.h5"), "r") as h5_file:
+            with h5py.File(os.path.join(sub_dir, "tag_hdf5", f"tag{i + 1}_result.h5"), "r") as h5_file:
                 # circumferential strain
                 circum_strain = h5_file["cc_linear_strains"][:]  # linear strain
                 circum_strain = circum_strain[0, :, 7]
@@ -118,7 +122,9 @@ if __name__ == "__main__":
                 plt.plot(circum_strain_squared)
                 plt.legend(["linear strain", "squared strain"])
                 plt.title(f"{ID}: Tagged Circumferential Strain in {names[i]} slice")
-                plt.savefig(os.path.join(sub_dir, f"time_series/circum_strain_{names[i]}.png"))
+                plt.xlabel("Time [frame]")
+                plt.ylabel("Strain [%]")
+                plt.savefig(os.path.join(sub_dir, f"timeseries/tagged_circum_strain_{names[i]}.png"))
                 plt.close()
 
                 # radial strain
@@ -130,7 +136,9 @@ if __name__ == "__main__":
                 plt.plot(radial_strain_squared)
                 plt.legend(["linear strain", "squared strain"])
                 plt.title(f"{ID}: Tagged Radial Strain in {names[i]} slice")
-                plt.savefig(os.path.join(sub_dir, f"time_series/radial_strain_{names[i]}.png"))
+                plt.xlabel("Time [frame]")
+                plt.ylabel("Strain [%]")
+                plt.savefig(os.path.join(sub_dir, f"timeseries/tagged_radial_strain_{names[i]}.png"))
                 plt.close()
 
                 feature_dict.update(

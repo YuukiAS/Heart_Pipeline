@@ -107,9 +107,9 @@ def generate_scripts(
                             )
                         else:
                             logger.info(f"{subject}: Segmentation for aortic distensibility already exists, skip.")
-                    if "tag" in modality:
-                        # todo Incorporate Segmentation network
-                        pass
+        
+                    # * Tagged MRI incorporates segmentation during processing, its segmentation will not be handled here
+
                     if "lvot" in modality:
                         if not check_existing_file(["seg_lvot.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for LVOT'\n")

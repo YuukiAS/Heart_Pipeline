@@ -138,8 +138,8 @@ if __name__ == "__main__":
         ascending_aorta_patch = mpatches.Patch(color='blue', label='Ascending Aorta')
         descending_aorta_patch = mpatches.Patch(color='red', label='Descending Aorta')
         plt.legend(handles=[ascending_aorta_patch, descending_aorta_patch], loc='upper right')
-        os.makedirs(os.path.join(sub_dir, "visualization"), exist_ok=True)
-        plt.savefig(os.path.join(sub_dir, "visualization", "aortic_area.png"))
+        os.makedirs(os.path.join(sub_dir, "visualization", "aorta"), exist_ok=True)
+        plt.savefig(os.path.join(sub_dir, "visualization", "aorta", "aortic_area.png"))
         plt.close()
 
         areas_list = {}
@@ -151,14 +151,15 @@ if __name__ == "__main__":
                 areas_list[label].append(A_label)
 
         # Time series plot of areas
-        os.makedirs(os.path.join(sub_dir, "time_series"), exist_ok=True)
+        logger.info(f"{subject}: Plotting time series of aortic areas")
+        os.makedirs(os.path.join(sub_dir, "timeseries"), exist_ok=True)
         plt.plot(areas_list["AAo"], label="Ascending Aorta")
         plt.plot(areas_list["DAo"], label="Descending Aorta")
         plt.xlabel("Time Frame")
         plt.ylabel("Area [mm^2]")
         plt.legend()
         plt.title("Aortic Area Time Series")
-        plt.savefig(os.path.join(sub_dir, "time_series", "aortic_area.png"))
+        plt.savefig(os.path.join(sub_dir, "timeseries", "aortic_area.png"))
         plt.close()
 
         try:
@@ -191,7 +192,7 @@ if __name__ == "__main__":
         df = pd.concat([df, df_row], ignore_index=True)
 
     target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
-    target_dir = os.path.join(target_dir, "aorta_distensibility")
+    target_dir = os.path.join(target_dir, "aortic_distensibility")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
     df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), index=False)

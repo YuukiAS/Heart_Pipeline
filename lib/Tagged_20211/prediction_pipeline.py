@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", help="Path to the HDF5 data", type=str, required=True)
 parser.add_argument("--show_images", help="Show the first cine to screen or save", type=bool, default=True)
 parser.add_argument("--save_to_gif", help="Save to gif is only used when show_images is True", type=bool, default=True)
+parser.add_argument("--gif_path", help="Path to save the gif", type=str, default=None)
 
 
 # ============== Data path ==============
@@ -43,10 +44,10 @@ if __name__ == "__main__":
     show_images = args.show_images
     save_to_gif = args.save_to_gif
     data_path = args.data_path
+    gif_path = args.gif_path
 
+    output_path = data_path
     subject_path = os.path.dirname(data_path)
-    gif_path = os.path.join(subject_path, "visualization")
-    output_path = subject_path
 
     # traverse the input folder, keep as array to combine later
     files = os.listdir(data_path)

@@ -111,7 +111,7 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, useECG, num_sub
                 if "tag" in modality:
                     file_script.write("echo 'Extract features for cirumferential and radial strain using tagged MRI'\n")
                     file_script.write(
-                        f"python -u ./src/feature_extraction/Aortic_Distensibility_20211/eval_strain_tagged.py "
+                        f"python -u ./src/feature_extraction/Tagged_20211/eval_strain_tagged.py "
                         f"{retest_str} --file_name=strain_tagged_{file_i} --data_list {sub_file_i_str} \n"
                     )
 

@@ -157,6 +157,7 @@ if __name__ == "__main__":
             # Make some visualizations
             plt.imshow(lvot[:, :, 0, t], cmap="gray")
             plt.imshow(mask1_2_nan, cmap="jet", alpha=0.5)
+            plt.title(f"LVOT: Time Frame {t}")
             plt.scatter(*zip(*top_two), c="blue", s=4, label="Sinotubular Junction")
             plt.scatter(*zip(*bottom_two), c="red", s=4, label="Aortic Valve Annulus")
             plt.scatter(*zip(*middle_two), c="green", s=4, label="Aortic Sinuses")
