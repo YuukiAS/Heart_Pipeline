@@ -54,6 +54,7 @@ if __name__ == "__main__":
     )
     sitk.WriteImage(aorta_volume_resampled, aorta_name)  # update the volume
 
+    # output file will be named as seg_aortic_scout.nii.gz
     single_image_segmentation(
         image_path=aorta_name, 
         data_output_path=data_dir,

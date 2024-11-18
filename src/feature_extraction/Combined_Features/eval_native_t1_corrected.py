@@ -25,6 +25,8 @@ if __name__ == "__main__":
     data_dir = config.data_visit2_dir if args.retest else config.data_visit1_dir
     features_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
 
+    # * To calculate the corrected native T1 value, we need to obtain the mean of uncorrected ones in first round
+
     t1_features_csv = os.path.join(features_dir, "aggregated", "native_t1_uncorrected.csv")
     t1_features_csv = pd.read_csv(t1_features_csv)
     # exclude nan values (failed subjects)

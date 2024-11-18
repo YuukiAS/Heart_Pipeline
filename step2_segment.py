@@ -14,7 +14,7 @@ from utils.slurm_utils import generate_header_cpu, generate_header_gpu
 
 from utils.log_utils import setup_logging
 
-logger = setup_logging("main: segment(baseline)")
+logger = setup_logging("main: segment")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--overwrite", action="store_true", help="Overwrite the existing segmentation files")
@@ -54,57 +54,77 @@ def generate_scripts(
                     subject = sub_total[sub_i - 1]  # subject ID
                     sub_dir = os.path.join(data_dir, subject)
 
+                    write_script = False
+
                     if "aortic_scout" in modality:
-                        if not check_existing_file(["aortic_scout.nii.gz"], sub_dir) or overwrite:
+                        if not check_existing_file(["seg_aortic_scout.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["aortic_scout.nii.gz"], sub_dir):
+                                # no original file
+                                continue
                             file_script.write(f"echo '{subject}: Generate segmentation for aortic scout'\n")
                             file_script.write(
                                 "python ./src/segmentation/Aortic_Scout_20207/segment_aortic_scout.py " f"--data_dir {sub_dir}\n"
                             )
-
+                            write_script = True
                     if "la" in modality:
                         if not check_existing_file(["seg_la_2ch.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["la_2ch.nii.gz"], sub_dir):
+                                continue
                             file_script.write(f"echo '{subject}: Generate segmentation for vertical long axis'\n")
                             file_script.write(
                                 "python ./src/segmentation/Long_Axis_20208/segment_la.py "
                                 f"--modality 2ch --data_dir {sub_dir}\n"
                             )
+                            write_script = True
                         else:
                             logger.info(f"{subject}: Segmentation for vertical long axis already exists, skip.")
 
                         # Segmentation that include only atriums
                         if not check_existing_file(["seg_la_4ch.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["la_4ch.nii.gz"], sub_dir):
+                                continue
                             file_script.write(f"echo '{subject}: Generate segmentation for horizontal long axis (2 chambers)'\n")
                             file_script.write(
                                 "python ./src/segmentation/Long_Axis_20208/segment_la.py "
                                 f"--modality 4ch --data_dir {sub_dir}\n"
                             )
+                            write_script = True
                         else:
                             logger.info(f"{subject}: Segmentation for horizontal long axis (2 chambers) already exists, skip.")
 
                         # Segmentation that include all four ventricles and atriums
                         if not check_existing_file(["seg4_la_4ch.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["la_4ch.nii.gz"], sub_dir):
+                                continue
                             file_script.write(f"echo '{subject}: Generate segmentation for horizontal long axis (4 chambers)'\n")
                             file_script.write(
                                 "python ./src/segmentation/Long_Axis_20208/segment_la.py "
                                 f"--modality 4ch_4chamber --data_dir {sub_dir}\n"
                             )
+                            write_script = True
                         else:
                             logger.info(f"{subject}: Segmentation for horizontal long axis (4 chambers) already exists, skip.")
 
                     if "sa" in modality:
                         if not check_existing_file(["seg_sa.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["sa.nii.gz"], sub_dir):
+                                continue
                             file_script.write(f"echo '{subject}: Generate segmentation for short axis'\n")
                             file_script.write(f"python ./src/segmentation/Short_Axis_20209/segment_sa.py --data_dir {sub_dir}\n")
+                            write_script = True
                         else:
                             logger.info(f"{subject}: Segmentation for short axis already exists, skip.")
 
                     if "aortic_dist" in modality:
                         if not check_existing_file(["seg_aortic_dist.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["aortic_dist.nii.gz"], sub_dir):
+                                continue
                             file_script.write(f"echo '{subject}: Generate segmentation for aortic distensibility'\n")
                             file_script.write(
                                 "python ./src/segmentation/Aortic_Distensibility_20210/segment_aortic_dist.py "
                                 f"--data_dir {sub_dir}\n"
                             )
+                            write_script = True
                         else:
                             logger.info(f"{subject}: Segmentation for aortic distensibility already exists, skip.")
         
@@ -112,6 +132,9 @@ def generate_scripts(
 
                     if "lvot" in modality:
                         if not check_existing_file(["seg_lvot.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["lvot.nii.gz"], sub_dir):
+                                # no original file
+                                continue
                             file_script.write(f"echo '{subject}: Generate segmentation for LVOT'\n")
                             file_script.write(
                                 "python ./src/segmentation/LVOT_20212/preprocess_lvot.py " f"--data_dir {sub_dir}\n"
@@ -122,14 +145,32 @@ def generate_scripts(
                                 "python ./src/segmentation/LVOT_20212/segment_lvot.py "
                                 f"--data_dir {sub_dir} --model {config.model_used['lvot']}\n"
                             )
+                            file_script.write("conda deactivate\n")
+                            write_script = True
                         else:
                             logger.info(f"{subject}: Segmentation for LVOT already exists, skip.")
                     if "aortic_blood_flow" in modality:
                         # todo No segmentation network right now
                         pass
                     if "shmolli" in modality:
-                        # todo No segmentation network right now
-                        pass
+                        if not check_existing_file(["seg_shmolli_t1map.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["shmolli_t1map.nii.gz"], sub_dir):
+                                # no original file
+                                continue
+                            file_script.write(f"echo '{subject}: Generate segmentation for Native T1 Mapping'\n")
+                            file_script.write(f"conda activate {config.model_envs[config.model_used['shmolli']]}\n")
+                            file_script.write("source ./env_variable.sh\n")
+                            file_script.write(
+                                "python ./src/segmentation/Native_T1_20214/segment_native_t1.py "
+                                f"--data_dir {sub_dir} --model {config.model_used['shmolli']}\n"
+                            )
+                            file_script.write("conda deactivate\n")
+                            write_script = True
+                        else:
+                            logger.info(f"{subject}: Segmentation for Native T1 Mapping already exists, skip.")
+
+                    if write_script:
+                        file_script.write("\n")
 
                 file_script.write("echo 'Finished!'\n")
 
@@ -145,9 +186,9 @@ if __name__ == "__main__":
     os.makedirs(code_dir, exist_ok=True)
 
     logger.info("Generate scripts to segment for visit1 data")
-    generate_scripts(pipeline_dir, data_visit1_dir, code_dir, modality)
+    generate_scripts(pipeline_dir, data_visit1_dir, code_dir, modality, cpu=False)
     if retest_suffix is not None:
         logger.info("Generate scripts to segment for visit2 data")
-        generate_scripts(pipeline_dir, data_visit2_dir, code_dir, modality, retest_suffix=retest_suffix)
+        generate_scripts(pipeline_dir, data_visit2_dir, code_dir, modality, retest_suffix=retest_suffix, cpu=False)
     else:
         logger.info("No retest_suffix is provided, only visit1 data will be segmented")

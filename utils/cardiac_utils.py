@@ -252,8 +252,8 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
         elif (deg >= -90) and (deg < -30):
             seg_id = 6
         else:
-            print("Error: wrong degree {0}!".format(deg))
-            exit(0)
+            logger.error("Error: wrong degree {0}!".format(deg))
+            exit(1)
     elif part == "mid":
         if (deg >= -30) and (deg < 30):
             seg_id = 7
@@ -268,8 +268,8 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
         elif (deg >= -90) and (deg < -30):
             seg_id = 12
         else:
-            print("Error: wrong degree {0}!".format(deg))
-            exit(0)
+            logger.error("Error: wrong degree {0}!".format(deg))
+            exit(1)
     elif part == "apical":
         if (deg >= -45) and (deg < 45):
             seg_id = 13
@@ -280,13 +280,13 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
         elif (deg >= -135) and (deg < -45):
             seg_id = 16
         else:
-            print("Error: wrong degree {0}!".format(deg))
-            exit(0)
+            logger.error("Error: wrong degree {0}!".format(deg))
+            exit(1)
     elif part == "apex":
         seg_id = 17
     else:
-        print("Error: unknown part {0}!".format(part))
-        exit(0)
+        logger.error("Error: unknown part {0}!".format(part))
+        exit(1)
     return seg_id
 
 
@@ -1920,8 +1920,8 @@ def plot_bulls_eye(data, vmin, vmax, cmap="Reds", color_line="black"):
     data: values for 16 segments
     """
     if len(data) != 16:
-        print("Error: len(data) != 16!")
-        exit(0)
+        logger.error("Error: len(data) != 16!")
+        exit(1)
 
     # The cartesian coordinate and the polar coordinate
     x = np.linspace(-1, 1, 201)
@@ -2235,10 +2235,10 @@ def evaluate_valve_diameter(
         fig = plt.figure(figsize=(9, 6))
         plt.imshow(label_t, cmap="gray")
         plt.title(f"Valve Landmarks (Timeframe = {t})")
-        plt.scatter(*zip(*LV_lm), c="red", s=4, label="Landmark 1 (Mitral)")
-        plt.scatter(*zip(*LA_lm), c="orange", s=4, label="Landmark 2 (Mitral)")
-        plt.scatter(*zip(*RV_lm), c="blue", s=4, label="Landmark 3 (Tricuspid)")
-        plt.scatter(*zip(*RA_lm), c="cyan", s=4, label="Landmark 4 (Tricuspid)")
+        plt.scatter(*zip(*LV_lm), c="red", s=8, label="Landmark 1 (Mitral)")
+        plt.scatter(*zip(*LA_lm), c="orange", s=8, label="Landmark 2 (Mitral)")
+        plt.scatter(*zip(*RV_lm), c="blue", s=8, label="Landmark 3 (Tricuspid)")
+        plt.scatter(*zip(*RA_lm), c="cyan", s=8, label="Landmark 4 (Tricuspid)")
         plt.plot([LV_lm[0][0], LV_lm[1][0]], [LV_lm[0][1], LV_lm[1][1]], c="gray", linewidth=1.5)
         plt.plot([LA_lm[0][0], LA_lm[1][0]], [LA_lm[0][1], LA_lm[1][1]], c="gray", linestyle="--", linewidth=1.5)
         plt.plot([RV_lm[0][0], RV_lm[1][0]], [RV_lm[0][1], RV_lm[1][1]], c="gold", linewidth=1.5)
@@ -2727,7 +2727,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
             z2 = round(z2)
 
             if z1 != z2:
-                print(z1)
+                logger.error(f"{z1} and {z2} are not on the same slice")
                 raise ValueError("The line is not on the same slice")
 
             if z1 == basal_slice:
@@ -2797,9 +2797,14 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
 
 
 def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple[float, float], labels):
+    """
+    Determine the global native T1 values as well as those for inter-ventricular septum (IVS), free-wall (FW) and blood pools.
+    """
     seg_LV = np.zeros_like(seg_ShMOLLI)
+    seg_myo = np.zeros_like(seg_ShMOLLI)
     seg_RV = np.zeros_like(seg_ShMOLLI)
     seg_LV = np.where(seg_ShMOLLI == labels["LV"], 1, seg_LV)
+    seg_myo = np.where(seg_ShMOLLI == labels["Myo"], 1, seg_myo)
     seg_RV = np.where(seg_ShMOLLI == labels["RV"], 1, seg_RV)
     seg_LV = get_largest_cc(seg_LV)
     seg_RV = get_largest_cc(seg_RV)
@@ -2840,9 +2845,8 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     # swap axis to align with lm
     LV_barycenter = np.array([LV_barycenter[1], LV_barycenter[0]])
 
-    # todo: This part may be improved, as we don't have accurate segmentation of myo
-    seg_LV_dilated_for_myo = binary_dilation(seg_LV, iterations=6)
-    seg_myo = np.where((seg_LV_dilated_for_myo == 1) & (seg_LV == 0), 1, 0)
+    # seg_LV_dilated_for_myo = binary_dilation(seg_LV, iterations=6)
+    # seg_myo = np.where((seg_LV_dilated_for_myo == 1) & (seg_LV == 0), 1, 0)
 
     seg_myo_IVS = np.zeros_like(seg_ShMOLLI, dtype=np.uint8)  # define intraventricular septum
     seg_myo_IVS = np.ascontiguousarray(seg_myo_IVS)
@@ -2858,8 +2862,10 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
 
     triangle_contour = np.array([lm1_distant, lm2_distant, LV_barycenter]).astype(int)
     cv2.fillPoly(seg_myo_IVS, [triangle_contour], 1)
-    seg_myo_IVS = seg_myo_IVS & seg_myo
+    seg_myo_IVS = np.where(seg_myo == 1, seg_myo_IVS, 0)
+    seg_myo_IVS = get_largest_cc(seg_myo_IVS)
     seg_myo_FW = seg_myo - seg_myo_IVS
+    seg_myo_FW = get_largest_cc(seg_myo_FW)
 
     seg_myo_IVS_eroded = binary_erosion(get_largest_cc(seg_myo_IVS), iterations=2)
     seg_myo_FW_eroded = binary_erosion(get_largest_cc(seg_myo_FW), iterations=2)
@@ -2899,13 +2905,16 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     plt.subplot(1, 3, 1)
     plt.imshow(img_ShMOLLI, cmap="gray")
     plt.imshow(seg_myo_IVS_eroded, cmap="gray", alpha=0.5)
-    plt.scatter(lm1[0], lm1[1], c="r")
-    plt.scatter(lm2[0], lm2[1], c="r")
-    plt.scatter(LV_barycenter[0], LV_barycenter[1], c="blue")
+    plt.scatter(lm1[0], lm1[1], c="r", s=8)
+    plt.scatter(lm2[0], lm2[1], c="r", s=8)
+    plt.scatter(LV_barycenter[0], LV_barycenter[1], c="blue", s=8)
+    plt.title("Intraventricular septum (IVS)")
     plt.subplot(1, 3, 2)
     plt.imshow(img_ShMOLLI, cmap="gray")
     plt.imshow(seg_myo_FW_eroded, cmap="gray", alpha=0.5)
+    plt.title("Free wall (FW)")
     plt.subplot(1, 3, 3)
     plt.imshow(img_ShMOLLI, cmap="gray")
     plt.imshow(seg_blood_eroded, cmap="gray", alpha=0.5)
+    plt.title("Blood pool")
     return (T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood.mean(), figure)

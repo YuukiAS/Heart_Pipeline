@@ -110,6 +110,10 @@ if __name__ == "__main__":
             bottom_two_real = [np.dot(affine, np.array([*point, 0, 1]))[:3] for point in bottom_two]
 
             # unit: mm
+            if len(top_two_real) != 2 or len(bottom_two_real) != 2:
+                logger.warning(f"{subject}-Timeframe {t}: Not enough corners detected")
+                continue
+
             diameter_sinotubular = np.linalg.norm(np.array(top_two_real[0]) - np.array(top_two_real[1]))
             L["sinotubular_junction"].append(diameter_sinotubular)
             diameter_annulus = np.linalg.norm(np.array(bottom_two_real[0]) - np.array(bottom_two_real[1]))

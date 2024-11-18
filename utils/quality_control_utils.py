@@ -211,12 +211,13 @@ def lvot_pass_quality_control(seg_lvot_name, t=0):
     return True
 
 
-
-def t1_pass_quality_control(seg_ShMOLLI_name, label_dict):
+def shmolli_pass_quality_control(seg_ShMOLLI_name, label_dict):
     nim = nib.load(seg_ShMOLLI_name)
     seg = nim.get_fdata()
-    if seg.ndim != 2:
-        raise ValueError("The segmentation should be 2D.")
+    if seg.ndim != 4:
+        raise ValueError("The segmentation should be 3D + t.")
+    # Note actually there is only one frame and one slice
+    seg = seg[:, :, 0, 0]
 
     for l_name, l_value in label_dict.items():
         # Criterion 1: every class exists and the area is above a threshold

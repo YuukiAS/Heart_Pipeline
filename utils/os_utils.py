@@ -122,12 +122,15 @@ def obtain_files_segmented(subject: str, ID: int, name: str, target_name: str):
     imagesTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "imagesTs")
     labelsTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "labelsTs")  # used to store predictions
 
-    pattern_image = re.compile(r".*_(\d{2})_(\d{2})_0000\.nii\.gz$")
-    pattern_label = re.compile(r".*_(\d{2})_(\d{2})\.nii\.gz$")
+    # pattern_image = re.compile(r".*_(\d{2})_(\d{2})_0000\.nii\.gz$")
+    pattern_image = re.compile(rf"{name}_{subject}_(\d{{2}})_(\d{{2}})_0000\.nii\.gz$")
+    # pattern_label = re.compile(r".*_(\d{2})_(\d{2})\.nii\.gz$")
+    pattern_label = re.compile(rf"{name}_{subject}_(\d{{2}})_(\d{{2}})\.nii\.gz$")
     slice_indices = []
     timeframe_indices = []
 
     file_first = None
+    nii_file_first_header = None
     for file_name in os.listdir(labelsTs_folder):
         match = pattern_label.match(file_name)
         if match:
@@ -138,6 +141,7 @@ def obtain_files_segmented(subject: str, ID: int, name: str, target_name: str):
 
             if not file_first:
                 file_first = os.path.join(labelsTs_folder, file_name)
+                nii_file_first_header = nib.load(file_first).header
 
     S = max(slice_indices) + 1
     T = max(timeframe_indices) + 1
@@ -172,6 +176,6 @@ def obtain_files_segmented(subject: str, ID: int, name: str, target_name: str):
         if match:
             os.remove(os.path.join(labelsTs_folder, file_name))
     
-    nii_file = nib.Nifti1Image(nii, nii_affine, nib.load(file_first).header)
-    nii_file.header["pixdim"][1:4] = nib.load(file_first).header["pixdim"][1:4]
+    nii_file = nib.Nifti1Image(nii, nii_affine, nii_file_first_header)
+    nii_file.header["pixdim"][1:4] = nii_file_first_header["pixdim"][1:4]
     nib.save(nii_file, target_name)
