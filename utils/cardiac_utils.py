@@ -17,6 +17,7 @@ import math
 import numpy as np
 import nibabel as nib
 import cv2
+from collections import OrderedDict
 import vtk
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -1211,120 +1212,144 @@ def determine_axes(label_i, nim, long_axis):
     return major_axis, minor_axis, image_line_major, image_line_minor
 
 
-def determine_avpd_landmark(seg4: Tuple[float, float], major_axis, image_line_major):
+def determine_valve_landmark(seg4: Tuple[float, float]):
     """
-    Determine the landmark for the atriovetricular (AV) plane so that AVPD can be measured.
-    Currently, we only consider the AV of LV.
+    Determine the landmark for valves, so that valve diameter as well as AVPD can be measured.
 
     Parameters
     ----------
-    seg : Tuple[float, float]
+    seg4 : Tuple[float, float]
         The segmentation of all four chambers and myocardium in the long-axis image.
-    major_axis : np.array
-        The major axis.
-    image_line_major : np.array
-        The line that represents the major axis in the image, can be obtained using determine_axes().
     """
+    seg_LV = seg4 == 1
+    seg_LV = seg_LV.astype(np.uint8)
+    seg_LV = np.ascontiguousarray(seg_LV)
+    seg_LV_contours, _ = cv2.findContours(seg_LV, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    seg_LV_contour = seg_LV_contours[0]
+    seg_LV_border = np.zeros_like(seg_LV)
+    cv2.drawContours(seg_LV_border, seg_LV_contours, -1, 1, 1)
+    seg_LV_coords = np.column_stack(np.where(seg_LV))
+    seg_LV_coords = np.column_stack([seg_LV_coords[:, 1], seg_LV_coords[:, 0]])
 
-    # seg_LV = seg4 == 1
-    seg_Myo = seg4 == 2
     seg_RV = seg4 == 3
+    seg_RV = seg_RV.astype(np.uint8)
+    seg_RV = np.ascontiguousarray(seg_RV)
+    seg_RV_contours, _ = cv2.findContours(seg_RV, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    seg_RV_contour = seg_RV_contours[0]
+    seg_RV_border = np.zeros_like(seg_RV)
+    cv2.drawContours(seg_RV_border, seg_RV_contours, -1, 1, 1)
+    seg_RV_coords = np.column_stack(np.where(seg_RV))
+    seg_RV_coords = np.column_stack([seg_RV_coords[:, 1], seg_RV_coords[:, 0]])
 
-    # image_line_LV = image_line_major * seg_LV
-    image_line_LV = image_line_major
-    points_line_LV = np.nonzero(image_line_LV)
-    points_line_LV = np.array(list(zip(points_line_LV[0], points_line_LV[1])))
+    seg_LA = seg4 == 4
+    seg_LA = seg_LA.astype(np.uint8)
+    seg_LA = np.ascontiguousarray(seg_LA)
+    seg_LA_contours, _ = cv2.findContours(seg_LA, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    seg_LA_contour = seg_LA_contours[0]
+    seg_LA_border = np.zeros_like(seg_LA)
+    cv2.drawContours(seg_LA_border, seg_LA_contours, -1, 1, 1)
+    seg_LA_coords = np.column_stack(np.where(seg_LA))
+    seg_LA_coords = np.column_stack([seg_LA_coords[:, 1], seg_LA_coords[:, 0]])
 
-    points_Myo_raw = np.nonzero(seg_Myo)  # We need two points from Myo
+    seg_RA = seg4 == 5
+    seg_RA = seg_RA.astype(np.uint8)
+    seg_RA = np.ascontiguousarray(seg_RA)
+    seg_RA_contours, _ = cv2.findContours(seg_RA, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    seg_RA_contour = seg_RA_contours[0]
+    seg_RA_border = np.zeros_like(seg_RA)
+    cv2.drawContours(seg_RA_border, seg_RA_contours, -1, 1, 1)
+    seg_RA_coords = np.column_stack(np.where(seg_RA))
+    seg_RA_coords = np.column_stack([seg_RA_coords[:, 1], seg_RA_coords[:, 0]])
 
-    points_RV_raw = np.nonzero(seg_RV)  # We need two point from RV
-    barycenter_RV = np.mean(points_RV_raw, axis=1)
-    # make a parallel line to the major axis based on barycenter
-    image_line_RV_p1 = (int(barycenter_RV[1] + 30 * major_axis[1]), int(barycenter_RV[0] + 30 * major_axis[0]))
-    image_line_RV_p2 = (int(barycenter_RV[1] - 30 * major_axis[1]), int(barycenter_RV[0] - 30 * major_axis[0]))
+    # * From cloest point in LA to LV
+    seg_LA_epsilon = 0.01
+    seg_LA_corners = cv2.approxPolyDP(seg_LA_contour, seg_LA_epsilon * cv2.arcLength(seg_LA_contour, True), True)
+    while len(seg_LA_corners) > 4:
+        seg_LA_epsilon += 0.01
+        seg_LA_corners = cv2.approxPolyDP(seg_LA_contour, seg_LA_epsilon * cv2.arcLength(seg_LA_contour, True), True)
+    if seg_LA_epsilon > 0.1:
+        raise ValueError("Too many corners for LA detected")
 
-    image_line_RV = np.zeros_like(seg4, dtype=np.uint8)
-    image_line_RV = np.ascontiguousarray(image_line_RV)
-    image_line_RV = cv2.line(image_line_RV, image_line_RV_p1, image_line_RV_p2, 255, 1)
-    # image_line_RV = image_line_RV * seg_RV
-    points_line_RV = np.nonzero(image_line_RV)
-    points_line_RV = np.array(list(zip(points_line_RV[0], points_line_RV[1])))
+    seg_LA_corner_points = [(point[0][0], point[0][1]) for point in seg_LA_corners]
 
-    points_RV = []
-    points_Myo = []
-
-    for i in range(len(points_RV_raw[0])):
-        x = points_RV_raw[0][i]
-        y = points_RV_raw[1][i]
-        points_RV.append((x, y, np.dot([x, y], major_axis)))
-    points_RV = np.array(points_RV)
-    points_RV = points_RV[points_RV[:, 2].argsort()][:, :2]
-
-    for i in range(len(points_Myo_raw[0])):
-        x = points_Myo_raw[0][i]
-        y = points_Myo_raw[1][i]
-        points_Myo.append((x, y, np.dot([x, y], major_axis)))
-    points_Myo = np.array(points_Myo)
-    points_Myo = points_Myo[points_Myo[:, 2].argsort()][:, :2]
-
-    # def _point_line_side(point, line_points):
-    #     """
-    #     Determine which side of a line a point is on. We can then determine two points by different signs.
-    #     """
-    #     if point.shape != (2,):
-    #         raise ValueError("point should be in shape (2,)")
-    #     if line_points.shape[1] != 2:
-    #         raise ValueError("line_points should be in shape (n,2)")
-    #     # Calculate the distance from the point to each point on the line
-    #     distances = np.sum((line_points - point) ** 2, axis=1)
-    #     # Find the two closest points
-    #     closest_points = line_points[np.argsort(distances)[:2]]
-    #     # Calculate the directed distance from the point to the line formed by the two closest points
-    #     return np.cross(closest_points[1] - closest_points[0], point - closest_points[0]) > 0
-
-    def _fit_line(line_points):
-        # Fit line y = mx + c
-        x = line_points[:, 0]
-        y = line_points[:, 1]
-        slope, intercept = np.polyfit(x, y, 1)
-        return slope, intercept
-
-    def _point_line_side(point, line_points):
-        """
-        Fit a line to the given points and determine which side of the line the point is on.
-        """
-        if point.shape != (2,):
-            raise ValueError("point should be in shape (2,)")
-        if line_points.ndim != 2:
-            raise ValueError("line_points should be in shape (n,2)")
-        if line_points.shape[1] != 2:
-            raise ValueError("line_points should be in shape (n,2)")
-        if line_points.shape[0] < 8:
-            raise ValueError("line_points contain too few points")
-        slope, intercept = _fit_line(line_points)
+    LA_LV_distances = []
+    for point in seg_LV_coords:
         x, y = point
-        # Calculate the y value on the line at the given x
-        line_y = slope * x + intercept
-        # If point's y is greater than line_y, it's above the line; otherwise, it's below
-        return y > line_y
+        for corner in seg_LA_corner_points:
+            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
+            LA_LV_distances.append((distance, corner))
+    LA_LV_distances.sort(key=lambda x: x[0])
+    LA_LV_sorted_corners = [corner for _, corner in LA_LV_distances]
+    LA_LV_unique_corners = list(OrderedDict.fromkeys(LA_LV_sorted_corners))
+    LA_lm = LA_LV_unique_corners[:2]
 
-    lm1 = lm2 = lm3 = lm4 = None
-    for i in range(points_RV.shape[0]):
-        if lm1 is not None and lm2 is not None:
-            break
-        if _point_line_side(points_RV[i], points_line_RV) and lm1 is None:
-            lm1 = points_RV[i]
-        elif not _point_line_side(points_RV[i], points_line_RV) and lm2 is None:
-            lm2 = points_RV[i]
-    for i in range(points_Myo.shape[0]):
-        if lm3 is not None and lm4 is not None:
-            break
-        if _point_line_side(points_Myo[i], points_line_LV) and lm3 is None:
-            lm3 = points_Myo[i]
-        elif not _point_line_side(points_Myo[i], points_line_LV) and lm4 is None:
-            lm4 = points_Myo[i]
+    # * From closest point in LV to LA
+    seg_LV_epsilon = 0.01
+    seg_LV_corners = cv2.approxPolyDP(seg_LV_contour, seg_LV_epsilon * cv2.arcLength(seg_LV_contour, True), True)
+    while len(seg_LV_corners) > 4:
+        seg_LV_epsilon += 0.01
+        seg_LV_corners = cv2.approxPolyDP(seg_LV_contour, seg_LV_epsilon * cv2.arcLength(seg_LV_contour, True), True)
+    if seg_LV_epsilon > 0.1:
+        raise ValueError("Too many corners for LV detected")
 
-    return ([lm1, lm2, lm3, lm4], points_line_LV, points_line_RV)
+    seg_LV_corner_points = [(point[0][0], point[0][1]) for point in seg_LV_corners]
+
+    LV_LA_distances = []
+    for point in seg_LA_coords:
+        x, y = point
+        for corner in seg_LV_corner_points:
+            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
+            LV_LA_distances.append((distance, corner))
+    LV_LA_distances.sort(key=lambda x: x[0])
+    LV_LA_sorted_corners = [corner for _, corner in LV_LA_distances]
+    LV_LA_unique_corners = list(OrderedDict.fromkeys(LV_LA_sorted_corners))
+    LV_lm = LV_LA_unique_corners[:2]
+
+    # * From closest point in RA to RV
+    seg_RA_epsilon = 0.01
+    seg_RA_corners = cv2.approxPolyDP(seg_RA_contour, seg_RA_epsilon * cv2.arcLength(seg_RA_contour, True), True)
+    while len(seg_RA_corners) > 4:
+        seg_RA_epsilon += 0.01
+        seg_RA_corners = cv2.approxPolyDP(seg_RA_contour, seg_RA_epsilon * cv2.arcLength(seg_RA_contour, True), True)
+    if seg_RA_epsilon > 0.1:
+        raise ValueError("Too many corners for RA detected")
+
+    seg_RA_corner_points = [(point[0][0], point[0][1]) for point in seg_RA_corners]
+
+    RA_RV_distances = []
+    for point in seg_RV_coords:
+        x, y = point
+        for corner in seg_RA_corner_points:
+            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
+            RA_RV_distances.append((distance, corner))
+    RA_RV_distances.sort(key=lambda x: x[0])
+    RA_RV_sorted_corners = [corner for _, corner in RA_RV_distances]
+    RA_RV_unique_corners = list(OrderedDict.fromkeys(RA_RV_sorted_corners))
+    RA_lm = RA_RV_unique_corners[:2]
+
+    # * From closest point in RV to RA
+    seg_RV_epsilon = 0.01
+    seg_RV_corners = cv2.approxPolyDP(seg_RV_contour, seg_RV_epsilon * cv2.arcLength(seg_RV_contour, True), True)
+    while len(seg_RV_corners) > 4:
+        seg_RV_epsilon += 0.01
+        seg_RV_corners = cv2.approxPolyDP(seg_RV_contour, seg_RV_epsilon * cv2.arcLength(seg_RV_contour, True), True)
+    if seg_RV_epsilon > 0.1:
+        raise ValueError("Too many corners for RV detected")
+
+    seg_RV_corner_points = [(point[0][0], point[0][1]) for point in seg_RV_corners]
+
+    RV_RA_distances = []
+    for point in seg_RA_coords:
+        x, y = point
+        for corner in seg_RV_corner_points:
+            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
+            RV_RA_distances.append((distance, corner))
+    RV_RA_distances.sort(key=lambda x: x[0])
+    RV_RA_sorted_corners = [corner for _, corner in RV_RA_distances]
+    RV_RA_unique_corners = list(OrderedDict.fromkeys(RV_RA_sorted_corners))
+    RV_lm = RV_RA_unique_corners[:2]
+        
+    return LV_lm, LA_lm, RV_lm, RA_lm
 
 
 def determine_la_aha_part(seg_la, affine_la, affine_sa):
@@ -2182,6 +2207,63 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
     return A, L, landmarks
 
 
+def evaluate_valve_diameter(
+    label_la_seg4: Tuple[float, float, float, float],
+    nim_la: nib.nifti1.Nifti1Image,
+    t,
+    display=False,
+):
+    """
+    Calculate the mitral valve and tricuspid valve diameters at end-diastole and end-systole using 4 chamber long axis images.
+    """
+    # Similar setting as evaluate_AVPD()
+    if label_la_seg4.ndim != 4:
+        raise ValueError("The label_la should be a 4D image.")
+    if len(np.unique(label_la_seg4)) != 6:
+        raise ValueError("The label_la_seg4 should have segmentation for all four chambers.")
+    
+    label_t = label_la_seg4[:, :, 0, t]
+
+    # * We use the average of ventricles and atriums
+    LV_lm, LA_lm, RV_lm, RA_lm = determine_valve_landmark(label_t)
+    
+    LV_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], LV_lm))
+    LA_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], LA_lm))
+    RV_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], RV_lm))
+    RA_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], RA_lm))
+
+    TA_diameters = {"ventricle": None, "atrium": None, "average": None, "min": None}
+    MA_diameters = {"ventricle": None, "atrium": None, "average": None, "min": None}
+
+    # unit: cm
+    TA_diameters["ventricle"] = np.linalg.norm(LV_lm_real[0] - LV_lm_real[1]) * 1e-1
+    TA_diameters["atrium"] = np.linalg.norm(LA_lm_real[0] - LA_lm_real[1]) * 1e-1
+    TA_diameters["average"] = (TA_diameters["ventricle"] + TA_diameters["atrium"]) / 2
+    TA_diameters["min"] = min(TA_diameters["ventricle"], TA_diameters["atrium"])
+    MA_diameters["ventricle"] = np.linalg.norm(RV_lm_real[0] - RV_lm_real[1]) * 1e-1
+    MA_diameters["atrium"] = np.linalg.norm(RA_lm_real[0] - RA_lm_real[1]) * 1e-1
+    MA_diameters["average"] = (MA_diameters["ventricle"] + MA_diameters["atrium"]) / 2
+    MA_diameters["min"] = min(MA_diameters["ventricle"], MA_diameters["atrium"])
+
+    if display is True:
+        fig = plt.figure(figsize=(9, 6))
+        plt.imshow(label_t, cmap="gray")
+        plt.title(f"Valve Landmarks (Timeframe = {t})")
+        plt.scatter(*zip(*LV_lm), c="red", s=4, label="Landmark 1 (Mitral)")
+        plt.scatter(*zip(*LA_lm), c="orange", s=4, label="Landmark 2 (Mitral)")
+        plt.scatter(*zip(*RV_lm), c="blue", s=4, label="Landmark 3 (Tricuspid)")
+        plt.scatter(*zip(*RA_lm), c="cyan", s=4, label="Landmark 4 (Tricuspid)")
+        plt.plot([LV_lm[0][0], LV_lm[1][0]], [LV_lm[0][1], LV_lm[1][1]], c="gray", linewidth=1.5)
+        plt.plot([LA_lm[0][0], LA_lm[1][0]], [LA_lm[0][1], LA_lm[1][1]], c="gray", linestyle="--", linewidth=1.5)
+        plt.plot([RV_lm[0][0], RV_lm[1][0]], [RV_lm[0][1], RV_lm[1][1]], c="gold", linewidth=1.5)
+        plt.plot([RA_lm[0][0], RA_lm[1][0]], [RA_lm[0][1], RA_lm[1][1]], c="gold", linestyle="--", linewidth=1.5)
+        plt.legend(loc="lower right")
+
+        return TA_diameters, MA_diameters, fig
+    else:
+        return TA_diameters, MA_diameters
+
+
 def evaluate_AVPD(
     label_la_seg4: Tuple[float, float, float, float],
     nim_la: nib.nifti1.Nifti1Image,
@@ -2211,12 +2293,12 @@ def evaluate_AVPD(
     label_ES = label_la_seg4[:, :, 0, t_ES]
 
     AV = {"ED": None, "ES": None}
-    lm_ED = determine_avpd_landmark(label_ED, major_axis, image_line_major)[0]  # (lm1, lm2, lm3, lm4)
-    points_line_LV_ED = determine_avpd_landmark(label_ED, major_axis, image_line_major)[1]
-    points_line_RV_ED = determine_avpd_landmark(label_ED, major_axis, image_line_major)[2]
-    lm_ES = determine_avpd_landmark(label_ES, major_axis, image_line_major)[0]
-    points_line_LV_ES = determine_avpd_landmark(label_ES, major_axis, image_line_major)[1]
-    points_line_RV_ES = determine_avpd_landmark(label_ES, major_axis, image_line_major)[2]
+    lm_ED = determine_valve_landmark(label_ED, major_axis, image_line_major)[0]  # (lm1, lm2, lm3, lm4)
+    # points_line_LV_ED = determine_valve_landmark(label_ED, major_axis, image_line_major)[1]
+    # points_line_RV_ED = determine_valve_landmark(label_ED, major_axis, image_line_major)[2]
+    lm_ES = determine_valve_landmark(label_ES, major_axis, image_line_major)[0]
+    # points_line_LV_ES = determine_valve_landmark(label_ES, major_axis, image_line_major)[1]
+    # points_line_RV_ES = determine_valve_landmark(label_ES, major_axis, image_line_major)[2]
 
     # For some cases, we will fail to detemine landmark
     if any(lm is None for lm in lm_ED) or any(lm is None for lm in lm_ES):
@@ -2225,36 +2307,47 @@ def evaluate_AVPD(
     AV["ED"] = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], lm_ED))
     AV["ES"] = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], lm_ES))
 
-    if display is True:
-        plt.subplot(1, 2, 1)
-        plt.title("Landmark at ED")
-        plt.imshow(label_ED, cmap="gray")
-        plt.scatter(lm_ED[0][1], lm_ED[0][0], c="red")
-        plt.scatter(lm_ED[1][1], lm_ED[1][0], c="yellow")
-        plt.scatter(lm_ED[2][1], lm_ED[2][0], c="blue")
-        plt.scatter(lm_ED[3][1], lm_ED[3][0], c="purple")
-        for i in range(len(points_line_LV_ED)):
-            plt.scatter(points_line_LV_ED[i][1], points_line_LV_ED[i][0], c="green", s=2)
-        for i in range(len(points_line_RV_ED)):
-            plt.scatter(points_line_RV_ED[i][1], points_line_RV_ED[i][0], c="green", s=2)
-
-        plt.subplot(1, 2, 2)
-        plt.title("Landmark at ES")
-        plt.imshow(label_ES, cmap="gray")
-        plt.scatter(lm_ES[0][1], lm_ES[0][0], c="red")
-        plt.scatter(lm_ES[1][1], lm_ES[1][0], c="yellow")
-        plt.scatter(lm_ES[2][1], lm_ES[2][0], c="blue")
-        plt.scatter(lm_ES[3][1], lm_ES[3][0], c="purple")
-        for i in range(len(points_line_LV_ES)):
-            plt.scatter(points_line_LV_ES[i][1], points_line_LV_ES[i][0], c="green", s=2)
-        for i in range(len(points_line_RV_ES)):
-            plt.scatter(points_line_RV_ES[i][1], points_line_RV_ES[i][0], c="green", s=2)
-
     # remove maximum and minimum
     AV_displacement = np.linalg.norm(np.array(AV["ED"]) - np.array(AV["ES"]), axis=1)
     AV_displacement = np.sort(AV_displacement)
     AV_displacement = AV_displacement[1:-1]
-    return np.mean(AV_displacement) * 1e-1  # unit: cm
+
+    if display is True:
+        fig = plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.title("Landmark at ED")
+        plt.imshow(label_ED, cmap="gray")
+        plt.scatter(lm_ED[0][1], lm_ED[0][0], c="red", label="Landmark 1 (Tricuspid)")
+        plt.scatter(lm_ED[1][1], lm_ED[1][0], c="yellow", label="Landmark 2 (Tricuspid)")
+        plt.scatter(lm_ED[2][1], lm_ED[2][0], c="blue", label="Landmark 3 (Mitral)")
+        plt.scatter(lm_ED[3][1], lm_ED[3][0], c="purple", label="Landmark 4 (Mitral)")
+        plt.legend(loc="lower right")
+        # for i in range(len(points_line_LV_ED)):
+        #     plt.scatter(points_line_LV_ED[i][1], points_line_LV_ED[i][0], c="green", s=2)
+        # for i in range(len(points_line_RV_ED)):
+        #     plt.scatter(points_line_RV_ED[i][1], points_line_RV_ED[i][0], c="green", s=2)
+
+        plt.subplot(1, 2, 2)
+        plt.title("Landmark at ES")
+        plt.imshow(label_ES, cmap="gray")
+        plt.scatter(lm_ES[0][1], lm_ES[0][0], c="red", label="Landmark 1 (Tricuspid)")
+        plt.scatter(lm_ES[1][1], lm_ES[1][0], c="yellow", label="Landmark 2 (Tricuspid)")
+        plt.scatter(lm_ES[2][1], lm_ES[2][0], c="blue", label="Landmark 3 (Mitral)")
+        plt.scatter(lm_ES[3][1], lm_ES[3][0], c="purple", label="Landmark 4 (Mitral)")
+        # overlay landmarks at ED
+        plt.scatter(lm_ED[0][1], lm_ED[0][0], edgecolors="red", facecolors='none')
+        plt.scatter(lm_ED[1][1], lm_ED[1][0], edgecolors="yellow", facecolors='none')
+        plt.scatter(lm_ED[2][1], lm_ED[2][0], edgecolors="blue", facecolors='none')
+        plt.scatter(lm_ED[3][1], lm_ED[3][0], edgecolors="purple", facecolors='none')
+        plt.legend(loc="lower right")
+        # for i in range(len(points_line_LV_ES)):
+        #     plt.scatter(points_line_LV_ES[i][1], points_line_LV_ES[i][0], c="green", s=2)
+        # for i in range(len(points_line_RV_ES)):
+        #     plt.scatter(points_line_RV_ES[i][1], points_line_RV_ES[i][0], c="green", s=2)
+
+        return (np.mean(AV_displacement) * 1e-1, fig)  # unit: cm
+    else:
+        return np.mean(AV_displacement) * 1e-1  # unit: cm
 
 
 def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float):

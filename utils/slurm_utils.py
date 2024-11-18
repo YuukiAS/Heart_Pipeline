@@ -54,9 +54,10 @@ def generate_aggregate(file_aggregate, feature_name, modality, retest_suffix=Non
         )
         file_aggregate.write(f"rm -r {os.path.join(config.features_visit1_dir, feature_name)}\n")
         # After aggregation, move the csv to the modality folder
+        src_file = os.path.join(config.features_visit1_dir, "Aggregated", f"{feature_name}.csv")
+        dst_folder = os.path.join(config.features_visit1_dir, modality)
         file_aggregate.write(
-            f"mv {os.path.join(config.features_visit1_dir, 'Aggregated', {feature_name.csv})} "
-            f"{os.path.join(config.features_visit1_dir, modality)}\n"
+            f"mv {src_file} {dst_folder}\n"
         )
 
     else:
@@ -67,7 +68,8 @@ def generate_aggregate(file_aggregate, feature_name, modality, retest_suffix=Non
             f"--prefix={feature_name}\n"
         )
         file_aggregate.write(f"rm -r {os.path.join(config.features_visit2_dir, feature_name)}\n")
+        src_file = os.path.join(config.features_visit2_dir, "Aggregated", f"{feature_name}.csv")
+        dst_folder = os.path.join(config.features_visit2_dir, modality)
         file_aggregate.write(
-            f"mv {os.path.join(config.features_visit2_dir, 'Aggregated', {feature_name.csv})} "
-            f"{os.path.join(config.features_visit2_dir, modality)}\n"
+            f"mv {src_file} {dst_folder}\n"
         )

@@ -17,6 +17,7 @@ import os
 import numpy as np
 import nibabel as nib
 from scipy import ndimage
+from scipy.ndimage import distance_transform_edt
 import scipy.ndimage.measurements as measure
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -207,6 +208,21 @@ def distance_metric(seg_A, seg_B, dx):
     mean_hd = np.mean(table_hd) if table_hd else None
     return mean_md, mean_hd
 
+
+def compute_boundary_distance(mask1, mask2):
+    """
+    Compute the minimum distance between the boundary of mask1 and mask2
+    """
+    if mask1.ndim != 2 or mask2.ndim != 2:
+        raise ValueError("The input masks should be 2D.")
+
+    dist_transform1 = distance_transform_edt(~mask1)
+    dist_transform2 = distance_transform_edt(~mask2)
+    mask1_boundary = (mask1.astype(np.uint8) - dist_transform1 > 0)
+
+    distances = dist_transform2[mask1_boundary]
+
+    return distances.min() if len(distances) > 0 else None
 
 def get_largest_cc(binary):
     """Get the largest connected component in the foreground."""

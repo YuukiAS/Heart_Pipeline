@@ -1,7 +1,7 @@
 import nibabel as nib
 import numpy as np
 import skimage.measure
-from .image_utils import get_largest_cc, remove_small_cc
+from .image_utils import get_largest_cc, remove_small_cc, compute_boundary_distance
 
 
 def sa_pass_quality_control(seg_sa_name, t=0):
@@ -187,6 +187,29 @@ def aorta_pass_quality_control(image, seg):
                 print("There is abrupt change of area at time frame {0}.".format(t))
                 return False
     return True
+
+
+def lvot_pass_quality_control(seg_lvot_name, t=0):
+    nim = nib.load(seg_lvot_name)
+    seg = nim.get_fdata()
+    if seg.ndim != 4:
+        raise ValueError("The segmentation should be 3D + t.")
+    seg = seg[:, :, 0, t]
+
+    mask1 = np.where(seg == 1, 1, 0).astype(bool)
+    mask2 = np.where(seg == 2, 1, 0).astype(bool)
+    mask3 = np.where(seg == 3, 1, 0).astype(bool)
+
+    # * Fail if the segmentation of aortic root and ascending aorta is not close enough
+    dist_1_2 = compute_boundary_distance(mask1, mask2)
+    dist_1_3 = compute_boundary_distance(mask1, mask3)
+    # dist_2_3 = compute_boundary_distance(mask2, mask3)
+
+    if (dist_1_2 > 1.5 or dist_1_3 > 1.5):
+        return False
+    
+    return True
+
 
 
 def t1_pass_quality_control(seg_ShMOLLI_name, label_dict):

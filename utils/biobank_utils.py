@@ -102,6 +102,7 @@ class Biobank_Dataset(object):
         # shmolli_dir = []  # T1 morphologic, not usage yet
         # shmolli_fitpar_dir = []  
         shmolli_t1map_dir = []  # T1 map
+        print(subdirs)
         for s in subdirs:
             # 20208
             if re.match("CINE_segmented_LAX_2Ch$", s):
@@ -112,6 +113,7 @@ class Biobank_Dataset(object):
                 lax_4ch_dir = os.path.join(input_dir, s)
             elif re.match("CINE_segmented_LAX$", s):
                 lax_mix_dir = os.path.join(input_dir, s)
+            # 20209
             elif re.match("CINE_segmented_SAX$", s):
                 sax_mix_dir = os.path.join(input_dir, s)
             # 20210
@@ -121,11 +123,11 @@ class Biobank_Dataset(object):
             elif re.match("CINE_segmented_LVOT$", s):
                 lvot_dir = os.path.join(input_dir, s)
             # 20213
-            elif re.match("aortic_flow_250_tp_AoV_bh_ePAT@c$", s):
+            elif re.match("flow_250_tp_AoV_bh_ePAT@c$", s):
                 aortic_flow_dir = os.path.join(input_dir, s)
-            elif re.match("aortic_flow_250_tp_AoV_bh_ePAT@c_MAG$", s):
+            elif re.match("flow_250_tp_AoV_bh_ePAT@c_MAG$", s):
                 aortic_flow_mag_dir = os.path.join(input_dir, s)
-            elif re.match("aortic_flow_250_tp_AoV_bh_ePAT@c_P$", s):
+            elif re.match("flow_250_tp_AoV_bh_ePAT@c_P$", s):
                 aortic_flow_pha_dir = os.path.join(input_dir, s)
             # 20214
             # * Currently, we only make use of the T1 mapping.
@@ -199,15 +201,15 @@ class Biobank_Dataset(object):
                     sax_dir += [(s, z)]
 
         if not aortic_scout_dir:
-            logger.warning("Aorta scout subdirectory not found!")
+            logger.warning("Aortic scout subdirectory not found!")
         if not aortic_dist_dir:
-            logger.warning("Aorta distensibility subdirectory not found!")
+            logger.warning("Aortic distensibility subdirectory not found!")
         if not tag_dir:
             logger.warning("Tagging subdirectory not found!")
         if not lvot_dir:
             logger.warning("LVOT subdirectory not found!")
         if not aortic_flow_dir or not aortic_flow_mag_dir or not aortic_flow_pha_dir:
-            logger.warning("Aorta flow subdirectory not found!")
+            logger.warning("Aortic flow subdirectory not found!")
         # if not shmolli_dir or not shmolli_fitpar_dir or not shmolli_t1map_dir:
         if not shmolli_t1map_dir:
             logger.warning("ShMOLLI subdirectory not found!")
@@ -232,9 +234,9 @@ class Biobank_Dataset(object):
         if aortic_flow_dir:
             self.subdir["aortic_flow"] = [aortic_flow_dir]
         if aortic_flow_mag_dir:
-            self.subdir["aortic_aortic_flow_mag"] = [aortic_flow_mag_dir]
+            self.subdir["aortic_flow_mag"] = [aortic_flow_mag_dir]
         if aortic_flow_pha_dir:
-            self.subdir["aortic_aortic_flow_pha"] = [aortic_flow_pha_dir]
+            self.subdir["aortic_flow_pha"] = [aortic_flow_pha_dir]
         # if shmolli_dir:
         #     self.subdir["shmolli"] = [shmolli_dir]
         # if shmolli_fitpar_dir:

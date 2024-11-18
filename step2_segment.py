@@ -21,14 +21,7 @@ parser.add_argument("--overwrite", action="store_true", help="Overwrite the exis
 
 
 def generate_scripts(
-    pipeline_dir, 
-    data_dir, 
-    code_dir, 
-    modality, 
-    num_subjects_per_file=100, 
-    retest_suffix=None, 
-    cpu=True, 
-    overwrite=False
+    pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=100, retest_suffix=None, cpu=True, overwrite=False
 ):
     if retest_suffix is None:
         code_step2_dir = os.path.join(code_dir, "segment_visit1")
@@ -53,21 +46,6 @@ def generate_scripts(
                     generate_header_cpu("Heart_Segment", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
                 else:
                     generate_header_gpu("Heart_Segment", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
-                # file_script.write("#!/bin/bash\n")
-                # file_script.write("#SBATCH --ntasks=1\n")
-                # if retest_suffix is None:
-                #     file_script.write(f"#SBATCH --job-name=Heart_Segment_{file_i}\n")
-                #     file_script.write(f"#SBATCH --output=Heart_Segment_{file_i}.out\n")
-                # else:
-                #     file_script.write(f"#SBATCH --job-name=Heart_Segment_{file_i}_{retest_suffix}\n")
-                #     file_script.write(f"#SBATCH --output=Heart_Segment_{file_i}_{retest_suffix}.out\n")
-                # file_script.write("#SBATCH --cpus-per-task=4\n")
-                # file_script.write("#SBATCH --mem=8G\n")
-                # file_script.write("#SBATCH --time=48:00:00\n")
-                # file_script.write("#SBATCH --partition=general\n")
-                # file_script.write("\n")
-                # file_script.write("\n")
-                # file_script.write(f"cd {pipeline_dir}\n")
 
                 for sub_i in range(
                     (file_i - 1) * num_subjects_per_file + 1,
@@ -87,7 +65,8 @@ def generate_scripts(
                         if not check_existing_file(["seg_la_2ch.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for vertical long axis'\n")
                             file_script.write(
-                                "python ./src/segmentation/Long_Axis_20208/segment_la.py " f"--modality 2ch --data_dir {sub_dir}"
+                                "python ./src/segmentation/Long_Axis_20208/segment_la.py "
+                                f"--modality 2ch --data_dir {sub_dir}\n"
                             )
                         else:
                             logger.info(f"{subject}: Segmentation for vertical long axis already exists, skip.")
@@ -96,7 +75,8 @@ def generate_scripts(
                         if not check_existing_file(["seg_la_4ch.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for horizontal long axis (2 chambers)'\n")
                             file_script.write(
-                                "python ./src/segmentation/Long_Axis_20208/segment_la.py" f"--modality 4ch --data_dir {sub_dir}"
+                                "python ./src/segmentation/Long_Axis_20208/segment_la.py "
+                                f"--modality 4ch --data_dir {sub_dir}\n"
                             )
                         else:
                             logger.info(f"{subject}: Segmentation for horizontal long axis (2 chambers) already exists, skip.")
@@ -105,8 +85,8 @@ def generate_scripts(
                         if not check_existing_file(["seg4_la_4ch.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for horizontal long axis (4 chambers)'\n")
                             file_script.write(
-                                "python ./src/segmentation/Long_Axis_20208/segment_la.py"
-                                f"--modality 4ch_4chamber --data_dir {sub_dir}"
+                                "python ./src/segmentation/Long_Axis_20208/segment_la.py "
+                                f"--modality 4ch_4chamber --data_dir {sub_dir}\n"
                             )
                         else:
                             logger.info(f"{subject}: Segmentation for horizontal long axis (4 chambers) already exists, skip.")
@@ -134,8 +114,7 @@ def generate_scripts(
                         if not check_existing_file(["seg_lvot.nii.gz"], sub_dir) or overwrite:
                             file_script.write(f"echo '{subject}: Generate segmentation for LVOT'\n")
                             file_script.write(
-                                "python ./src/segmentation/LVOT_20212/preprocess_lvot.py "
-                                f"--data_dir {sub_dir}\n"
+                                "python ./src/segmentation/LVOT_20212/preprocess_lvot.py " f"--data_dir {sub_dir}\n"
                             )
                             file_script.write(f"conda activate {config.model_envs[config.model_used['lvot']]}\n")
                             file_script.write("source ./env_variable.sh\n")
@@ -145,10 +124,10 @@ def generate_scripts(
                             )
                         else:
                             logger.info(f"{subject}: Segmentation for LVOT already exists, skip.")
-                    if "aortic_flow" in modality:
+                    if "aortic_blood_flow" in modality:
                         # todo No segmentation network right now
                         pass
-                    if "t1" in modality:
+                    if "shmolli" in modality:
                         # todo No segmentation network right now
                         pass
 
