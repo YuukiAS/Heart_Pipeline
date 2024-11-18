@@ -18,7 +18,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import nibabel as nib
-import pickle
 import vtk
 import math
 from tqdm import tqdm
@@ -81,13 +80,13 @@ if __name__ == "__main__":
         density = 1.05  # myocardium density is approximately 1.05 g/mL
 
         # Heart rate
-        duration_per_cycle = (
-            nim_sa.header["dim"][4] * nim_sa.header["pixdim"][4]
-        )  # e.g. 50 time frame, 15.5 ms per cycle
+        duration_per_cycle = nim_sa.header["dim"][4] * nim_sa.header["pixdim"][4]  # e.g. 50 time frame, 15.5 ms per cycle
         heart_rate = 60.0 / duration_per_cycle
 
         # Segmentation
+        sa = nib.load(sa_name).get_fdata()
         seg_sa = nib.load(seg_sa_name).get_fdata()
+        seg_sa_nan = np.where(seg_sa == 0, np.nan, seg_sa)
         seg4_la = nib.load(seg4_la_name).get_fdata()
         L_sax = {}
         L_4ch = {}
@@ -102,12 +101,38 @@ if __name__ == "__main__":
 
         # Save time series of volume and display the time series of ventricular volume
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
-        logger.info(f"Saving time series of ventricular volume for {subject}")
-        with open(f"{sub_dir}/timeseries/ventricle.pkl", "wb") as time_series_file:
-            pickle.dump(
-                {"LV: Volume [mL]": V["LV"], "RV: Volume [mL]": V["RV"], "LV: T_ED": T_ED, "LV: T_ES": T_ES},
-                time_series_file,
-            )
+        logger.info(f"{subject}: Saving ventricular volume and time data")
+        data_time = {
+            "LV: Volume [mL]": V["LV"],
+            "RV: Volume [mL]": V["RV"],
+            "LV: T_ED": T_ED, 
+            "LV: T_ES": T_ES
+        }
+        np.savez(f"{sub_dir}/timeseries/ventricle.npz", **data_time)
+
+        logger.info(f"{subject}: Visualizing ventricular segmentation on short-axis images")
+        os.makedirs(f"{sub_dir}/visualization/ventricle", exist_ok=True)
+        N_slice = sa.shape[2]
+
+        fig_ED, ax_ED = plt.subplots(2, N_slice // 2, figsize=(20, 10))
+        for s, ax in enumerate(ax_ED.flat):
+            ax.imshow(sa[:, :, s, T_ED], cmap="gray")
+            ax.imshow(seg_sa_nan[:, :, s, T_ED], cmap="jet", alpha=0.5) 
+            ax.set_title(f"ED: Slice {s + 1}") 
+            ax.axis("off")
+        plt.tight_layout()
+        plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ED.png")
+        plt.close(fig_ED)
+
+        fig_ES, ax_ES = plt.subplots(2, N_slice // 2, figsize=(20, 10))
+        for s, ax in enumerate(ax_ES.flat):
+            ax.imshow(sa[:, :, s, T_ES], cmap="gray")
+            ax.imshow(seg_sa_nan[:, :, s, T_ES], cmap="jet", alpha=0.5) 
+            ax.set_title(f"ES: Slice {s + 1}") 
+            ax.axis("off")
+        plt.tight_layout()
+        plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ES.png")
+        plt.close(fig_ES)
 
         logger.info(f"{subject}: Record basic features")
         feature_dict = {
@@ -174,9 +199,7 @@ if __name__ == "__main__":
         short_axis = nim_la_4ch.affine[:3, 2] / np.linalg.norm(nim_la_4ch.affine[:3, 2])
 
         try:
-            L_sax["ED"], lm_sax["ED"] = evaluate_ventricular_length_sax(
-                seg_sa[:, :, :, T_ED], nim_sa, long_axis, short_axis
-            )
+            L_sax["ED"], lm_sax["ED"] = evaluate_ventricular_length_sax(seg_sa[:, :, :, T_ED], nim_sa, long_axis, short_axis)
             points = vtk.vtkPoints()
             for p in lm_sax["ED"]:
                 points.InsertNextPoint(p[0], p[1], 0)
@@ -188,9 +211,7 @@ if __name__ == "__main__":
             writer.SetFileName(f"{sub_dir}/landmark/ventricle_sa_ED.vtk")
             writer.Write()
 
-            L_4ch["ED"], lm_4ch["ED"] = evaluate_ventricular_length_lax(
-                seg4_la[:, :, 0, T_ED], nim_la_4ch, long_axis, short_axis
-            )
+            L_4ch["ED"], lm_4ch["ED"] = evaluate_ventricular_length_lax(seg4_la[:, :, 0, T_ED], nim_la_4ch, long_axis, short_axis)
             points = vtk.vtkPoints()
             for p in lm_4ch["ED"]:
                 points.InsertNextPoint(p[0], p[1], 0)
@@ -217,9 +238,7 @@ if __name__ == "__main__":
             logger.warning(f"{subject}: Failed to determine the diameter of left ventricle at ED")
 
         try:
-            L_sax["ES"], lm_sax["ES"] = evaluate_ventricular_length_sax(
-                seg_sa[:, :, :, T_ES], nim_sa, long_axis, short_axis
-            )
+            L_sax["ES"], lm_sax["ES"] = evaluate_ventricular_length_sax(seg_sa[:, :, :, T_ES], nim_sa, long_axis, short_axis)
             points = vtk.vtkPoints()
             for p in lm_sax["ES"]:
                 points.InsertNextPoint(p[0], p[1], 0)
@@ -231,9 +250,7 @@ if __name__ == "__main__":
             writer.SetFileName(f"{sub_dir}/landmark/ventricle_sa_ES.vtk")
             writer.Write()
 
-            L_4ch["ES"], lm_4ch["ES"] = evaluate_ventricular_length_lax(
-                seg4_la[:, :, 0, T_ES], nim_la_4ch, long_axis, short_axis
-            )
+            L_4ch["ES"], lm_4ch["ES"] = evaluate_ventricular_length_lax(seg4_la[:, :, 0, T_ES], nim_la_4ch, long_axis, short_axis)
             points = vtk.vtkPoints()
             for p in lm_4ch["ES"]:
                 points.InsertNextPoint(p[0], p[1], 0)
@@ -257,7 +274,6 @@ if __name__ == "__main__":
         # * Feature3: Early/Late Peak Filling Rate
         # Ref https://pubmed.ncbi.nlm.nih.gov/30128617/
 
-        # Similar to atrium, we draw the time series plot and store the information using pickle
         time_grid_point = np.arange(T)
         time_grid_real = time_grid_point * temporal_resolution  # unit: ms
 

@@ -1,5 +1,4 @@
 import os
-import shutil
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -44,32 +43,21 @@ def generate_header_gpu(jobname, pipeline_dir, file_i, file_script, retest_suffi
     file_script.write(f"cd {pipeline_dir}\n")
 
 
-def generate_aggregate(file_aggregate, feature_name, modality, retest_suffix=None):
+def generate_aggregate(file_aggregate, feature_name, retest_suffix=None):
     if retest_suffix is None:
         file_aggregate.write(
             "python ./script/aggregate_csv.py "
             f"--csv_dir={os.path.join(config.features_visit1_dir, feature_name)} "
-            f"--target_dir={os.path.join(config.features_visit1_dir, 'Aggregated')} "
+            f"--target_dir={os.path.join(config.features_visit1_dir, 'aggregated')} "
             f"--prefix={feature_name}\n"
         )
-        file_aggregate.write(f"rm -r {os.path.join(config.features_visit1_dir, feature_name)}\n")
-        # After aggregation, move the csv to the modality folder
-        src_file = os.path.join(config.features_visit1_dir, "Aggregated", f"{feature_name}.csv")
-        dst_folder = os.path.join(config.features_visit1_dir, modality)
-        file_aggregate.write(
-            f"mv {src_file} {dst_folder}\n"
-        )
+        file_aggregate.write(f"rm -r {os.path.join(config.features_visit1_dir, feature_name)}\n\n")
 
     else:
         file_aggregate.write(
             "python ./script/aggregate_csv.py "
             f"--csv_dir={os.path.join(config.features_visit2_dir, feature_name)} "
-            f"--target_dir={os.path.join(config.features_visit2_dir, 'Aggregated')} "
+            f"--target_dir={os.path.join(config.features_visit2_dir, 'aggregated')} "
             f"--prefix={feature_name}\n"
         )
-        file_aggregate.write(f"rm -r {os.path.join(config.features_visit2_dir, feature_name)}\n")
-        src_file = os.path.join(config.features_visit2_dir, "Aggregated", f"{feature_name}.csv")
-        dst_folder = os.path.join(config.features_visit2_dir, modality)
-        file_aggregate.write(
-            f"mv {src_file} {dst_folder}\n"
-        )
+        file_aggregate.write(f"rm -r {os.path.join(config.features_visit2_dir, feature_name)}\n\n")

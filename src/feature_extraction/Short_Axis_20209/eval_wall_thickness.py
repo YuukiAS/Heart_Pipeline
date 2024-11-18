@@ -17,7 +17,6 @@ import argparse
 import pandas as pd
 import nibabel as nib
 from tqdm import tqdm
-import pickle
 import vtk
 
 import sys
@@ -94,13 +93,13 @@ if __name__ == "__main__":
         )
 
         endo_writer = vtk.vtkPolyDataWriter()
-        endo_output_name = f"{sub_dir}/landmark/endo.vtk"
+        endo_output_name = f"{sub_dir}/landmark/myocardium_endo.vtk"
         endo_writer.SetFileName(endo_output_name)
         endo_writer.SetInputData(endo_poly)
         endo_writer.Write()
 
         epi_writer = vtk.vtkPolyDataWriter()
-        epi_output_name = f"{sub_dir}/landmark/epi.vtk"
+        epi_output_name = f"{sub_dir}/landmark/myocardium_epi.vtk"
         epi_writer.SetFileName(epi_output_name)
         epi_writer.SetInputData(epi_poly)
         epi_writer.Write()
@@ -137,13 +136,6 @@ if __name__ == "__main__":
                 "Myo: Radius motion disparity": radius_motion_disparity,
                 "Myo: Thickness motion disparity": thickness_motion_disparity,
             })
-            logger.info(f"{subject}: Motion disparity features calculation calculated, saving raw data to pickle files")
-            os.makedirs(f"{sub_dir}/raw", exist_ok=True)
-            with open(f"{sub_dir}/raw/myo_radius_thickness.pkl", "wb") as raw_file:
-                pickle.dump({
-                    "Myo: Radius [cm]": radius,
-                    "Myo: Thickness [cm]": thickness,
-                }, raw_file)
         except (FileNotFoundError, IndexError):
             logger.error(f"{subject}: BSA information not found, skip disparity features.")
             continue

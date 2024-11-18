@@ -110,7 +110,7 @@ def plot_time_series_double_x(
     if colors is None:
         colors = ["b"] * len(y)
 
-    fig, ax1 = plt.subplots()
+    fig, ax1 = plt.subplots(figsize=(12, 6))
 
     ax1.plot(x1, y)
     ax1.set_xlabel(x1_label)
@@ -164,7 +164,7 @@ def plot_time_series_double_x_y(
     if colors is None:
         colors = ["b"] * len(y_scatter)
 
-    fig, ax1 = plt.subplots()
+    fig, ax1 = plt.subplots(figsize=(12, 6))
 
     ax1.plot(x1, y_plot)
     ax1.set_xlabel(x1_label)

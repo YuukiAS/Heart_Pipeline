@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 import nibabel as nib
 import argparse
 import shutil
-import pickle
 from tqdm import tqdm
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
@@ -28,7 +27,7 @@ from rpy2.robjects.vectors import FloatVector
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from ecg.ecg_processor import ECG_Processor
+from ECG_6025_20205.ecg_processor import ECG_Processor
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
@@ -118,15 +117,7 @@ if __name__ == "__main__":
         )
 
         # * Make a time series plot and store the time series of global strain
-        logger.info(f"{subject}: Plot and store time series of global strain.")
-
-        with open(f"{sub_dir}/timeseries/strain_la.pkl", "wb") as time_series_file:
-            pickle.dump(
-                {
-                    "LV: Global Longitudinal Strain (GCS) [%]": longit_strain[6, :],
-                },
-                time_series_file,
-            )
+        logger.info(f"{subject}: Plot time series of global strain.")
 
         fig, ax1, ax2 = plot_time_series_double_x(
             time_grid_point,
@@ -143,11 +134,8 @@ if __name__ == "__main__":
         plt.close(fig)
 
         # Read in important time points
-        with open(f"{sub_dir}/timeseries/ventricle.pkl", "rb") as time_series_file:
-            ventricle = pickle.load(time_series_file)
-
-        with open(f"{sub_dir}/timeseries/atrium.pkl", "rb") as time_series_file:
-            atrium = pickle.load(time_series_file)
+        ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
+        atrium = np.load(f"{sub_dir}/timeseries/atrium.npz")
 
         T_ES = ventricle["LV: T_ES"]
         T_1_3_DD = T_ES + math.ceil((50 - T_ES) / 3)
@@ -190,7 +178,7 @@ if __name__ == "__main__":
         # * We record both global ones and ones for each segment
 
         # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9409501/pdf/pone.0273419.pdf
-        PSS = False   # Post-systolic shortening
+        PSS = False  # Post-systolic shortening
         t_longit_strain_peak_list = []  # define used to calculate Mechanical dispersion index
 
         # Determine the RR interval
@@ -255,17 +243,18 @@ if __name__ == "__main__":
                     feature_dict.update(
                         {
                             "LV: Longitudinal Strain (Global End-systolic, absolute value) [%]": longit_strain_ES,
-                            "LV: Longitudinal Strain (Global Post-systolic, absolute value) [%]": longit_strain_post
+                            "LV: Longitudinal Strain (Global Post-systolic, absolute value) [%]": longit_strain_post,
                         }
                     )
                     logger.info(f"{subject}: End-systolic, post-systolic longitudinal global strain calculated.")
                 else:
-                    feature_dict.update({
-                        f"LV: Longitudinal Strain (Segment_{i + 1} "
-                        f"End-systolic, absolute value) [%]": longit_strain_ES,
-                        f"LV: Longitudinal Strain (Segment_{i + 1} "
-                        f"Post-systolic, absolute value) [%]": longit_strain_post,
-                    })
+                    feature_dict.update(
+                        {
+                            f"LV: Longitudinal Strain (Segment_{i + 1} " f"End-systolic, absolute value) [%]": longit_strain_ES,
+                            f"LV: Longitudinal Strain (Segment_{i + 1} "
+                            f"Post-systolic, absolute value) [%]": longit_strain_post,
+                        }
+                    )
             else:
                 if i == 6:
                     feature_dict.update(
@@ -276,12 +265,13 @@ if __name__ == "__main__":
                     )
                     logger.info(f"{subject}: End-systolic, peak-systolic longitudinal global strain calculated.")
                 else:
-                    feature_dict.update({
-                        f"LV: Longitudinal Strain (Segment_{i + 1} "
-                        f"End-systolic, absolute value) [%]": longit_strain_ES,
-                        f"LV: Longitudinal Strain (Segment_{i + 1} "
-                        f"Peak-systolic, absolute value) [%]": longit_strain_peak,
-                    })
+                    feature_dict.update(
+                        {
+                            f"LV: Longitudinal Strain (Segment_{i + 1} " f"End-systolic, absolute value) [%]": longit_strain_ES,
+                            f"LV: Longitudinal Strain (Segment_{i + 1} "
+                            f"Peak-systolic, absolute value) [%]": longit_strain_peak,
+                        }
+                    )
 
             # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9409501/pdf/pone.0273419.pdf
 
@@ -350,13 +340,12 @@ if __name__ == "__main__":
                 raise ValueError("No positive strain in early systole.")
             longit_strain_systole_positive = np.max(GLS_loess_y_systole)
             longit_strain_systole_negative = np.min(GLS_loess_y_systole)
-            systolic_stretch = (
-                longit_strain_systole_positive 
-                / (longit_strain_systole_positive - longit_strain_systole_negative)
+            systolic_stretch = longit_strain_systole_positive / (longit_strain_systole_positive - longit_strain_systole_negative)
+            feature_dict.update(
+                {
+                    "LV: Longitudinal Strain: Systolic Stretch [%]": systolic_stretch * 100,
+                }
             )
-            feature_dict.update({
-                "LV: Longitudinal Strain: Systolic Stretch [%]": systolic_stretch * 100,
-            })
             logger.info(f"{subject}: Systolic stretch calculated.")
         except ValueError:
             logger.warning(f"{subject}: No positive strain in early systole, systolic stretch will not be calculated.")

@@ -9,11 +9,11 @@ they don't use 20210?
 - [ ] Add units for the extracted features
 
 ## 20208 Long Axis
-- [ ] Get Mitral valve and Tricuspid valve diameter: *Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions* 
+- [x] Get Mitral valve and Tricuspid valve diameter: *Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions* 
 - [ ] Extract landmarks on 3-chamber view: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9708771/pdf/10554_2022_Article_2724.pdf
 
 ## 20209 Short Axis
-- [ ] Add visualization and change way of storage to npz.
+- [ ] Add visualization for torsion
 
 ## 20210 Aortic Distensibility Cine
 - [x] Extract luminal parameter
@@ -31,7 +31,7 @@ they don't use 20210?
 - [ ] Number of cusp: Incorporate the code
 
 ## 20214 T1 Mapping
-- [ ] Correct some annotations that exceed the myocardium at the bottom
+- [x] Correct some annotations that exceed the myocardium at the bottom
 
 # Other Modality
 **(We only focus on CMR features right now)**

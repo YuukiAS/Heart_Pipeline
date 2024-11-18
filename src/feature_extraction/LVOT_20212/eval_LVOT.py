@@ -209,7 +209,7 @@ if __name__ == "__main__":
         df = pd.concat([df, df_row], ignore_index=True)
 
     target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
-    target_dir = os.path.join(target_dir, "aorta_diameter")
+    target_dir = os.path.join(target_dir, "aortic_diameter")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
     df = df[[col for col in df.columns if col != "eid"] + ["eid"]]  # move 'eid' to the last column

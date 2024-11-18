@@ -3,7 +3,6 @@ import argparse
 import numpy as np
 import pandas as pd
 import nibabel as nib
-import pickle
 from tqdm import tqdm
 
 import sys
@@ -12,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 
 from utils.log_utils import setup_logging
-from utils.cardiac_utils import evaluate_AVPD
+from utils.cardiac_utils import evaluate_valve_diameter, evaluate_AVPD
 
 logger = setup_logging("eval_ventricular_atrium_feature")
 
@@ -57,27 +56,27 @@ if __name__ == "__main__":
             logger.error(f"Atrial features not found for subject {subject}")
             continue
 
-        logger.info(f"Calculating combined (ventricular+atrial) features for subject {subject}")
+        logger.info(f"Calculating combined features using ventricle and atrium for subject {subject}")
         feature_dict = {
             "eid": subject,
         }
 
         ventricular_features = ventricular_features_csv[ventricular_features_csv["eid"] == subject_int]
-        ventricular_time_series_file = os.path.join(sub_dir, "timeseries", "ventricle.pkl")
         try:
-            with open(ventricular_time_series_file, "rb") as f:
-                ventricular_time_series = pickle.load(f)
+            ventricular_time_series = np.load(os.path.join(sub_dir, "timeseries", "ventricle.npz"))
         except FileNotFoundError:
-            logger.error(f"Ventricular time series not found for subject {subject}")
+            logger.error(f"Ventricular features or time series not found for subject {subject}")
             continue
         atrial_features = atrial_features_csv[atrial_features_csv["eid"] == subject_int]
-        atrial_time_series_file = os.path.join(sub_dir, "timeseries", "atrium.pkl")
         try:
-            with open(atrial_time_series_file, "rb") as f:
-                atrial_time_series = pickle.load(f)
+            atrial_time_series = np.load(os.path.join(sub_dir, "timeseries", "atrium.npz"))
         except FileNotFoundError:
-            logger.error(f"Atrial time series not found for subject {subject}")
+            logger.error(f"Atrial features or time series not found for subject {subject}")
             continue
+
+        T_ED = ventricular_time_series["LV: T_ED"]
+        T_ES = ventricular_time_series["LV: T_ES"]
+        os.makedirs(os.path.join(sub_dir, "visualization", "combined"), exist_ok=True)
 
         # * Feature1: IPVT
 
@@ -97,7 +96,7 @@ if __name__ == "__main__":
         except ValueError:
             logger.error(f"{subject}: IPVT is negative, skipped.")
 
-        # * Feature2: Average Atrial Contribution to LVEDV88
+        # * Feature2: Average Atrial Contribution to LVEDV
 
         # Ref https://www.sciencedirect.com/science/article/pii/0002934375902296
         LVEDV = ventricular_features["LV: V_ED [mL]"].values[0]
@@ -124,22 +123,43 @@ if __name__ == "__main__":
         except ValueError:
             logger.error(f"{subject}: Pre-contraction volume is greater than ED volume, skipped.")
 
-        # * Feature3: AVPD
+        # * Feature3: Valve Diameters at ED
 
-        # Ref https://pubmed.ncbi.nlm.nih.gov/17098822/
-        T_ED = ventricular_time_series["LV: T_ED"]
-        T_ES = ventricular_time_series["LV: T_ES"]
-
-        long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])
-        # define  AV plane descent
         try:
-            AVPD = evaluate_AVPD(seg4_la_4ch.astype(np.uint8), nim_la_4ch, long_axis, T_ED, T_ES)
+            TA_diameters, MA_diameters, fig_valve = evaluate_valve_diameter(
+                seg4_la_4ch.astype(np.uint8), 
+                nim_la_4ch, 
+                T_ED,
+                display=True)
+            logger.info(f"{subject}: Extract Tricuspid and Mitral valve diameters")
+            feature_dict.update(
+                {
+                    "Tricuspid Diameter [cm]": TA_diameters["min"],
+                    "Mitral Diameter [cm]": MA_diameters["min"],
+                    "TA/MA Diameter Ratio": TA_diameters["min"] / MA_diameters["min"],
+                }
+            )
+            fig_valve.savefig(os.path.join(sub_dir, "visualization", "combined", "valve.png"))
+        except ValueError as e:
+            logger.error(f"{subject}: AVPD extraction failed due to reason: {e}")
+
+        # * Feature4: AVPD (AV plane descent)
+        # Ref https://pubmed.ncbi.nlm.nih.gov/17098822/
+
+        try:
+            AVPD, fig_AVPD = evaluate_AVPD(
+                seg4_la_4ch.astype(np.uint8), 
+                nim_la_4ch, 
+                T_ED, 
+                T_ES,
+                display=True)
             logger.info(f"{subject}: Extract AVPD features")
             feature_dict.update(
                 {
-                    "AVPD [mm]": AVPD,
+                    "AVPD [cm]": AVPD,
                 }
             )
+            fig_AVPD.savefig(os.path.join(sub_dir, "visualization", "combined", "AV_plane.png"))
         except ValueError as e:
             logger.error(f"{subject}: AVPD extraction failed due to reason: {e}")
 

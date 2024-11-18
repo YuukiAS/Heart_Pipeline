@@ -801,8 +801,9 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     os.makedirs(f"{temp_dir}/backward", exist_ok=True)
     os.makedirs(f"{temp_dir}/combined", exist_ok=True)
     os.makedirs(f"{result_dir}/myo_contour_sa", exist_ok=True)
+    os.makedirs(f"{result_dir}/log", exist_ok=True)
     os.makedirs(f"{result_dir}/doc", exist_ok=True)
-    mirtk_log_file = f"{result_dir}/doc/mirtk_sa.log"
+    mirtk_log_file = f"{result_dir}/log/mirtk_sa.log"
 
     # Focus on the left ventricle so that motion tracking is less affected by
     # the movement of RV and LV outflow tract
@@ -869,17 +870,14 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
             source = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{source_fr:02d}.nii.gz"
             # output transformation to be used
             dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
-            os.system(
-                f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
-            )
+            os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1")
 
         # * Start forward image registration
         # results are named as ffd_z{z:02d}_forward_00_to_01.dof.gz, ffd_z{z:02d}_forward_00_to_02.dof.gz, ...
 
         # For the first and second time frame, directly copy the transformation
         os.system(
-            f"cp {temp_dir}/pair/ffd_z{z:02d}_pair_00_to_01.dof.gz "
-            f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_01.dof.gz"
+            f"cp {temp_dir}/pair/ffd_z{z:02d}_pair_00_to_01.dof.gz " f"{temp_dir}/forward/ffd_z{z:02d}_forward_00_to_01.dof.gz"
         )
         # For the rest time frames, compose the transformation fields
         for fr in range(2, T):
@@ -900,9 +898,7 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
             target = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{target_fr:02d}.nii.gz"
             source = f"{temp_dir}/sa/sa_crop_z{z:02d}_fr{source_fr:02d}.nii.gz"
             dof = f"{temp_dir}/pair/ffd_z{z:02d}_pair_{target_fr:02d}_to_{source_fr:02d}.dof.gz"
-            os.system(
-                f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1"
-            )
+            os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1")
 
         # * Start backward image registration
         # results are named as ffd_z{z:02d}_backward_00_to_01.dof.gz, ffd_z{z:02d}_backward_00_to_02.dof.gz, ...
@@ -1348,7 +1344,7 @@ def determine_valve_landmark(seg4: Tuple[float, float]):
     RV_RA_sorted_corners = [corner for _, corner in RV_RA_distances]
     RV_RA_unique_corners = list(OrderedDict.fromkeys(RV_RA_sorted_corners))
     RV_lm = RV_RA_unique_corners[:2]
-        
+
     return LV_lm, LA_lm, RV_lm, RA_lm
 
 
@@ -1736,7 +1732,7 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     os.makedirs(f"{temp_dir}/combined", exist_ok=True)
     os.makedirs(f"{result_dir}/myo_contour_la", exist_ok=True)
     os.makedirs(f"{result_dir}/doc", exist_ok=True)
-    mirtk_log_file = f"{result_dir}/doc/mirtk_la.log"
+    mirtk_log_file = f"{result_dir}/log/mirtk_la.log"
 
     # Crop the image to save computation for image registration
     # Focus on the left ventricle so that motion tracking is less affected by
@@ -1771,9 +1767,7 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     )
 
     # Crop the image to save computation for image registration
-    auto_crop_image(
-        f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz", f"{temp_dir}/seg_la/seg4_la_4ch_LV_crop_ED.nii.gz", 20
-    )
+    auto_crop_image(f"{temp_dir}/seg_la/seg4_la_4ch_LV_ED.nii.gz", f"{temp_dir}/seg_la/seg4_la_4ch_LV_crop_ED.nii.gz", 20)
 
     # Transform la/seg_la.nii.gz to la/seg_la_crop.nii.gz using seg_la_LV_crop_ED.nii.gz
     os.system(
@@ -1811,9 +1805,7 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
         os.system(f"mirtk register {target} {source} -parin {par_config_name} -dofout {dof} >> {mirtk_log_file} 2>&1")
 
     # * Start forward image registration
-    os.system(
-        f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_01.dof.gz " f"{temp_dir}/forward/ffd_la_4ch_forward_00_to_01.dof.gz"
-    )
+    os.system(f"cp {temp_dir}/pair/ffd_la_4ch_pair_00_to_01.dof.gz " f"{temp_dir}/forward/ffd_la_4ch_forward_00_to_01.dof.gz")
     for fr in range(2, T):
         dofs = ""
         for k in range(1, fr + 1):
@@ -1999,9 +1991,7 @@ def plot_bulls_eye(data, vmin, vmax, cmap="Reds", color_line="black"):
         plt.plot([x, x - sz * 0.2], [y, y], color=color_line)
 
 
-def evaluate_ventricular_length_sax(
-    label_sa: Tuple[float, float, float], nim_sa: nib.nifti1.Nifti1Image, long_axis, short_axis
-):
+def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa: nib.nifti1.Nifti1Image, long_axis, short_axis):
     """
     Evaluate the ventricular length from short-axis view images.
     """
@@ -2076,9 +2066,7 @@ def evaluate_ventricular_length_sax(
     return np.max(L), landmarks
 
 
-def evaluate_ventricular_length_lax(
-    label_la_seg4: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis
-):
+def evaluate_ventricular_length_lax(label_la_seg4: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis):
     """
     Evaluate the ventricle length from 4 chamber view image.
     """
@@ -2177,9 +2165,7 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
         landmarks += [points_image[0]]
         landmarks += [points_image[-1]]
         # Longitudinal diameter; Unit: cm
-        L += [
-            np.linalg.norm(points[-1] - points[0]) * 1e-1
-        ]  # Here we have already applied nim.affine, no need to multiply
+        L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]  # Here we have already applied nim.affine, no need to multiply
 
         # Define Transverse diameter is obtained perpendicular to longitudinal diameter, at the mid level of atrium
         # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-29 for example in right atrium
@@ -2221,12 +2207,12 @@ def evaluate_valve_diameter(
         raise ValueError("The label_la should be a 4D image.")
     if len(np.unique(label_la_seg4)) != 6:
         raise ValueError("The label_la_seg4 should have segmentation for all four chambers.")
-    
+
     label_t = label_la_seg4[:, :, 0, t]
 
     # * We use the average of ventricles and atriums
     LV_lm, LA_lm, RV_lm, RA_lm = determine_valve_landmark(label_t)
-    
+
     LV_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], LV_lm))
     LA_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], LA_lm))
     RV_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], RV_lm))
@@ -2267,7 +2253,6 @@ def evaluate_valve_diameter(
 def evaluate_AVPD(
     label_la_seg4: Tuple[float, float, float, float],
     nim_la: nib.nifti1.Nifti1Image,
-    long_axis,
     t_ED,
     t_ES,
     display=False,
@@ -2287,67 +2272,106 @@ def evaluate_AVPD(
     if len(np.unique(label_la_seg4)) != 6:
         raise ValueError("The label_la_seg4 should have segmentation for all four chambers.")
 
-    major_axis, _, image_line_major, _ = determine_axes(label_la_seg4[:, :, 0, 0], nim_la, long_axis)
-
     label_ED = label_la_seg4[:, :, 0, t_ED]
     label_ES = label_la_seg4[:, :, 0, t_ES]
 
-    AV = {"ED": None, "ES": None}
-    lm_ED = determine_valve_landmark(label_ED, major_axis, image_line_major)[0]  # (lm1, lm2, lm3, lm4)
-    # points_line_LV_ED = determine_valve_landmark(label_ED, major_axis, image_line_major)[1]
-    # points_line_RV_ED = determine_valve_landmark(label_ED, major_axis, image_line_major)[2]
-    lm_ES = determine_valve_landmark(label_ES, major_axis, image_line_major)[0]
-    # points_line_LV_ES = determine_valve_landmark(label_ES, major_axis, image_line_major)[1]
-    # points_line_RV_ES = determine_valve_landmark(label_ES, major_axis, image_line_major)[2]
+    AV = {"ventricle": {}, "atrium": {}}
+    AV_displacement = np.zeros(4)
 
+    LV_lm_ED, LA_lm_ED, RV_lm_ED, RA_lm_ED = determine_valve_landmark(label_ED)
+    LV_lm_ES, LA_lm_ES, RV_lm_ES, RA_lm_ES = determine_valve_landmark(label_ES)
+
+    lm_all = [LV_lm_ED, LA_lm_ED, RV_lm_ED, RA_lm_ED, LV_lm_ES, LA_lm_ES, RV_lm_ES, RA_lm_ES]
     # For some cases, we will fail to detemine landmark
-    if any(lm is None for lm in lm_ED) or any(lm is None for lm in lm_ES):
+    if any(lm is None for lm in lm_all):
         raise ValueError("Some landmarks are failed to be determined and thus missing.")
 
-    AV["ED"] = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], lm_ED))
-    AV["ES"] = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], lm_ES))
+    # * We choose the pair that has the largest distance for ventricle and atrium respectively
+    ventricle_lm_ED = np.vstack([LV_lm_ED, RV_lm_ED])
+    ventricle_lm_ED_dist = cdist(ventricle_lm_ED, ventricle_lm_ED)
+    i, j = np.unravel_index(np.argmax(ventricle_lm_ED_dist), ventricle_lm_ED_dist.shape)
+    ventricle_lm_ED = [ventricle_lm_ED[i], ventricle_lm_ED[j]]
+    ventricle_lm_ED_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], ventricle_lm_ED))
 
-    # remove maximum and minimum
-    AV_displacement = np.linalg.norm(np.array(AV["ED"]) - np.array(AV["ES"]), axis=1)
+    ventricle_lm_ES = np.vstack([LV_lm_ES, RV_lm_ES])
+    ventricle_lm_ES_dist = cdist(ventricle_lm_ES, ventricle_lm_ES)
+    i, j = np.unravel_index(np.argmax(ventricle_lm_ES_dist), ventricle_lm_ES_dist.shape)
+    ventricle_lm_ES = [ventricle_lm_ES[i], ventricle_lm_ES[j]]
+    # sort ventricle_lm_ES according to ventricle_lm_ED
+    dist1 = np.linalg.norm(ventricle_lm_ES[0] - ventricle_lm_ED[0])
+    dist2 = np.linalg.norm(ventricle_lm_ES[1] - ventricle_lm_ED[0])
+    if dist1 > dist2:
+        ventricle_lm_ES = [ventricle_lm_ES[1], ventricle_lm_ES[0]]
+    ventricle_lm_ES_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], ventricle_lm_ES))
+
+    AV["ventricle"]["ED"] = ventricle_lm_ED_real
+    AV["ventricle"]["ES"] = ventricle_lm_ES_real
+
+    atrium_lm_ED = np.vstack([LA_lm_ED, RA_lm_ED])
+    atrium_lm_ED_dist = cdist(atrium_lm_ED, atrium_lm_ED)
+    i, j = np.unravel_index(np.argmax(atrium_lm_ED_dist), atrium_lm_ED_dist.shape)
+    atrium_lm_ED = [atrium_lm_ED[i], atrium_lm_ED[j]]
+    atrium_lm_ED_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], atrium_lm_ED))
+
+    atrium_lm_ES = np.vstack([LA_lm_ES, RA_lm_ES])
+    atrium_lm_ES_dist = cdist(atrium_lm_ES, atrium_lm_ES)
+    i, j = np.unravel_index(np.argmax(atrium_lm_ES_dist), atrium_lm_ES_dist.shape)
+    atrium_lm_ES = [atrium_lm_ES[i], atrium_lm_ES[j]]
+    # sort atrium_lm_ES according to atrium_lm_ED
+    dist1 = np.linalg.norm(atrium_lm_ES[0] - atrium_lm_ED[0])
+    dist2 = np.linalg.norm(atrium_lm_ES[1] - atrium_lm_ED[0])
+    if dist1 > dist2:
+        atrium_lm_ES = [atrium_lm_ES[1], atrium_lm_ES[0]]
+    atrium_lm_ES_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], atrium_lm_ES))
+
+    AV["atrium"]["ED"] = atrium_lm_ED_real
+    AV["atrium"]["ES"] = atrium_lm_ES_real
+
+    AV_displacement[0] = np.linalg.norm(np.array(AV["ventricle"]["ED"][0]) - np.array(AV["ventricle"]["ES"][0]))
+    AV_displacement[1] = np.linalg.norm(np.array(AV["ventricle"]["ED"][1]) - np.array(AV["ventricle"]["ES"][1]))
+    AV_displacement[2] = np.linalg.norm(np.array(AV["atrium"]["ED"][0]) - np.array(AV["atrium"]["ES"][0]))
+    AV_displacement[3] = np.linalg.norm(np.array(AV["atrium"]["ED"][1]) - np.array(AV["atrium"]["ES"][1]))
+
+    # We exclude the minimum and larges, then take the mean
+
     AV_displacement = np.sort(AV_displacement)
-    AV_displacement = AV_displacement[1:-1]
+    AVPD = np.mean(AV_displacement[1:-1])
 
     if display is True:
-        fig = plt.figure(figsize=(12, 6))
+        fig = plt.figure(figsize=(10, 5))
         plt.subplot(1, 2, 1)
-        plt.title("Landmark at ED")
+        plt.title("Landmarks at ED")
         plt.imshow(label_ED, cmap="gray")
-        plt.scatter(lm_ED[0][1], lm_ED[0][0], c="red", label="Landmark 1 (Tricuspid)")
-        plt.scatter(lm_ED[1][1], lm_ED[1][0], c="yellow", label="Landmark 2 (Tricuspid)")
-        plt.scatter(lm_ED[2][1], lm_ED[2][0], c="blue", label="Landmark 3 (Mitral)")
-        plt.scatter(lm_ED[3][1], lm_ED[3][0], c="purple", label="Landmark 4 (Mitral)")
+        plt.scatter(*zip(*ventricle_lm_ED), c="red", s=8, label="Landmarks (Ventricle)")
+        plt.scatter(*zip(*atrium_lm_ED), c="blue", s=8, label="Landmarks (Atrium)")
         plt.legend(loc="lower right")
-        # for i in range(len(points_line_LV_ED)):
-        #     plt.scatter(points_line_LV_ED[i][1], points_line_LV_ED[i][0], c="green", s=2)
-        # for i in range(len(points_line_RV_ED)):
-        #     plt.scatter(points_line_RV_ED[i][1], points_line_RV_ED[i][0], c="green", s=2)
 
         plt.subplot(1, 2, 2)
-        plt.title("Landmark at ES")
+        plt.title("Landmarks at ES")
         plt.imshow(label_ES, cmap="gray")
-        plt.scatter(lm_ES[0][1], lm_ES[0][0], c="red", label="Landmark 1 (Tricuspid)")
-        plt.scatter(lm_ES[1][1], lm_ES[1][0], c="yellow", label="Landmark 2 (Tricuspid)")
-        plt.scatter(lm_ES[2][1], lm_ES[2][0], c="blue", label="Landmark 3 (Mitral)")
-        plt.scatter(lm_ES[3][1], lm_ES[3][0], c="purple", label="Landmark 4 (Mitral)")
+        plt.scatter(*zip(*ventricle_lm_ES), c="red", s=8, label="Landmarks (Ventricle)")
+        plt.scatter(*zip(*atrium_lm_ES), c="blue", s=8, label="Landmarks (Atrium)")
         # overlay landmarks at ED
-        plt.scatter(lm_ED[0][1], lm_ED[0][0], edgecolors="red", facecolors='none')
-        plt.scatter(lm_ED[1][1], lm_ED[1][0], edgecolors="yellow", facecolors='none')
-        plt.scatter(lm_ED[2][1], lm_ED[2][0], edgecolors="blue", facecolors='none')
-        plt.scatter(lm_ED[3][1], lm_ED[3][0], edgecolors="purple", facecolors='none')
-        plt.legend(loc="lower right")
-        # for i in range(len(points_line_LV_ES)):
-        #     plt.scatter(points_line_LV_ES[i][1], points_line_LV_ES[i][0], c="green", s=2)
-        # for i in range(len(points_line_RV_ES)):
-        #     plt.scatter(points_line_RV_ES[i][1], points_line_RV_ES[i][0], c="green", s=2)
+        plt.scatter(*zip(*ventricle_lm_ED), s=8, edgecolors="red", facecolors="none")
+        plt.scatter(*zip(*atrium_lm_ED), s=8, edgecolors="blue", facecolors="none")
+        # connect landmarks at ED and ES
+        for i in range(2):
+            plt.plot(
+                [ventricle_lm_ES[i][0], ventricle_lm_ED[i][0]],
+                [ventricle_lm_ES[i][1], ventricle_lm_ED[i][1]],
+                color="red",
+                linestyle="--",
+            )
 
-        return (np.mean(AV_displacement) * 1e-1, fig)  # unit: cm
+            plt.plot(
+                [atrium_lm_ES[i][0], atrium_lm_ED[i][0]], [atrium_lm_ES[i][1], atrium_lm_ED[i][1]], color="blue", linestyle="--"
+            )
+
+        plt.legend(loc="lower right")
+
+        return (AVPD * 1e-1, fig)  # unit: cm
     else:
-        return np.mean(AV_displacement) * 1e-1  # unit: cm
+        return AVPD * 1e-1  # unit: cm
 
 
 def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float):
@@ -2713,9 +2737,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
                 points_apex["endo"].append(p1)
                 points_apex["epi"].append(p2)
 
-        if len(points_base_ED["epi"]) != len(points_base["epi"]) or len(points_base_ED["endo"]) != len(
-            points_base["endo"]
-        ):
+        if len(points_base_ED["epi"]) != len(points_base["epi"]) or len(points_base_ED["endo"]) != len(points_base["endo"]):
             raise ValueError(f"The number of points at frame {fr} is different from ED")
 
         # Ref https://www.sciencedirect.com/science/article/pii/S1097664723012437?via%3Dihub
@@ -2731,36 +2753,28 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
             v1 = [v1[0], v1[1]]
             v2 = points_base["epi"][i] - LV_barycenter_basal
             v2 = [v2[0], v2[1]]
-            rotations_base_z["epi"][i] = np.degrees(
-                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
-            )
+            rotations_base_z["epi"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
 
         for i in range(n_base):
             v1 = points_base_ED["endo"][i] - LV_barycenter_basal_ED
             v1 = [v1[0], v1[1]]
             v2 = points_base["endo"][i] - LV_barycenter_basal
             v2 = [v2[0], v2[1]]
-            rotations_base_z["endo"][i] = np.degrees(
-                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
-            )
+            rotations_base_z["endo"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
 
         for i in range(n_apex):
             v1 = points_apex_ED["epi"][i] - LV_barycenter_apical_ED
             v1 = [v1[0], v1[1]]
             v2 = points_apex["epi"][i] - LV_barycenter_apical
             v2 = [v2[0], v2[1]]
-            rotations_apex_z["epi"][i] = np.degrees(
-                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
-            )
+            rotations_apex_z["epi"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
 
         for i in range(n_apex):
             v1 = points_apex_ED["endo"][i] - LV_barycenter_apical_ED
             v1 = [v1[0], v1[1]]
             v2 = points_apex["endo"][i] - LV_barycenter_apical
             v2 = [v2[0], v2[1]]
-            rotations_apex_z["endo"][i] = np.degrees(
-                np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
-            )
+            rotations_apex_z["endo"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
 
         torsion_endo["base"][fr] = np.mean(rotations_base_z["endo"])
         torsion_endo["apex"][fr] = -np.mean(rotations_apex_z["endo"])
@@ -2772,20 +2786,12 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         torsion_epi["base"][fr] = np.mean(rotations_base_z["epi"])
         torsion_epi["apex"][fr] = -np.mean(rotations_apex_z["epi"])
         torsion_epi["twist"][fr] = torsion_epi["apex"][fr] - torsion_epi["base"][fr]
-        torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / (
-            (SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1
-        )
+        torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / ((SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1)
 
-        torsion_global["base"][fr] = (n_base * torsion_endo["base"][fr] + n_apex * torsion_epi["base"][fr]) / (
-            n_base + n_apex
-        )
-        torsion_global["apex"][fr] = (n_base * torsion_endo["apex"][fr] + n_apex * torsion_epi["apex"][fr]) / (
-            n_base + n_apex
-        )
+        torsion_global["base"][fr] = (n_base * torsion_endo["base"][fr] + n_apex * torsion_epi["base"][fr]) / (n_base + n_apex)
+        torsion_global["apex"][fr] = (n_base * torsion_endo["apex"][fr] + n_apex * torsion_epi["apex"][fr]) / (n_base + n_apex)
         torsion_global["twist"][fr] = torsion_global["apex"][fr] - torsion_global["base"][fr]
-        torsion_global["torsion"][fr] = torsion_global["twist"][fr] / (
-            (SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1
-        )
+        torsion_global["torsion"][fr] = torsion_global["twist"][fr] / ((SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1)
 
     return torsion_endo, torsion_epi, torsion_global, basal_slice, apical_slice
 
@@ -2802,7 +2808,7 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     dilation_threshold = 12
     intersection_threshold = 400
     dilation_value = 0
-    while (dilation_value < dilation_threshold):
+    while dilation_value < dilation_threshold:
         seg_LV_dilated = binary_dilation(seg_LV_dilated)
         seg_RV_dilated = binary_dilation(seg_RV_dilated)
         dilation_value += 1
@@ -2810,7 +2816,7 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
         if np.sum(seg_LV_dilated * seg_RV_dilated) > intersection_threshold:
             logger.info(f"Times of dilation to determine septum: {dilation_value}")
             # plt.imshow(seg_LV_dilated, cmap='gray')
-            # plt.imshow(seg_RV_dilated, cmap='gray', alpha=0.5)   
+            # plt.imshow(seg_RV_dilated, cmap='gray', alpha=0.5)
             break
 
     if dilation_value == dilation_threshold:
@@ -2818,13 +2824,11 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
 
     # Determine two landmarks
     seg_intersection = seg_LV_dilated * seg_RV_dilated
-    seg_intersection_contours, _ = cv2.findContours(seg_intersection.astype(np.uint8), 
-                                                    cv2.RETR_EXTERNAL, 
-                                                    cv2.CHAIN_APPROX_SIMPLE)    
-    seg_intersection_points = np.vstack([contour.reshape(-1, 2) for contour in seg_intersection_contours])        
+    seg_intersection_contours, _ = cv2.findContours(seg_intersection.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    seg_intersection_points = np.vstack([contour.reshape(-1, 2) for contour in seg_intersection_contours])
 
     # Compute the cross distance between two sets
-    dist_matrix = cdist(seg_intersection_points, seg_intersection_points, 'euclidean')
+    dist_matrix = cdist(seg_intersection_points, seg_intersection_points, "euclidean")
     # Convert flat index to 2D index
     max_distance_idx = np.unravel_index(dist_matrix.argmax(), dist_matrix.shape)
 
@@ -2866,9 +2870,9 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     area_RV = np.sum(seg_RV)
     seg_LV_eroded = seg_LV.copy()
     seg_RV_eroded = seg_RV.copy()
-    while (np.sum(seg_LV_eroded) > 0.34 * area_LV):
+    while np.sum(seg_LV_eroded) > 0.34 * area_LV:
         seg_LV_eroded = binary_erosion(seg_LV_eroded)
-    while (np.sum(seg_RV_eroded) > 0.34 * area_RV):
+    while np.sum(seg_RV_eroded) > 0.34 * area_RV:
         seg_RV_eroded = binary_erosion(seg_RV_eroded)
     logger.info("Blood pools are eroded.")
 

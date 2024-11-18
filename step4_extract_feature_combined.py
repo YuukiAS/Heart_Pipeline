@@ -7,12 +7,13 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
+from utils.slurm_utils import generate_header_cpu, generate_header_gpu, generate_aggregate
 from utils.log_utils import setup_logging
 
 logger = setup_logging("main: extract_feature_combined")
 
 
-def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=200, retest_suffix=None):
+def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=100, retest_suffix=None, cpu=True):
     if retest_suffix is None:
         code_step4_dir = os.path.join(code_dir, "extract_feature_combined_visit1")
     else:
@@ -34,21 +35,10 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
     ):
         file_submit.write("#!/bin/bash\n")
 
-        file_aggregate.write("#!/bin/bash\n")
-        file_aggregate.write("#SBATCH --ntasks=1\n")
-        if retest_suffix is None:
-            file_aggregate.write("#SBATCH --job-name=Heart_Aggregate\n")
-            file_aggregate.write("#SBATCH --output=Heart_Aggregate.out\n")
+        if cpu:
+            generate_header_cpu("Heart_Aggregate", pipeline_dir, None, file_aggregate, retest_suffix=retest_suffix)
         else:
-            file_aggregate.write(f"#SBATCH --job-name=Heart_Aggregate_{retest_suffix}\n")
-            file_aggregate.write(f"#SBATCH --output=Heart_Aggregate_{retest_suffix}.out\n")
-        file_aggregate.write("#SBATCH --cpus-per-task=4\n")
-        file_aggregate.write("#SBATCH --mem=8G\n")
-        file_aggregate.write("#SBATCH --time=24:00:00\n")
-        file_aggregate.write("#SBATCH --partition=general\n")
-        file_aggregate.write("\n")
-        file_aggregate.write("\n")
-        file_aggregate.write(f"cd {pipeline_dir}\n")
+            generate_header_gpu("Heart_Aggregate", pipeline_dir, None, file_aggregate, retest_suffix=retest_suffix)
 
         for file_i in tqdm(range(1, num_files + 1)):
             sub_file_i = sub_total[
@@ -58,65 +48,33 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
 
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
             with open(os.path.join(code_step4_dir, f"bat{file_i}.pbs"), "w") as file_script:
-                file_script.write("#!/bin/bash\n")
-                file_script.write("#SBATCH --ntasks=1\n")
-                if retest_suffix is None:
-                    file_script.write(f"#SBATCH --job-name=Heart_Extract_{file_i}\n")
-                    file_script.write(f"#SBATCH --output=Heart_Extract_{file_i}.out\n")
+                if cpu:
+                    generate_header_cpu("Heart_Extract", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
                 else:
-                    file_script.write(f"#SBATCH --job-name=Heart_Extract_{file_i}_{retest_suffix}\n")
-                    file_script.write(f"#SBATCH --output=Heart_Extract_{file_i}_{retest_suffix}.out\n")
-                file_script.write("#SBATCH --cpus-per-task=4\n")
-                file_script.write("#SBATCH --mem=8G\n")
-                file_script.write("#SBATCH --time=48:00:00\n")
-                file_script.write("#SBATCH --partition=general\n")
-                file_script.write("\n")
-                file_script.write("\n")
-                file_script.write(f"cd {pipeline_dir}\n")
+                    generate_header_gpu("Heart_Extract", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
 
                 if "la" in modality and "sa" in modality:
                     file_script.write("echo 'Extract combined features that use both short axis and long axis'\n")
                     file_script.write(
-                        f"python -u ./src/feature_extraction/combined/eval_ventricular_atrial_feature.py "
+                        f"python -u ./src/feature_extraction/Combined_Features/eval_ventricular_atrial_feature.py "
                         f"{retest_str} --file_name=ventricular_atrial_feature_{file_i} --data_list {sub_file_i_str} \n"
                     )
-                    if file_i == 1:
-                        if retest_suffix is None:
-                            file_aggregate.write(
-                                "python ./script/aggregate_csv.py "
-                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit1_dir, 'aggregated')} "
-                                "--prefix=ventricular_atrial_feature\n"
-                            )
-                        else:
-                            file_aggregate.write(
-                                "python ./script/aggregate_csv.py "
-                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit2_dir, 'aggregated')} "
-                                "--prefix=ventricular_atrial_feature\n"
-                            )
 
-                if "t1" in modality:
+                # need the mean in first round
+                if "shmolli" in modality:
                     file_script.write("echo 'Extract features for native T1 (corrected)'\n")
                     file_script.write(
-                        f"python -u ./src/feature_extraction/combined/eval_native_t1.py "
+                        f"python -u ./src/feature_extraction/Combined_Features/eval_native_t1.py "
                         f"{retest_str} --file_name=native_t1_corrected_{file_i} --data_list {sub_file_i_str} \n"
                     )
-                    if file_i == 1:
-                        if retest_suffix is None:
-                            file_aggregate.write(
-                                "python ./script/aggregate_csv.py "
-                                f"--csv_dir={os.path.join(config.features_visit1_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit1_dir, 'aggregated')} "
-                                "--prefix=native_t1_corrected\n"
-                            )
-                        else:
-                            file_aggregate.write(
-                                "python ./script/aggregate_csv.py "
-                                f"--csv_dir={os.path.join(config.features_visit2_dir, 'combined')} "
-                                f"--target_dir={os.path.join(config.features_visit2_dir, 'aggregated')} "
-                                "--prefix=native_t1_corrected\n"
-                            )
+                
+                if file_i == 1:
+
+                    if "la" in modality and "sa" in modality:
+                        generate_aggregate(file_aggregate, "ventricular_atrial_feature", retest_suffix=retest_suffix)
+                    
+                    if "shmolli" in modality:
+                        generate_aggregate(file_aggregate, "native_t1_corrected", retest_suffix=retest_suffix)
 
                 file_script.write("echo 'Done!'\n")
 

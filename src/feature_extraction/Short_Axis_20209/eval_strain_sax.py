@@ -20,7 +20,6 @@ import matplotlib.pyplot as plt
 import nibabel as nib
 import argparse
 import shutil
-import pickle
 from tqdm import tqdm
 from rpy2.robjects.packages import importr
 from rpy2.robjects.vectors import FloatVector
@@ -126,14 +125,12 @@ if __name__ == "__main__":
         # * Make a time series plot and store the time series of global strain
         logger.info(f"{subject}: Plot and store time series of global strain.")
 
-        with open(f"{sub_dir}/timeseries/strain_sa.pkl", "wb") as time_series_file:
-            pickle.dump(
-                {
-                    "LV: Global Circumferential Strain (GCS) [%]": circum_strain[16, :],
-                    "LV: Global Radial Strain (GRS) [%]": radial_strain[16, :],
-                },
-                time_series_file,
-            )
+        os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
+        data_strain = {
+            "LV: Global Circumferential Strain (GCS) [%]": circum_strain[16, :],
+            "LV: Global Radial Strain (GRS) [%]": radial_strain[16, :],
+        }
+        np.savez(f"{sub_dir}/timeseries/strain_sa.npz", **data_strain)
 
         fig, ax1, ax2 = plot_time_series_double_x(
             time_grid_point,
@@ -164,11 +161,8 @@ if __name__ == "__main__":
         plt.close(fig)
 
         # Read in important time points
-        with open(f"{sub_dir}/timeseries/ventricle.pkl", "rb") as time_series_file:
-            ventricle = pickle.load(time_series_file)
-
-        with open(f"{sub_dir}/timeseries/atrium.pkl", "rb") as time_series_file:
-            atrium = pickle.load(time_series_file)
+        ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
+        atrium = np.load(f"{sub_dir}/timeseries/atrium.npz")
 
         T_ES = ventricle["LV: T_ES"]
         T_1_3_DD = T_ES + math.ceil((50 - T_ES) / 3)
@@ -397,7 +391,7 @@ if __name__ == "__main__":
 
         logger.info(f"{subject}: Strain imaging diastolic index (SI-DI) calculated.")
 
-        # * Feature 5 Torsion and recoil rate, Recoil rate
+        # * Feature 5 Torsion and recoil rate
 
         try:
             torsion_endo, torsion_epi, torsion_global, basal_slice, apical_slice = evaluate_torsion(
@@ -411,7 +405,7 @@ if __name__ == "__main__":
             plt.axhline(0, color='black', linestyle='--')
             plt.ylabel("°")
             plt.vlines(T_ES, -10, 10, color="black")
-            plt.legend()
+            plt.legend(loc="lower right")
             plt.title(f"Subject {subject}: Endocardial Twist Time Series using Slice {basal_slice} to {apical_slice}")
             plt.savefig(f"{sub_dir}/timeseries/twist_endo.png")
             plt.close()
@@ -422,7 +416,7 @@ if __name__ == "__main__":
             plt.axhline(0, color='black', linestyle='--')
             plt.ylabel("°")
             plt.vlines(T_ES, -10, 10, color="black")
-            plt.legend()
+            plt.plt.legend(loc="lower right")
             plt.title(f"Subject {subject}: Epicardial Twist Time Series using Slice {basal_slice} to {apical_slice}")
             plt.savefig(f"{sub_dir}/timeseries/twist_epi.png")
             plt.close()
@@ -433,7 +427,7 @@ if __name__ == "__main__":
             plt.axhline(0, color='black', linestyle='--')
             plt.ylabel("°")
             plt.vlines(T_ES, -10, 10, color="black")
-            plt.legend()
+            plt.plt.legend(loc="lower right")
             plt.title(f"Subject {subject}: Global Twist Time Series using Slice {basal_slice} to {apical_slice}")
             plt.savefig(f"{sub_dir}/timeseries/twist_global.png")
             plt.close()
@@ -452,7 +446,7 @@ if __name__ == "__main__":
             plt.axhline(0, color='black', linestyle='--')
             plt.ylabel("°/cm")
             plt.vlines(T_ES, -3, 3, color="black")
-            plt.legend()
+            plt.plt.legend(loc="lower right")
             plt.title(f"Subject {subject}: Torsion Time Series using Slice {basal_slice} to {apical_slice}")
             plt.savefig(f"{sub_dir}/timeseries/torsion.png")
             plt.close()

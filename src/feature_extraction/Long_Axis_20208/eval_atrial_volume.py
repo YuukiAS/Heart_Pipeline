@@ -20,7 +20,6 @@ import pandas as pd
 import nibabel as nib
 import vtk
 import math
-import pickle
 from tqdm import tqdm
 from scipy.signal import find_peaks
 from rpy2.robjects.packages import importr
@@ -29,7 +28,7 @@ from rpy2.robjects.vectors import FloatVector
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from ecg.ecg_processor import ECG_Processor
+from ECG_6025_20205.ecg_processor import ECG_Processor
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
@@ -59,6 +58,8 @@ if __name__ == "__main__":
         logger.info(f"Calculating atrial volume features for {subject}")
         sub_dir = os.path.join(data_dir, subject)
         sa_name = f"{sub_dir}/sa.nii.gz"
+        la_2ch_name = f"{sub_dir}/la_2ch.nii.gz"
+        la_4ch_name = f"{sub_dir}/la_4ch.nii.gz"
         seg_la_2ch_name = f"{sub_dir}/seg_la_2ch.nii.gz"
         seg_la_4ch_name = f"{sub_dir}/seg_la_4ch.nii.gz"
 
@@ -91,6 +92,14 @@ if __name__ == "__main__":
         logger.info(f"{subject}: Process information from segmentation")
         # Determine the long-axis from short-axis image
         nim_sa = nib.load(sa_name)
+        nim_la_2ch = nib.load(la_2ch_name)
+        nim_la_4ch = nib.load(la_4ch_name)
+        la_2ch = nim_la_2ch.get_fdata()
+        la_4ch = nim_la_4ch.get_fdata()
+        seg_la_2ch = nib.load(seg_la_2ch_name).get_fdata()
+        seg_la_2ch_nan = np.where(seg_la_2ch == 0, np.nan, seg_la_2ch)
+        seg_la_4ch = nib.load(seg_la_4ch_name).get_fdata()
+        seg_la_4ch_nan = np.where(seg_la_4ch == 0, np.nan, seg_la_4ch)
         # Refer to biobank_utils.py for more information, used to determine top and bottom of atrium
         long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])
         if long_axis[2] < 0:
@@ -118,9 +127,7 @@ if __name__ == "__main__":
             lm["2ch"] = {}
             for t in range(T):
                 try:
-                    area, length, landmarks = evaluate_atrial_area_length(
-                        seg_la_2ch[:, :, 0, t], nim_2ch, long_axis, short_axis
-                    )
+                    area, length, landmarks = evaluate_atrial_area_length(seg_la_2ch[:, :, 0, t], nim_2ch, long_axis, short_axis)
                 except ValueError as e:
                     logger.error(f"Error in evaluating atrial area and length for {subject} at time frame {t}: {e}")
                     continue
@@ -173,9 +180,7 @@ if __name__ == "__main__":
             lm["4ch"] = {}
             for t in range(T):
                 try:
-                    area, length, landmarks = evaluate_atrial_area_length(
-                        seg_la_4ch[:, :, 0, t], nim_4ch, long_axis, short_axis
-                    )
+                    area, length, landmarks = evaluate_atrial_area_length(seg_la_4ch[:, :, 0, t], nim_4ch, long_axis, short_axis)
                 except ValueError as e:
                     logger.error(f"Error in evaluating atrial area and length for {subject} at time frame {t}: {e}")
                     continue
@@ -256,17 +261,35 @@ if __name__ == "__main__":
 
         # Save time series of volume and display the time series of atrial volume
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
-        logger.info(f"Saving time series of atrial volume for {subject}")
-        with open(f"{sub_dir}/timeseries/atrium.pkl", "wb") as time_series_file:
-            pickle.dump(
-                {
-                    "LA: Volume(bip) [mL]": V["LA_bip"],
-                    "RA: Volume(bip) [mL]": V["RA_4ch"],
-                    "LA: T_max": T_max,
-                    "LA: T_min": T_min,
-                },
-                time_series_file,
-            )
+        logger.info(f"{subject}: Saving atrial volume and time data")
+        os.makedirs(f"{sub_dir}/feature", exist_ok=True)
+        os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
+        data_time = {
+            "LA: Volume(bip) [mL]": V["LA_bip"],
+            "RA: Volume(bip) [mL]": V["RA_4ch"],
+            "LA: T_max": T_max,
+            "LA: T_min": T_min,
+        }
+        np.savez(f"{sub_dir}/timeseries/atrium.npz", **data_time)
+
+        logger.info(f"{subject}: Visualizing atrial segmentation on long-axis images")
+        os.makedirs(f"{sub_dir}/visualization/atrium", exist_ok=True)
+        fig, ax = plt.subplots(2, 2, figsize=(12, 8))
+        ax[0, 0].imshow(la_2ch[:, :, 0, T_max], cmap="gray")
+        ax[0, 0].imshow(seg_la_2ch_nan[:, :, 0, T_max], cmap="jet", alpha=0.5)
+        ax[0, 0].title.set_text("2-chamber view: Maximal Volume")
+        ax[0, 1].imshow(la_4ch[:, :, 0, T_max], cmap="gray")
+        ax[0, 1].imshow(seg_la_4ch_nan[:, :, 0, T_max], cmap="jet", alpha=0.5)
+        ax[0, 1].title.set_text("4-chamber view: Maximal Volume")
+        ax[1, 0].imshow(la_2ch[:, :, 0, T_min], cmap="gray")
+        ax[1, 0].imshow(seg_la_2ch_nan[:, :, 0, T_min], cmap="jet", alpha=0.5)
+        ax[1, 0].title.set_text("2-chamber view: Minimal Volume")
+        ax[1, 1].imshow(la_4ch[:, :, 0, T_min], cmap="gray")
+        ax[1, 1].imshow(seg_la_4ch_nan[:, :, 0, T_min], cmap="jet", alpha=0.5)
+        ax[1, 1].title.set_text("4-chamber view: Minimal Volume")
+        plt.tight_layout()
+        plt.savefig(f"{sub_dir}/visualization/atrium/la.png")
+        plt.close(fig)
 
         time_grid_point = np.arange(T)
         time_grid_real = time_grid_point * temporal_resolution  # unit: ms
@@ -389,6 +412,8 @@ if __name__ == "__main__":
         colors[T_peak_neg_1] = "yellow"
         colors[T_peak_neg_2] = "yellow"
 
+        plt.figure(figsize=(12, 6))
+        plt.suptitle(f"Subject {subject}: Atrial Volume Time Series and its Derivative")
         plt.subplot(1, 2, 1)
         plt.plot(V_LA_loess_x, V_LA_loess_y, color="blue")
         plt.scatter(time_grid_real, V_LA, color="blue")
@@ -454,8 +479,7 @@ if __name__ == "__main__":
                 # The pre-contraction time frame should be in the middle of the
                 # second positive and the second negative peak
                 logger.warning(
-                    f"{subject}: Quality control for pre-contratcion time fails, "
-                    "no relevant feature will be extracted."
+                    f"{subject}: Quality control for pre-contratcion time fails, " "no relevant feature will be extracted."
                 )
             else:
                 colors = ["blue"] * len(V["LA_bip"])
@@ -481,11 +505,9 @@ if __name__ == "__main__":
 
                 LAV_pre_a = V["LA_bip"][T_pre_a_ecg]
 
-                with open(f"{sub_dir}/timeseries/atrium.pkl", "rb") as time_series_file:
-                    time_series = pickle.load(time_series_file)
-                    time_series["LA: T_pre_a"] = T_pre_a_ecg
-                with open(f"{sub_dir}/timeseries/atrium.pkl", "wb") as time_series_file:
-                    pickle.dump(time_series, time_series_file)
+                # update npz
+                data_time.update({"LA: T_pre_a": T_pre_a_ecg})
+                np.savez(f"{sub_dir}/timeseries/atrium.npz", **data_time)
                 logger.info(f"{subject}: Pre-contraction volume extracted successfully.")
 
                 # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508385/pdf/BMRI2015-765921.pdf
