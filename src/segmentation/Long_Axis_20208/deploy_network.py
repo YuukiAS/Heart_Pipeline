@@ -20,7 +20,7 @@ import numpy as np
 import nibabel as nib
 import tensorflow as tf
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 from utils.image_utils import rescale_intensity
 
 

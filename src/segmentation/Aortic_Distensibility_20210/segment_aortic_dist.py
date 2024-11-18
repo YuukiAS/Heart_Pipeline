@@ -18,6 +18,8 @@ if __name__ == "__main__":
     data_dir = args.data_dir
 
     model_dir = config.model_dir
+    pipeline_dir = config.pipeline_dir
 
-    os.system("python ./deploy_network_ao.py --seq_name aortic_dist "
-              f"--data_dir {data_dir} --model_path {model_dir}/Aortic_Distensibility_20210/UNet-LSTM_ao\n")
+    os.system(f"cd {pipeline_dir}/src/segmentation/Aortic_Distensibility_20210 && "
+          f"python ./deploy_network_ao.py --seq_name aortic_dist "
+          f"--data_dir {data_dir} --model_path {model_dir}/Aortic_Distensibility_20210/UNet-LSTM_ao")
