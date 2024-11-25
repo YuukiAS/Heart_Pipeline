@@ -36,7 +36,7 @@ def generate_header_gpu(jobname, pipeline_dir, file_i, file_script, retest_suffi
         file_script.write(f"#SBATCH --output={jobname}_{file_i}_{retest_suffix}.out\n")
     file_script.write("#SBATCH --mem=16G\n")
     file_script.write("#SBATCH --time=48:00:00\n")
-    file_script.write("#SBATCH --partition=htzhulab\n")
+    file_script.write(f"#SBATCH --partition={config.partition}\n")
     file_script.write("#SBATCH --gres=gpu:1\n")
     file_script.write("#SBATCH --qos=gpu_access\n")
     file_script.write("\n")

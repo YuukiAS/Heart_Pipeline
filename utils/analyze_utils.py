@@ -122,6 +122,11 @@ def plot_time_series_double_x(
     ax2.set_xlabel(x2_label)
 
     plt.scatter(x1, y, c=colors)
+
+    # if there is negative y, add a horizontal dotted line at y = 0
+    if np.min(y) < 0:
+        plt.axhline(y=0, color="gray", linestyle="--")
+
     if display:
         plt.show()
 
@@ -176,6 +181,10 @@ def plot_time_series_double_x_y(
     ax2.set_xlabel(x2_label)
 
     plt.scatter(x1, y_scatter, c=colors)
+
+    if np.min(y_scatter) < 0:
+        plt.axhline(y=0, color="gray", linestyle="--")
+
     if display:
         plt.show()
 

@@ -105,8 +105,10 @@ if __name__ == "__main__":
         data_time = {
             "LV: Volume [mL]": V["LV"],
             "RV: Volume [mL]": V["RV"],
-            "LV: T_ED": T_ED, 
-            "LV: T_ES": T_ES
+            "LV: T_ED [frame]": T_ED, 
+            "LV: T_ES [frame]": T_ES,
+            "LV: T_ED [ms]": T_ED * temporal_resolution,
+            "LV: T_ES [ms]": T_ES * temporal_resolution
         }
         np.savez(f"{sub_dir}/timeseries/ventricle.npz", **data_time)
 

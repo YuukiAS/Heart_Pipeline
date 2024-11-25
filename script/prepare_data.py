@@ -50,6 +50,11 @@ argparser.add_argument(
     action="store_true",
     help="Overwrite all existing zip files",
 )
+argparser.add_argument(
+    "--keepdicom",
+    action="store_true",
+    help="Keep the DICOM files after converting to Nifti",
+)
 
 args = argparser.parse_args()
 
@@ -211,7 +216,8 @@ dataset.read_dicom_images()
 dataset.convert_dicom_to_nifti(nii_dir)
 
 # clean up the temporary directories
-shutil.rmtree(dicom_dir)
+if not args.keepdicom:
+    shutil.rmtree(dicom_dir)
 shutil.rmtree(cvi42_contours_dir)
 
 logger.info(f"{args.sub_id}: Generated Nifti files has been stored in {nii_dir}")

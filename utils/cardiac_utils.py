@@ -2605,9 +2605,9 @@ def calculate_LV_center(seg_sa, affine, time, slice):
 def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nifti1.Nifti1Image, contour_name_stem):
     if seg_sa.ndim != 4:
         raise ValueError("seg_sa should be 4D (3D+t) array")
-
+    Z = seg_sa.shape[2]
     T = seg_sa.shape[3]
-    n_slices_total = seg_sa.shape[2]
+    n_slices_total = Z + 1
     affine = nim_sa.affine
 
     reader = vtk.vtkPolyDataReader()
@@ -2627,7 +2627,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
 
     # Determine the three slices used
     affine_inv = np.linalg.inv(affine)
-    z_cnt = np.zeros(n_slices_total)
+    z_cnt = np.zeros(Z)
 
     for i in range(n_points):
         point = points.GetPoint(i)
@@ -2647,7 +2647,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
     n_slices_used = apical_slice - basal_slice + 1
 
     if nim_sa.header["pixdim"][3] != SLICE_THICKNESS + SLICE_GAP:
-        raise ValueError("The slice thickness and gap is not the same as protocol")
+        raise ValueError("The slice thickness and gap does not aligns with protocol")
 
     # * Determine the vector at ED
     LV_barycenter_basal_ED = calculate_LV_center(seg_sa, affine, 0, basal_slice)
@@ -2780,18 +2780,22 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         torsion_endo["apex"][fr] = -np.mean(rotations_apex_z["endo"])
         torsion_endo["twist"][fr] = torsion_endo["apex"][fr] - torsion_endo["base"][fr]
         torsion_endo["torsion"][fr] = torsion_endo["twist"][fr] / (
-            (SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1
+            ((SLICE_THICKNESS + SLICE_GAP) * (n_slices_used - 1)) * 0.1
         )  # unit: degree/cm
 
         torsion_epi["base"][fr] = np.mean(rotations_base_z["epi"])
         torsion_epi["apex"][fr] = -np.mean(rotations_apex_z["epi"])
         torsion_epi["twist"][fr] = torsion_epi["apex"][fr] - torsion_epi["base"][fr]
-        torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / ((SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1)
+        torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / (
+            ((SLICE_THICKNESS + SLICE_GAP) * (n_slices_used - 1)) * 0.1
+        )
 
         torsion_global["base"][fr] = (n_base * torsion_endo["base"][fr] + n_apex * torsion_epi["base"][fr]) / (n_base + n_apex)
         torsion_global["apex"][fr] = (n_base * torsion_endo["apex"][fr] + n_apex * torsion_epi["apex"][fr]) / (n_base + n_apex)
         torsion_global["twist"][fr] = torsion_global["apex"][fr] - torsion_global["base"][fr]
-        torsion_global["torsion"][fr] = torsion_global["twist"][fr] / ((SLICE_THICKNESS * (n_slices_used - 1) + SLICE_GAP) * 0.1)
+        torsion_global["torsion"][fr] = torsion_global["twist"][fr] / (
+            ((SLICE_THICKNESS + SLICE_GAP) * (n_slices_used - 1)) * 0.1
+        )
 
     return torsion_endo, torsion_epi, torsion_global, basal_slice, apical_slice
 
@@ -2918,3 +2922,41 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     plt.imshow(seg_blood_eroded, cmap="gray", alpha=0.5)
     plt.title("Blood pool")
     return (T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood.mean(), figure)
+
+
+def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float], 
+                      img_phase: Tuple[float, float, float], 
+                      VENC,
+                      square_per_pix
+):
+    if seg_morphology.ndim != 3 or img_phase.ndim != 3:
+        raise ValueError("The input should be 3D image.")
+
+    T = seg_morphology.shape[2]
+
+    velocity = []
+    flow = []
+    flow_center = []  # define Center of velocity of forward flow
+
+    for t in range(T):
+        mask = seg_morphology[:, :, t]
+        phase = img_phase[:, :, t]
+
+        # Ref Nayak, Krishna S., et al. “Cardiovascular Magnetic Resonance Phase Contrast Imaging.”
+        phase_normalized = (phase / 4096.0) * (2 * np.pi) - np.pi
+        velocity_map = (phase_normalized / np.pi) * VENC
+        velocity_map_roi = velocity_map[mask == 1]
+
+        velocity.append(np.mean(velocity_map_roi))  # unit: cm/s
+        flow.append(np.sum(velocity_map_roi) * square_per_pix)  # unit: cm^3/s=mL/s
+
+        # Ref Systolic Flow Displacement Correlates With Future Ascending Aortic Growth in Patients With Bicuspid Aortic Valves
+        # Calculate the center of velocity: weighted by the absolute velocity information
+        velocity_map_y_coords, velocity_map_x_coords = np.indices(velocity_map.shape)
+        weights = np.where(mask == 1, np.abs(velocity_map), 0)
+        total_weight = np.sum(weights)
+        center_x = np.sum(velocity_map_x_coords * weights) / total_weight
+        center_y = np.sum(velocity_map_y_coords * weights) / total_weight
+        flow_center.append((center_x, center_y))
+
+    return np.array(velocity), np.array(flow), np.array(flow_center)
