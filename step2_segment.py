@@ -150,8 +150,25 @@ def generate_scripts(
                         else:
                             logger.info(f"{subject}: Segmentation for LVOT already exists, skip.")
                     if "aortic_blood_flow" in modality:
-                        # todo No segmentation network right now
-                        pass
+                        if not check_existing_file(["seg_aortic_flow.nii.gz"], sub_dir) or overwrite:
+                            if not check_existing_file(["aortic_flow.nii.gz"], sub_dir):
+                                # no original file
+                                continue
+                            file_script.write(f"echo '{subject}: Generate segmentation for LVOT'\n")
+                            file_script.write(
+                                "python ./src/segmentation/Phase_Contrast_20213/preprocess_phase_contrast.py " 
+                                f"--data_dir {sub_dir}\n"
+                            )
+                            file_script.write(f"conda activate {config.model_envs[config.model_used['lvot']]}\n")
+                            file_script.write("source ./env_variable.sh\n")
+                            file_script.write(
+                                "python ./src/segmentation/Phase_Contrast_20213/segment_phase_contrast.py "
+                                f"--data_dir {sub_dir} --model {config.model_used['phase_contrast']}\n"
+                            )
+                            file_script.write("conda deactivate\n")
+                            write_script = True
+                        else:
+                            logger.info(f"{subject}: Segmentation for LVOT already exists, skip.")
                     if "shmolli" in modality:
                         if not check_existing_file(["seg_shmolli_t1map.nii.gz"], sub_dir) or overwrite:
                             if not check_existing_file(["shmolli_t1map.nii.gz"], sub_dir):

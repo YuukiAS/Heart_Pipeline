@@ -2925,9 +2925,9 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
 
 
 def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float], 
-                      img_phase: Tuple[float, float, float], 
-                      VENC,
-                      square_per_pix
+                           img_phase: Tuple[float, float, float], 
+                           VENC,
+                           square_per_pix
 ):
     if seg_morphology.ndim != 3 or img_phase.ndim != 3:
         raise ValueError("The input should be 3D image.")
@@ -2937,6 +2937,7 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
     velocity = []
     flow = []
     flow_center = []  # define Center of velocity of forward flow
+    velocity_map_all = np.zeros_like(img_phase)
 
     for t in range(T):
         mask = seg_morphology[:, :, t]
@@ -2959,4 +2960,6 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
         center_y = np.sum(velocity_map_y_coords * weights) / total_weight
         flow_center.append((center_x, center_y))
 
-    return np.array(velocity), np.array(flow), np.array(flow_center)
+        velocity_map_all[:, :, t] = velocity_map
+
+    return np.array(velocity), np.array(flow), np.array(flow_center), velocity_map_all

@@ -10,10 +10,10 @@ they don't use 20210?
 
 ## 20208 Long Axis
 - [x] Get Mitral valve and Tricuspid valve diameter: *Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions* 
-- [ ] Extract landmarks on 3-chamber view: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9708771/pdf/10554_2022_Article_2724.pdf
+- [ ] Extract landmarks on 3-chamber view: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9708771/pdf/10554_2022_Article_2724.pdf  Can I use Atlas to do it?
 
 ## 20209 Short Axis
-- [ ] Add visualization for torsion
+- [ ] Fix the problem that rotation and torsion are not calculated correctly, add visualization
 
 ## 20210 Aortic Distensibility Cine
 - [x] Extract luminal parameter
@@ -27,23 +27,24 @@ they don't use 20210?
 - [x] Determine whether more features can be extracted
 
 ## 20213 Phase Contrast
+- [ ] Add segmentation code
 - [ ] Aortic flow: velocity, volume (VTI), area..
 - [ ] Number of cusp: Incorporate the code
 
 ## 20214 T1 Mapping
 - [x] Correct some annotations that exceed the myocardium at the bottom
+- [ ] Add segmentation code
+- [ ] Check whether results meet the reference range
+- [ ] Improve Segmentation Quality
 
-# Other Modality
-**(We only focus on CMR features right now)**
-- [x] Check Data fields such as PWV https://biobank.ndph.ox.ac.uk/ukb/label.cgi?id=100007
-- [x] ICD coding such as https://biobank.ndph.ox.ac.uk/ukb/label.cgi?id=1712 (Check https://openheart.bmj.com/content/openhrt/9/2/e002039.full.pdf for details)
+
+# Others
+- [ ] Try out https://microsoft.github.io/BiomedParse/. Can it be used to improve segmentation quality or the annotation tool?
 
 # All Modality
 
-- [ ] Add some visualization for quality check
-- [ ] Add scripts for segmentation based on nnU-Net or U-Mamba
-- [ ] Possible Enhancement1: Add time series features at step4
-- [ ] Possible Enhancement2: Voxel-wise analysis
-- [ ] Possible Enhancement3: Interact with LLM, giving an input figure
-- [ ] Use Atlas for 14 landmarks?
+- [ ] Make boxplots for all features, add reference range for each feature
+- [ ] Improve bias correction for LVOT and Phase contrast.
+- [ ] Possible Enhancement1: Complex time series features using TSFEL at step4
+- [ ] Possible Enhancement2: Interact with LLM, giving an input figure
 

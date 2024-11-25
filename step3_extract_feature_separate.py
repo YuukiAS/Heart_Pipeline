@@ -85,73 +85,73 @@ def generate_scripts(
                         file_script.write("echo 'Extract features for aortic structure'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Aortic_Scout_20207/eval_aortic_structure.py "
-                            f"{retest_str} --file_name=aortic_structure_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=aortic_structure_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "la" in modality:
                         file_script.write("echo 'Extract features for atrial volume'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Long_Axis_20208/eval_atrial_volume.py "
-                            f"{retest_str} --file_name=atrial_volume_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=atrial_volume_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "sa" in modality:
                         file_script.write("echo 'Extract features for ventricular volume'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Short_Axis_20209/eval_ventricular_volume.py "
-                            f"{retest_str} --file_name=ventricular_volume_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=ventricular_volume_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
                         file_script.write("echo 'Extract features for wall thickness'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Short_Axis_20209/eval_wall_thickness.py "
-                            f"{retest_str} --file_name=wall_thickness_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=wall_thickness_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "la" in modality and "sa" in modality:
                         file_script.write("echo 'Extract features for longitudinal strain using long axis'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Long_Axis_20208/eval_strain_lax.py "
-                            f"{retest_str} --file_name=strain_la_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=strain_la_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
                         file_script.write("echo 'Extract features for cirumferential and radial strain using short axis'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Short_Axis_20209/eval_strain_sax.py "
-                            f"{retest_str} --file_name=strain_sa_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=strain_sa_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "aortic_dist" in modality:
                         file_script.write("echo 'Extract features for aortic distensibility'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Aortic_Distensibility_20210/eval_aortic_dist.py "
-                            f"{retest_str} --file_name=aortic_dist_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=aortic_dist_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "tag" in modality:
                         file_script.write("echo 'Extract features for cirumferential and radial strain using tagged MRI'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Tagged_20211/eval_strain_tagged.py "
-                            f"{retest_str} --file_name=strain_tagged_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=strain_tagged_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "lvot" in modality:
                         file_script.write("echo 'Extract features for LVOT diameters'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/LVOT_20212/eval_LVOT.py "
-                            f"{retest_str} --file_name=LVOT_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=LVOT_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "aortic_blood_flow" in modality:
                         file_script.write("echo 'Extract features for aortic blood flow features'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Phase_Contrast_20213/eval_phase_contrast.py "
-                            f"{retest_str} --file_name=aortic_flow_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=aortic_flow_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if "shmolli" in modality:
                         file_script.write("echo 'Extract features for Native T1 features'\n")
                         file_script.write(
                             f"python -u ./src/feature_extraction/Native_T1_20214/eval_native_t1.py "
-                            f"{retest_str} --file_name=native_T1_{file_i} --data_list {sub_file_unit_str} \n"
+                            f"{retest_str} --file_name=native_T1_{file_i}_{unit + 1} --data_list {sub_file_unit_str} \n"
                         )
 
                     if modality is not None:

@@ -31,6 +31,7 @@ def generate_scripts(
     retest_suffix=None,
     cpu=True,
     overwrite=False,
+    keepdicom=True
 ):
     if retest_suffix is None:
         code_step1_dir = os.path.join(code_dir, "prepare_data_visit1")
@@ -148,6 +149,8 @@ def generate_scripts(
                         options_str += " --shmolli=" + shmolli
                     if overwrite:
                         options_str += " --overwrite"
+                    if keepdicom:
+                        options_str += " --keepdicom"
                     file_script.write(
                         f"python ./script/prepare_data.py --out_dir={out_step1_dir} --sub_id={sub_id} {options_str}\n"
                     )

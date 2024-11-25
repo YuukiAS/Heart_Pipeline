@@ -33,9 +33,9 @@ def check_brightness_anomaly(nii):
         image = nii[:, :, 0, t]
 
         # After rotation, this becomes left and right
-        lower_std = np.std(image[image.shape[0] // 2:, :])
-        upper_std = np.std(image[:image.shape[0] // 2, :])
-        std_diff = abs(lower_std - upper_std)
+        left_std = np.std(image[:image.shape[0] // 2, :])
+        right_std = np.std(image[image.shape[0] // 2:, :])
+        std_diff = abs(right_std - left_std)
         std_diff_list.append(std_diff)
     
     std_diff_mean = np.mean(std_diff_list)

@@ -1,4 +1,5 @@
 import os
+import shutil
 import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
@@ -24,22 +25,21 @@ def check_brightness_anomaly(nii):
     if nii.ndim != 4:
         raise ValueError("Input image must be 4D")
     
-    if nii.shape[2] != 1 or nii.shape[3] != 50:
-        raise ValueError("Input image must be of shape (H, W, 1, 50)")
+    if nii.shape[2] != 1 or nii.shape[3] != 30:
+        raise ValueError("Input image must be of shape (H, W, 1, 30)")
 
     std_diff_list = []
 
     for t in range(nii.shape[3]):
         image = nii[:, :, 0, t]
 
-        # After rotation, this becomes left and right
-        lower_std = np.std(image[image.shape[0] // 2:, :])
-        upper_std = np.std(image[:image.shape[0] // 2, :])
+        lower_std = np.std(image[:, :image.shape[1] // 2])
+        upper_std = np.std(image[:, image.shape[1] // 2:])
         std_diff = abs(lower_std - upper_std)
         std_diff_list.append(std_diff)
     
     std_diff_mean = np.mean(std_diff_list)
-    return std_diff_mean > 35, std_diff_mean
+    return std_diff_mean > 15, std_diff_mean  # empirical threshold
 
 
 if __name__ == "__main__":
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     if abnormaly:
         logger.info(f"{subject}: Brightness anomaly found. Applying bias correction.")
         os.makedirs(preprocess_dir, exist_ok=True)
-        if std_diff_mean < 70:
+        if std_diff_mean < 15:
             # Run one time
             plt.figure(figsize=(20, 10))
             plt.subplot(1,2,1)
@@ -83,7 +83,7 @@ if __name__ == "__main__":
             plt.title("Bias Corrected 1st")
             plt.axis("off")
 
-        elif std_diff_mean >= 70 and std_diff_mean < 100:
+        elif std_diff_mean >= 15 and std_diff_mean < 20:
             # Run two times
             plt.figure(figsize=(20, 10))
             plt.subplot(1,3,1)
@@ -151,9 +151,11 @@ if __name__ == "__main__":
         nii_final_affine = nim_img.affine
         nii_final = nib.Nifti1Image(img_morphology_3d, nii_final_affine, nim_img.header)
         nii_final.header["pixdim"][1:4] = nim_img.header["pixdim"][1:4]
-        img_morphology_name = os.path.join(preprocess_dir, "aortic_flow_processed.nii.gz")
+        img_morphology_name = os.path.join(data_dir, "aortic_flow_processed.nii.gz")
         nib.save(nii_final, img_morphology_name)
         logger.info(f"{subject}: Phase contrast cine MRI has gone through bias correction. Preprocessing finished.")
     else:
+        # copy the file
+        shutil.copy(img_morphology_name, os.path.join(data_dir, "aortic_flow_processed.nii.gz"))
         logger.info(f"{subject}: No have brightness anomaly. Skip bias correction.")
 

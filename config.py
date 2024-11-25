@@ -49,20 +49,20 @@ retest_suffix = "retest"  # e.g. This will recognize 20208_retest in data_raw_di
 
 # Modify here to select the modality you want to use
 # These are all the CMR modalities provided by UKBiobank
-modality = ["la", "sa", "aortic_dist"]
-# modality = ['aortic_scout', 'la', 'sa', 'aortic_dist', 'tag', 'lvot', 'aortic_blood_flow', 'shmolli']
+modality = ["aortic_scout", "la", "sa", "aortic_dist", "tag", "lvot", "aortic_blood_flow", "shmolli"]
 
 # If set to True, please also run step1_preaprare_data_ecg.py so that ECG-related features can be generated
 useECG = True
 
 # * Configure the parameters for segmentation -----------------------------------------
+partition = "volta-gpu"  # define the partition used for slurm job
 # The virtual environment to be activated before prediction
 model_envs = {
     "nnUNet": "/work/users/y/u/yuukias/Annotation/nnUNet/env_nnUNet",
     "UMamba": "/work/users/y/u/yuukias/Annotation/UMamba/env_UMamba",
 }
 # The model used for segmentation of each modality
-model_used = {"lvot": "nnUNet", "aortic_blood_flow": None, "shmolli": None}
+model_used = {"lvot": "nnUNet", "aortic_blood_flow": "nnUNet", "shmolli": "nnUNet"}
 
 # * Configure the parameters for the logging mechanism ---------------------------
 
