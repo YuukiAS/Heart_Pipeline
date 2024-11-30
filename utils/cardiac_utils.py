@@ -43,10 +43,8 @@ from .image_utils import (
 )
 
 import sys
-
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 from utils.log_utils import setup_logging
-
 logger = setup_logging("cardiac-utils")
 
 
@@ -2607,7 +2605,6 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         raise ValueError("seg_sa should be 4D (3D+t) array")
     Z = seg_sa.shape[2]
     T = seg_sa.shape[3]
-    n_slices_total = Z + 1
     affine = nim_sa.affine
 
     reader = vtk.vtkPolyDataReader()
@@ -2637,19 +2634,20 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         # plt.imshow(seg_sa_ED[:, :, z], cmap='gray')
         # plt.scatter(y, x, c='r')
 
+    # * We need to choose appropriate basal and apical slice, as segmentations in 0% and 100% slices may not pass quality control
     basal_slice = np.min(np.nonzero(z_cnt)[0])
     apical_slice = np.max(np.nonzero(z_cnt)[0])
-    # print(basal_slice, apical_slice)
+    n_slices_used = apical_slice - basal_slice + 1
+    logger.info(f"Basal slice: {basal_slice}, Apical slice: {apical_slice}, # of Slices used: {n_slices_used}")
 
     # Ref https://dx.plos.org/10.1371/journal.pone.0109164
     SLICE_THICKNESS = 8  # unit: mm
     SLICE_GAP = 2
-    n_slices_used = apical_slice - basal_slice + 1
 
     if nim_sa.header["pixdim"][3] != SLICE_THICKNESS + SLICE_GAP:
         raise ValueError("The slice thickness and gap does not aligns with protocol")
 
-    # * Determine the vector at ED
+    # * Determine the vector at ED in real world coordinate
     LV_barycenter_basal_ED = calculate_LV_center(seg_sa, affine, 0, basal_slice)
     LV_barycenter_apical_ED = calculate_LV_center(seg_sa, affine, 0, apical_slice)
 
@@ -2741,6 +2739,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
             raise ValueError(f"The number of points at frame {fr} is different from ED")
 
         # Ref https://www.sciencedirect.com/science/article/pii/S1097664723012437?via%3Dihub
+        # * The rotation is calculated using arcsin of normalized cross product
 
         rotations_base_z = {"epi": np.zeros(len(points_base["epi"])), "endo": np.zeros(len(points_base["endo"]))}
         rotations_apex_z = {"epi": np.zeros(len(points_apex["epi"])), "endo": np.zeros(len(points_apex["endo"]))}
@@ -2748,12 +2747,14 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         n_base = len(points_base["epi"])
         n_apex = len(points_apex["epi"])
 
+        # * Note that for real data these two lines may be very close, thus we manually correct the sign
         for i in range(n_base):
             v1 = points_base_ED["epi"][i] - LV_barycenter_basal_ED
             v1 = [v1[0], v1[1]]
             v2 = points_base["epi"][i] - LV_barycenter_basal
             v2 = [v2[0], v2[1]]
             rotations_base_z["epi"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
+            rotations_base_z["epi"][i] = -abs(rotations_base_z["epi"][i])
 
         for i in range(n_base):
             v1 = points_base_ED["endo"][i] - LV_barycenter_basal_ED
@@ -2761,6 +2762,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
             v2 = points_base["endo"][i] - LV_barycenter_basal
             v2 = [v2[0], v2[1]]
             rotations_base_z["endo"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
+            rotations_base_z["endo"][i] = -abs(rotations_base_z["endo"][i])
 
         for i in range(n_apex):
             v1 = points_apex_ED["epi"][i] - LV_barycenter_apical_ED
@@ -2768,6 +2770,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
             v2 = points_apex["epi"][i] - LV_barycenter_apical
             v2 = [v2[0], v2[1]]
             rotations_apex_z["epi"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
+            rotations_apex_z["epi"][i] = abs(rotations_apex_z["epi"][i])
 
         for i in range(n_apex):
             v1 = points_apex_ED["endo"][i] - LV_barycenter_apical_ED
@@ -2775,16 +2778,17 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
             v2 = points_apex["endo"][i] - LV_barycenter_apical
             v2 = [v2[0], v2[1]]
             rotations_apex_z["endo"][i] = np.degrees(np.arcsin(np.cross(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))))
+            rotations_apex_z["endo"][i] = abs(rotations_apex_z["endo"][i])
 
         torsion_endo["base"][fr] = np.mean(rotations_base_z["endo"])
-        torsion_endo["apex"][fr] = -np.mean(rotations_apex_z["endo"])
+        torsion_endo["apex"][fr] = np.mean(rotations_apex_z["endo"])
         torsion_endo["twist"][fr] = torsion_endo["apex"][fr] - torsion_endo["base"][fr]
         torsion_endo["torsion"][fr] = torsion_endo["twist"][fr] / (
             ((SLICE_THICKNESS + SLICE_GAP) * (n_slices_used - 1)) * 0.1
         )  # unit: degree/cm
 
         torsion_epi["base"][fr] = np.mean(rotations_base_z["epi"])
-        torsion_epi["apex"][fr] = -np.mean(rotations_apex_z["epi"])
+        torsion_epi["apex"][fr] = np.mean(rotations_apex_z["epi"])
         torsion_epi["twist"][fr] = torsion_epi["apex"][fr] - torsion_epi["base"][fr]
         torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / (
             ((SLICE_THICKNESS + SLICE_GAP) * (n_slices_used - 1)) * 0.1

@@ -97,9 +97,7 @@ if __name__ == "__main__":
         logger.info(f"{subject}: Perform motion tracking on short-axis images and calculate the strain.")
         # Perform motion tracking on short-axis images and calculate the strain
         cine_2d_sa_motion_and_strain_analysis(sub_dir, par_config_name, temp_dir, ft_dir)
-        radial_strain, circum_strain = evaluate_strain_by_length_sa(
-            f"{ft_dir}/myo_contour_sa/myo_contour_fr", T, ft_dir
-        )
+        radial_strain, circum_strain = evaluate_strain_by_length_sa(f"{ft_dir}/myo_contour_sa/myo_contour_fr", T, ft_dir)
         logger.info(f"{subject}: Radial and circumferential strain calculated, remove intermediate files.")
 
         # Remove intermediate files
@@ -164,7 +162,7 @@ if __name__ == "__main__":
         ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
         atrium = np.load(f"{sub_dir}/timeseries/atrium.npz")
 
-        T_ES = ventricle["LV: T_ES"]
+        T_ES = ventricle["LV: T_ES [frame]"]
         T_1_3_DD = T_ES + math.ceil((50 - T_ES) / 3)
         T_pre_a = None
 
@@ -399,37 +397,52 @@ if __name__ == "__main__":
             )
             logger.info(f"{subject}: Torsion calculated, save time series plots.")
 
-            plt.plot(np.arange(T), torsion_endo["base"], label="base")
-            plt.plot(np.arange(T), torsion_endo["apex"], label="apex")
-            plt.plot(np.arange(T), torsion_endo["twist"], label="twist")
-            plt.axhline(0, color='black', linestyle='--')
+            plt.plot(np.arange(T), torsion_endo["base"], label="basal slice")
+            plt.plot(np.arange(T), torsion_endo["apex"], label="apical slice")
+            plt.plot(np.arange(T), torsion_endo["twist"], label="twist (apical - basal)")
+            plt.axhline(0, color="black", linestyle="--")
             plt.ylabel("°")
-            plt.vlines(T_ES, -10, 10, color="black")
+            plt.hlines(0, 0, T, color='black')
+            plt.vlines(T_ES, -10, 10, color='black', linestyles='dashed')
+            plt.text(T_ES, 10, f'ES: {T_ES}', color='black', ha='center', va="bottom")
             plt.legend(loc="lower right")
-            plt.title(f"Subject {subject}: Endocardial Twist Time Series using Slice {basal_slice} to {apical_slice}")
-            plt.savefig(f"{sub_dir}/timeseries/twist_endo.png")
+            plt.title(f"Subject {subject}: Endocardial rotation Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/rotation_endo.png")
             plt.close()
 
-            plt.plot(np.arange(T), torsion_epi["base"], label="base")
-            plt.plot(np.arange(T), torsion_epi["apex"], label="apex")
-            plt.plot(np.arange(T), torsion_epi["twist"], label="twist")
-            plt.axhline(0, color='black', linestyle='--')
+            plt.plot(np.arange(T), torsion_epi["base"], label="basal slice")
+            plt.plot(np.arange(T), torsion_epi["apex"], label="apical slice")
+            plt.plot(np.arange(T), torsion_epi["twist"], label="twist (apical - basal)")
+            plt.axhline(0, color="black", linestyle="--")
             plt.ylabel("°")
-            plt.vlines(T_ES, -10, 10, color="black")
-            plt.plt.legend(loc="lower right")
-            plt.title(f"Subject {subject}: Epicardial Twist Time Series using Slice {basal_slice} to {apical_slice}")
-            plt.savefig(f"{sub_dir}/timeseries/twist_epi.png")
+            plt.hlines(0, 0, T, color='black')
+            plt.vlines(T_ES, -10, 10, color='black', linestyles='dashed')
+            plt.text(T_ES, 10, f'ES: {T_ES}', color='black', ha='center', va="bottom")
+            plt.legend(loc="lower right")
+            plt.title(f"Subject {subject}: Epicardial rotation Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/rotation_epi.png")
             plt.close()
 
-            plt.plot(np.arange(T), torsion_global["base"], label="base")
-            plt.plot(np.arange(T), torsion_global["apex"], label="apex")
-            plt.plot(np.arange(T), torsion_global["twist"], label="twist")
-            plt.axhline(0, color='black', linestyle='--')
+            plt.plot(np.arange(T), torsion_endo["twist"], label="endo")
+            plt.plot(np.arange(T), torsion_epi["twist"], label="epi")
+            plt.plot(np.arange(T), torsion_global["twist"], label="global")
             plt.ylabel("°")
-            plt.vlines(T_ES, -10, 10, color="black")
-            plt.plt.legend(loc="lower right")
-            plt.title(f"Subject {subject}: Global Twist Time Series using Slice {basal_slice} to {apical_slice}")
-            plt.savefig(f"{sub_dir}/timeseries/twist_global.png")
+            plt.vlines(T_ES, 0, 15, color='black', linestyles='dashed')
+            plt.text(T_ES, 15, f'ES: {T_ES}', color='black', ha='center', va="bottom")
+            plt.legend(loc="lower right")
+            plt.title(f"Subject {subject}: Twist Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/twist.png")
+            plt.close()
+
+            plt.plot(np.arange(T), torsion_endo["torsion"], label="endo")
+            plt.plot(np.arange(T), torsion_epi["torsion"], label="epi")
+            plt.plot(np.arange(T), torsion_global["torsion"], label="global")
+            plt.ylabel("°/cm")
+            plt.vlines(T_ES, 0, 5, color='black', linestyles='dashed')
+            plt.text(T_ES, 5, f'ES: {T_ES}', color='black')
+            plt.legend(loc="lower right")
+            plt.title(f"Subject {subject}: Torsion Time Series using Slice {basal_slice} to {apical_slice}")
+            plt.savefig(f"{sub_dir}/timeseries/torsion.png")
             plt.close()
 
             feature_dict.update(
@@ -439,17 +452,6 @@ if __name__ == "__main__":
                     "LV: Global Torsion [°/cm]": np.max(torsion_global["torsion"]),
                 }
             )
-
-            plt.plot(np.arange(T), torsion_endo["torsion"], label="endo")
-            plt.plot(np.arange(T), torsion_epi["torsion"], label="epi")
-            plt.plot(np.arange(T), torsion_global["torsion"], label="global")
-            plt.axhline(0, color='black', linestyle='--')
-            plt.ylabel("°/cm")
-            plt.vlines(T_ES, -3, 3, color="black")
-            plt.plt.legend(loc="lower right")
-            plt.title(f"Subject {subject}: Torsion Time Series using Slice {basal_slice} to {apical_slice}")
-            plt.savefig(f"{sub_dir}/timeseries/torsion.png")
-            plt.close()
 
             T_endo_torsion_peak = np.argmax(torsion_endo["torsion"])
             T_epi_torsion_peak = np.argmax(torsion_epi["torsion"])
