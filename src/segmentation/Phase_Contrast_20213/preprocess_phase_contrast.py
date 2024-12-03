@@ -147,9 +147,10 @@ if __name__ == "__main__":
         plt.close()
 
         img_morphology_3d = img_morphology_3d_bias_corrected
+        img_morphology_final = np.expand_dims(img_morphology_3d, axis=2)
 
-        nii_final_affine = nim_img.affine
-        nii_final = nib.Nifti1Image(img_morphology_3d, nii_final_affine, nim_img.header)
+        nii_final_affine = nim_img.affine.copy()
+        nii_final = nib.Nifti1Image(img_morphology_final, nii_final_affine, nim_img.header)
         nii_final.header["pixdim"][1:4] = nim_img.header["pixdim"][1:4]
         img_morphology_name = os.path.join(data_dir, "aortic_flow_processed.nii.gz")
         nib.save(nii_final, img_morphology_name)

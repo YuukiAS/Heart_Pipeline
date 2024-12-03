@@ -64,8 +64,6 @@ dicom_dir = os.path.join(args.out_dir, "dicom", args.sub_id)  # temporary direct
 cvi42_contours_dir = os.path.join(args.out_dir, "contour", args.sub_id)  # temporary directory to CVI42 store files
 nii_dir = os.path.join(args.out_dir, "nii", args.sub_id)
 
-if os.path.exists(dicom_dir):
-    os.system("rm -rf {0}".format(dicom_dir))
 if os.path.exists(cvi42_contours_dir):
     os.system("rm -rf {0}".format(cvi42_contours_dir))
 if args.overwrite and os.path.exists(nii_dir):
@@ -217,7 +215,15 @@ dataset.convert_dicom_to_nifti(nii_dir)
 
 # clean up the temporary directories
 if not args.keepdicom:
-    shutil.rmtree(dicom_dir)
+    for f in os.listdir(dicom_dir):
+        # f is a folder
+        if os.path.isdir(os.path.join(dicom_dir, f)):
+            # This folder will be used to determine VENC
+            if f != "flow_250_tp_AoV_bh_ePAT@c_P":
+                shutil.rmtree(os.path.join(dicom_dir, f))
+        else:
+            # f is a file
+            os.remove(os.path.join(dicom_dir, f))
 shutil.rmtree(cvi42_contours_dir)
 
 logger.info(f"{args.sub_id}: Generated Nifti files has been stored in {nii_dir}")

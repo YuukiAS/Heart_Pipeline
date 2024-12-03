@@ -15,7 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 from utils.log_utils import setup_logging
 
-logger = setup_logging("ecg_neurokit")
+logger = setup_logging("eval_ecg_neurokit")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--retest", action="store_true")

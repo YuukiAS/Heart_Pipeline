@@ -109,8 +109,8 @@ if __name__ == "__main__":
         for i in range(16):
             feature_dict.update(
                 {
-                    f"Myo: Thickness (AHA_{i + 1} [mm])": table_thickness[i],
-                    f"Myo: Thickness (AHA_{i + 1}_max [mm])": table_thickness_max[i],
+                    f"Myo: Thickness (AHA_{i + 1}) [mm]": table_thickness[i],
+                    f"Myo: Thickness (AHA_{i + 1}_max) [mm]": table_thickness_max[i],
                 }
             )
         feature_dict.update(
@@ -129,6 +129,7 @@ if __name__ == "__main__":
             BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
             BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
             logger.info(f"{subject}: Implement disparity features")
+            # we temporarily do not use radius and thickness
             radius_motion_disparity, thickness_motion_disparity, radius, thickness = (
                 evaluate_radius_thickness_disparity(seg_sa, nim_sa, BSA_subject)
             )

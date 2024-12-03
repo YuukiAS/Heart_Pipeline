@@ -106,13 +106,13 @@ if __name__ == "__main__":
         for i in range(6):
             feature_dict.update(
                 {
-                    f"LV: Longitudinal (Segment_{i + 1}) [%]": longit_strain[i, :].min(),  # no need to plus one
+                    f"LV: Longitudinal Strain (Segment_{i + 1}) [%]": longit_strain[i, :].min(),  # no need to plus one
                 }
             )
 
         feature_dict.update(
             {
-                "LV: Longitudinal (Global) [%]": longit_strain[6, :].min(),
+                "LV: Longitudinal Strain (Global) [%]": longit_strain[6, :].min(),
             }
         )
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
         atrium = np.load(f"{sub_dir}/timeseries/atrium.npz")
 
-        T_ES = ventricle["LV: T_ES"]
+        T_ES = ventricle["LV: T_ES [frame]"]
         T_1_3_DD = T_ES + math.ceil((50 - T_ES) / 3)
         T_pre_a = None
 
@@ -283,14 +283,14 @@ if __name__ == "__main__":
             if i == 6:
                 feature_dict.update(
                     {
-                        "LV: Longitudinal Strain: Post-systolic Index (Global) [%]": longit_PSI * 100,
+                        "LV: Longitudinal Strain-Post-systolic Index (Global) [%]": longit_PSI * 100,
                     }
                 )
                 logger.info(f"{subject}: Global Post-systolic index calculated.")
             else:
                 feature_dict.update(
                     {
-                        f"LV: Longitudinal Strain: Post-systolic Index (Segment_{i + 1}) [%]": longit_PSI * 100,
+                        f"LV: Longitudinal Strain-Post-systolic Index (Segment_{i + 1}) [%]": longit_PSI * 100,
                     }
                 )
 
@@ -301,7 +301,7 @@ if __name__ == "__main__":
 
             feature_dict.update(
                 {
-                    "LV: Longitudinal Strain: Time to Peak [ms]": t_longit_strain_peak,
+                    "LV: Longitudinal Strain-Time to Peak [ms]": t_longit_strain_peak,
                 }
             )
 
@@ -315,7 +315,7 @@ if __name__ == "__main__":
 
                 feature_dict.update(
                     {
-                        "LV: Longitudinal Strain: Time to Peak Index": t_longit_strain_peak_index,
+                        "LV: Longitudinal Strain-Time to Peak Index": t_longit_strain_peak_index,
                     }
                 )
 
@@ -325,7 +325,7 @@ if __name__ == "__main__":
             MSI = np.std(t_longit_strain_peak_list)
             feature_dict.update(
                 {
-                    "LV: Longitudinal Strain: Mechanical Dispersion Index [ms]": MSI,
+                    "LV: Longitudinal Strain-Mechanical Dispersion Index [ms]": MSI,
                 }
             )
             logger.info(f"{subject}: Mechanical dispersion index calculated.")
@@ -343,7 +343,7 @@ if __name__ == "__main__":
             systolic_stretch = longit_strain_systole_positive / (longit_strain_systole_positive - longit_strain_systole_negative)
             feature_dict.update(
                 {
-                    "LV: Longitudinal Strain: Systolic Stretch [%]": systolic_stretch * 100,
+                    "LV: Longitudinal Strain-Systolic Stretch [%]": systolic_stretch * 100,
                 }
             )
             logger.info(f"{subject}: Systolic stretch calculated.")
@@ -358,7 +358,7 @@ if __name__ == "__main__":
 
         feature_dict.update(
             {
-                "LV: Longitudinal Strain: Strain Imaging Diastolic Index [%]": longit_SI_DI * 100,
+                "LV: Longitudinal Strain-Strain Imaging Diastolic Index [%]": longit_SI_DI * 100,
             }
         )
 

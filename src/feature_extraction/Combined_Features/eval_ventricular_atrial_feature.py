@@ -74,8 +74,8 @@ if __name__ == "__main__":
             logger.error(f"Atrial features or time series not found for subject {subject}")
             continue
 
-        T_ED = ventricular_time_series["LV: T_ED"]
-        T_ES = ventricular_time_series["LV: T_ES"]
+        T_ED = ventricular_time_series["LV: T_ED [frame]"]
+        T_ES = ventricular_time_series["LV: T_ES [frame]"]
         os.makedirs(os.path.join(sub_dir, "visualization", "combined"), exist_ok=True)
 
         # * Feature1: IPVT

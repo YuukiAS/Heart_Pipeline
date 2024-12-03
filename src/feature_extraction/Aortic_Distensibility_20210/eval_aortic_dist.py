@@ -68,15 +68,16 @@ if __name__ == "__main__":
         aorta_name = os.path.join(sub_dir, "aortic_dist.nii.gz")
         # 1 is ascending aorta, 2 is descending aorta
         seg_aorta_name = os.path.join(sub_dir, "seg_aortic_dist.nii.gz")
+
+        if not os.path.exists(aorta_name) or not os.path.exists(seg_aorta_name):
+            logger.error(f"Original image or segmentation of aorta file for {subject} does not exist")
+            continue
+
         nim_aorta = nib.load(aorta_name)
         nim_seg_aorta = nib.load(seg_aorta_name)
         T = nim_aorta.header["dim"][4]
         aorta = nim_aorta.get_fdata()
         seg_aorta = nim_seg_aorta.get_fdata()
-
-        if not os.path.exists(aorta_name) or not os.path.exists(seg_aorta_name):
-            logger.error(f"Original image or segmentation of aorta file for {subject} does not exist")
-            continue
 
         if not aorta_pass_quality_control(aorta, seg_aorta):  # 4 criterions
             logger.error(f"{subject}: seg_aorta does not pass quality control, skipped.")

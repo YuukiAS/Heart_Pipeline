@@ -294,16 +294,16 @@ if __name__ == "__main__":
 
             feature_dict.update(
                 {
-                    "LV: Circumferential Strain (End-systolic, absolute value) [%]": circum_strain_ES,
-                    "LV: Circumferential Strain (Post-systolic, absolute value) [%]": circum_strain_post,
+                    "LV: Circumferential Strain (End-systolic-absolute value) [%]": circum_strain_ES,
+                    "LV: Circumferential Strain (Post-systolic-absolute value) [%]": circum_strain_post,
                 }
             )
             logger.info(f"{subject}: End-systolic, post-systolic circumferential strain calculated.")
         else:
             feature_dict.update(
                 {
-                    "LV: Circumferential Strain (End-systolic, absolute value) [%]": circum_strain_ES,
-                    "LV: Circumferential Strain (Peak-systolic, absolute value) [%]": cicum_strain_peak,
+                    "LV: Circumferential Strain (End-systolic-absolute value) [%]": circum_strain_ES,
+                    "LV: Circumferential Strain (Peak-systolic-absolute value) [%]": cicum_strain_peak,
                 }
             )
             logger.info(f"{subject}: End-systolic, peak-systolic circumferential strain calculated.")
@@ -322,16 +322,16 @@ if __name__ == "__main__":
 
             feature_dict.update(
                 {
-                    "LV: Radial Strain (End-systolic, absolute value) [%]": radial_strain_ES,
-                    "LV: Radial Strain (Post-systolic, absolute value) [%]": radial_strain_post,
+                    "LV: Radial Strain (End-systolic-absolute value) [%]": radial_strain_ES,
+                    "LV: Radial Strain (Post-systolic-absolute value) [%]": radial_strain_post,
                 }
             )
             logger.info(f"{subject}: End-systolic, post-systolic radial strain calculated.")
         else:
             feature_dict.update(
                 {
-                    "LV: Radial Strain (End-systolic, absolute value) [%]": radial_strain_ES,
-                    "LV: Radial Strain (Peak-systolic, absolute value) [%]": radial_strain_peak,
+                    "LV: Radial Strain (End-systolic-absolute value) [%]": radial_strain_ES,
+                    "LV: Radial Strain (Peak-systolic-absolute value) [%]": radial_strain_peak,
                 }
             )
             logger.info(f"{subject}: End-systolic, peak-systolic radial strain calculated.")
@@ -345,8 +345,8 @@ if __name__ == "__main__":
 
         feature_dict.update(
             {
-                "LV: Circumferential Strain: Time to Peak [ms]": t_circum_strain_peak,
-                "LV: Radial Strain: Time to Peak [ms]": t_radial_strain_peak,
+                "LV: Circumferential Strain-Time to Peak [ms]": t_circum_strain_peak,
+                "LV: Radial Strain-Time to Peak [ms]": t_radial_strain_peak,
             }
         )
 
@@ -363,8 +363,8 @@ if __name__ == "__main__":
 
             feature_dict.update(
                 {
-                    "LV: Circumferential Strain: Time to Peak Index": t_circum_strain_peak_index,
-                    "LV: Radial Strain: Time to Peak Index": t_radial_strain_peak_index,
+                    "LV: Circumferential Strain-Time to Peak Index": t_circum_strain_peak_index,
+                    "LV: Radial Strain-Time to Peak Index": t_radial_strain_peak_index,
                 }
             )
 
@@ -382,8 +382,8 @@ if __name__ == "__main__":
 
         feature_dict.update(
             {
-                "LV: Circumferential Strain: Strain Imaging Diastolic Index [%]": circum_SI_DI * 100,
-                "LV: Radial Strain: Strain Imaging Diastolic Index [%]": radial_SI_DI * 100,
+                "LV: Circumferential Strain-Strain Imaging Diastolic Index [%]": circum_SI_DI * 100,
+                "LV: Radial Strain-Strain Imaging Diastolic Index [%]": radial_SI_DI * 100,
             }
         )
 
@@ -463,9 +463,9 @@ if __name__ == "__main__":
 
             feature_dict.update(
                 {
-                    "LV: Endocardial Torsion: Time to Peak [ms]": t_endo_torsion_peak,
-                    "LV: Epicardial Torsion: Time to Peak [ms]": t_epi_torsion_peak,
-                    "LV: Global Torsion: Time to Peak [ms]": t_global_torsion_peak,
+                    "LV: Endocardial Torsion-Time to Peak [ms]": t_endo_torsion_peak,
+                    "LV: Epicardial Torsion-Time to Peak [ms]": t_epi_torsion_peak,
+                    "LV: Global Torsion-Time to Peak [ms]": t_global_torsion_peak,
                 }
             )
 

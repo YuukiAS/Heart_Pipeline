@@ -193,22 +193,22 @@ if __name__ == "__main__":
                     GRSR_E = GRSR_neg[0]
                     feature_dict.update(
                         {
-                            "Tagged MRI-{names[i]}: Radial Strain Rate (Peak-systolic) [1/s]": GRSR_S,
-                            "Tagged MRI-{names[i]}: Radial Strain Rate (Early-diastole) [1/s]": GRSR_E,
+                            f"Tagged MRI-{names[i]}: Radial Strain Rate (Peak-systolic) [1/s]": GRSR_S,
+                            f"Tagged MRI-{names[i]}: Radial Strain Rate (Early-diastole) [1/s]": GRSR_E,
                         }
                     )
                     logger.info(f"{subject}: Global radial strain rate calculated.")
                 except IndexError:
                     feature_dict.update(
                         {
-                            "Tagged MRI-{names[i]}: Radial Strain Rate (Peak-systolic) [1/s]": GRSR_S,
+                            f"Tagged MRI-{names[i]}: Radial Strain Rate (Peak-systolic) [1/s]": GRSR_S,
                         }
                     )
                     logger.warning(f"{subject}: Only peak-systolic radial strain rate calculated.")
                 except ValueError as e:
                     logger.warning(f"{subject}: {e} No global radial strain rate calculated.")
 
-                # * Feature: Time to peak interval
+                # * Feature: Time to Peak interval
                 T_circum_strain_peak = np.argmin(circum_strain)
                 T_radial_strain_peak = np.argmax(radial_strain)
 
@@ -217,8 +217,8 @@ if __name__ == "__main__":
 
                 feature_dict.update(
                     {
-                        f"Tagged MRI-{names[i]}: Circumferential Strain: Time to Peak [ms]": t_circum_strain_peak,
-                        f"Tagged MRI-{names[i]}: Radial Strain: Time to Peak [ms]": t_radial_strain_peak,
+                        f"Tagged MRI-{names[i]}: Circumferential Strain-Time to Peak [ms]": t_circum_strain_peak,
+                        f"Tagged MRI-{names[i]}: Radial Strain-Time to Peak [ms]": t_radial_strain_peak,
                     }
                 )
 
@@ -235,8 +235,8 @@ if __name__ == "__main__":
 
                     feature_dict.update(
                         {
-                            f"Tagged MRI-{names[i]}: Circumferential Strain: Time to Peak Index": t_circum_strain_peak_index,
-                            f"Tagged MRI-{names[i]}: Radial Strain: Time to Peak Index": t_radial_strain_peak_index,
+                            f"Tagged MRI-{names[i]}: Circumferential Strain-Time to Peak Index": t_circum_strain_peak_index,
+                            f"Tagged MRI-{names[i]}: Radial Strain-Time to Peak Index": t_radial_strain_peak_index,
                         }
                     )
 

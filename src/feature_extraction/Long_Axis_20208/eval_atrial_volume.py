@@ -236,15 +236,15 @@ if __name__ == "__main__":
         feature_dict.update(
             {
                 # LA are determined using both 2ch and 4ch view
-                "LA: D_longitudinal(2ch) [cm]": np.max(L_L["LA_2ch"]),
-                "LA: D_longitudinal(4ch) [cm]": np.max(L_L["LA_4ch"]),
-                "LA: A_max(2ch) [mm^2]": np.max(A["LA_2ch"]),
-                "LA: A_min(2ch) [mm^2]": np.min(A["LA_2ch"]),
-                "LA: A_max(4ch) [mm^2]": np.max(A["LA_4ch"]),
-                "LA: A_min(4ch) [mm^2]": np.min(A["LA_4ch"]),
-                "LA: V_max(bip) [mL]": LAV_max,
-                "LA: V_min(bip) [mL]": LAV_min,
-                "LA: Total SV(bip) [mL]": LAV_max - LAV_min,
+                "LA: D_longitudinal (2ch) [cm]": np.max(L_L["LA_2ch"]),
+                "LA: D_longitudinal (4ch) [cm]": np.max(L_L["LA_4ch"]),
+                "LA: A_max (2ch) [mm^2]": np.max(A["LA_2ch"]),
+                "LA: A_min (2ch) [mm^2]": np.min(A["LA_2ch"]),
+                "LA: A_max (4ch) [mm^2]": np.max(A["LA_4ch"]),
+                "LA: A_min (4ch) [mm^2]": np.min(A["LA_4ch"]),
+                "LA: V_max (bip) [mL]": LAV_max,
+                "LA: V_min (bip) [mL]": LAV_min,
+                "LA: Total SV (bip) [mL]": LAV_max - LAV_min,
                 "LA: EF_total [%]": (LAV_max - LAV_min) / LAV_max * 100,
                 "LA: EI [%]": (LAV_max - LAV_min) / LAV_min * 100,  # expansion index
                 # All RA are only determined using 4ch view
@@ -262,11 +262,10 @@ if __name__ == "__main__":
         # Save time series of volume and display the time series of atrial volume
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
         logger.info(f"{subject}: Saving atrial volume and time data")
-        os.makedirs(f"{sub_dir}/feature", exist_ok=True)
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
         data_time = {
-            "LA: Volume(bip) [mL]": V["LA_bip"],
-            "RA: Volume(bip) [mL]": V["RA_4ch"],
+            "LA: Volume (bip) [mL]": V["LA_bip"],
+            "RA: Volume (bip) [mL]": V["RA_4ch"],
             "LA: T_max": T_max,
             "LA: T_min": T_min,
         }
@@ -321,19 +320,19 @@ if __name__ == "__main__":
             continue
         feature_dict.update(
             {
-                "LA: D_longitudinal(2ch)/BSA [cm/m^2]": np.max(L_L["LA_2ch"]) / BSA_subject,
-                "LA: D_longitudinal(4ch)/BSA [cm/m^2]": np.max(L_L["LA_4ch"]) / BSA_subject,
-                "LA: A_max(2ch)/BSA [mm^2/m^2]": np.max(A["LA_2ch"]) / BSA_subject,
-                "LA: A_min(2ch)/BSA [mm^2/m^2]": np.min(A["LA_2ch"]) / BSA_subject,
-                "LA: A_max(4ch)/BSA [mm^2/m^2]": np.max(A["LA_4ch"]) / BSA_subject,
-                "LA: A_min(4ch)/BSA [mm^2/m^2]": np.min(A["LA_4ch"]) / BSA_subject,
-                "LA: V_max(bip)/BSA [mL/m^2]": LAV_max / BSA_subject,
-                "LA: V_min(bip)/BSA [mL/m^2]": LAV_min / BSA_subject,
+                "LA: D_longitudinal/BSA (2ch) [cm/m^2]": np.max(L_L["LA_2ch"]) / BSA_subject,
+                "LA: D_longitudinal/BSA (4ch) [cm/m^2]": np.max(L_L["LA_4ch"]) / BSA_subject,
+                "LA: A_max/BSA (2ch) [mm^2/m^2]": np.max(A["LA_2ch"]) / BSA_subject,
+                "LA: A_min/BSA (2ch) [mm^2/m^2]": np.min(A["LA_2ch"]) / BSA_subject,
+                "LA: A_max/BSA (4ch) [mm^2/m^2]": np.max(A["LA_4ch"]) / BSA_subject,
+                "LA: A_min/BSA (4ch) [mm^2/m^2]": np.min(A["LA_4ch"]) / BSA_subject,
+                "LA: V_max/BSA (bip) [mL/m^2]": LAV_max / BSA_subject,
+                "LA: V_min/BSA (bip) [mL/m^2]": LAV_min / BSA_subject,
                 "RA: D_longitudinal/BSA [cm/m^2]": np.max(L_L["RA_4ch"]) / BSA_subject,
                 "RA: A_max/BSA [mm^2/m^2]": np.max(A["RA_4ch"]) / BSA_subject,
                 "RA: A_min/BSA [mm^2/m^2]": np.min(A["RA_4ch"]) / BSA_subject,
-                "RA: V_max(bip)/BSA [mL/m^2]": np.max(V["RA_4ch"]) / BSA_subject,
-                "RA: V_min(bip)/BSA [mL/m^2]": np.min(V["RA_4ch"]) / BSA_subject,
+                "RA: V_max/BSA (bip) [mL/m^2]": np.max(V["RA_4ch"]) / BSA_subject,
+                "RA: V_min/BSA (bip) [mL/m^2]": np.min(V["RA_4ch"]) / BSA_subject,
             }
         )
 
@@ -343,10 +342,10 @@ if __name__ == "__main__":
         logger.info(f"{subject}: Implement transverse diameter features")
         feature_dict.update(
             {
-                "LA: D_transverse(2ch) [cm]": np.max(L_T["LA_2ch"]),
-                "LA: D_transverse(2ch)/BSA [cm/m^2]": np.max(L_T["LA_2ch"]) / BSA_subject,
-                "LA: D_transverse(4ch) [cm]": np.max(L_T["LA_4ch"]),
-                "LA: D_transverse(4ch)/BSA [cm/m^2]": np.max(L_T["LA_4ch"]) / BSA_subject,
+                "LA: D_transverse (2ch) [cm]": np.max(L_T["LA_2ch"]),
+                "LA: D_transverse/BSA (2ch) [cm/m^2]": np.max(L_T["LA_2ch"]) / BSA_subject,
+                "LA: D_transverse (4ch) [cm]": np.max(L_T["LA_4ch"]),
+                "LA: D_transverse/BSA (4ch) [cm/m^2]": np.max(L_T["LA_4ch"]) / BSA_subject,
                 "RA: D_transverse [cm]": np.max(L_T["RA_4ch"]),
                 "RA: D_transverse/BSA [cm/m^2]": np.max(L_T["RA_4ch"]) / BSA_subject,
             }

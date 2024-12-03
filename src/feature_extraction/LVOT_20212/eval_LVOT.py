@@ -188,9 +188,9 @@ if __name__ == "__main__":
 
         feature_dict.update(
             {
-                "LVOT: Aortic Valve Annulus Diameter (mm)": np.median(L["aortic_valve_annulus"]),
-                "LVOT: Aortic Sinuses Diameter (mm)": np.median(L["aortic_sinuses"]),
-                "LVOT: Sinotubular Junction Diameter (mm)": np.median(L["sinotubular_junction"]),
+                "LVOT: Aortic Valve Annulus Diameter [mm]": np.median(L["aortic_valve_annulus"]),
+                "LVOT: Aortic Sinuses Diameter [mm]": np.median(L["aortic_sinuses"]),
+                "LVOT: Sinotubular Junction Diameter [mm]": np.median(L["sinotubular_junction"]),
             }
         )
 
@@ -201,9 +201,9 @@ if __name__ == "__main__":
 
             feature_dict.update(
                 {
-                    "LVOT: Aortic Valve Annulus Diameter/BSA (mm/m^2)": np.median(L["aortic_valve_annulus"]) / BSA_subject,
-                    "LVOT: Aortic Sinuses Diameter/BSA (mm/m^2)": np.median(L["aortic_sinuses"]) / BSA_subject,
-                    "LVOT: Sinotubular Junction Diameter/BSA (mm/m^2)": np.median(L["sinotubular_junction"]) / BSA_subject,
+                    "LVOT: Aortic Valve Annulus Diameter/BSA [mm/m^2]": np.median(L["aortic_valve_annulus"]) / BSA_subject,
+                    "LVOT: Aortic Sinuses Diameter/BSA [mm/m^2]": np.median(L["aortic_sinuses"]) / BSA_subject,
+                    "LVOT: Sinotubular Junction Diameter/BSA [mm/m^2]": np.median(L["sinotubular_junction"]) / BSA_subject,
                 }
             )
         except (FileNotFoundError, IndexError):
