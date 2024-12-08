@@ -566,8 +566,27 @@ def analyze_aggregated_csv(
                         x1=index - 0.4, 
                         x2=index + 0.4,
                         color="lightgreen",
-                        alpha=0.3,
+                        alpha=0.2,
                         label="PI for new study mean",
+                        zorder=10
+                    )
+                    ax.hlines(
+                        y=PI[0],
+                        xmin=index - 0.4,
+                        xmax=index + 0.4,
+                        color="lightgreen",
+                        alpha=0.5,
+                        linestyle="--",
+                        zorder=10
+                    )
+                    ax.hlines(
+                        y=PI[1],
+                        xmin=index - 0.4,
+                        xmax=index + 0.4,
+                        color="lightgreen",
+                        alpha=0.5,
+                        linestyle="--",
+                        zorder=10
                     )
                 if AD_RR:
                     ax.fill_betweenx(
@@ -575,13 +594,35 @@ def analyze_aggregated_csv(
                         x1=index - 0.4, 
                         x2=index + 0.4,
                         color="lightblue",
-                        alpha=0.3,
+                        alpha=0.2,
                         label="Reference Range for new individual",
+                        zorder=10
+                    )
+                    ax.hlines(
+                        y=AD_RR[0],
+                        xmin=index - 0.4,
+                        xmax=index + 0.4,
+                        color="lightblue",
+                        alpha=0.5,
+                        linestyle="--",
+                        zorder=10
+                    )
+                    ax.hlines(
+                        y=AD_RR[1],
+                        xmin=index - 0.4,
+                        xmax=index + 0.4,
+                        color="lightblue",
+                        alpha=0.5,
+                        linestyle="--",
+                        zorder=10
                     )
                 if PI or AD_RR:
                     plt.legend(loc="lower right")
             plt.tight_layout(rect=[0, 0, 1, 0.95])
-
+            # remove duplicate labels
+            handles, labels = ax.get_legend_handles_labels()
+            unique = dict(zip(labels, handles))
+            ax.legend(unique.values(), unique.keys(), loc="lower right")
             plt.savefig(f"{visualization_path}/{region}_{cnt}.png")
             plt.close()
 
