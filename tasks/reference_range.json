@@ -1,0 +1,658 @@
+{
+    "LV": [
+        {
+            "name": "CI",
+            "full_name": "Cardiac Index",
+            "note": "When we cite the comprehensive review paper Reference ranges for cardiovascular magnetic resonance in adults and children, refer to it for more papers detailed for each feature",
+            "reference_range": [
+                {
+                    "mean": 2.9,
+                    "sd": 0.5,
+                    "n": 89,
+                    "target": "women",
+                    "cite": "Le, T.-T., Tan, R. S., De Deyn, M., Goh, E. P. C., Han, Y., Leong, B. R., Cook, S. A., & Chin, C. W.-L. (2016). Cardiovascular magnetic resonance reference ranges for the heart and aorta in Chinese at 3T. Journal of Cardiovascular Magnetic Resonance, 18, 21. https://doi.org/10.1186/s12968-016-0236-3"
+                },
+                {
+                    "mean": 3.0,
+                    "sd": 0.6,
+                    "n": 91,
+                    "target": "men",
+                    "cite": "Le, T.-T., Tan, R. S., De Deyn, M., Goh, E. P. C., Han, Y., Leong, B. R., Cook, S. A., & Chin, C. W.-L. (2016). Cardiovascular magnetic resonance reference ranges for the heart and aorta in Chinese at 3T. Journal of Cardiovascular Magnetic Resonance, 18, 21. https://doi.org/10.1186/s12968-016-0236-3"
+                },
+                {
+                    "mean": 3.2,
+                    "sd": 0.6,
+                    "n": 404,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 2.9,
+                    "sd": 0.5,
+                    "n": 572,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2" 
+                }
+            ]
+        },
+        {
+            "name": "CO",
+            "full_name": "Cardiac Output",
+            "note": "Original unit is mm, convert to cm",
+            "reference_range": [
+                {
+                    "mean": 4.5,
+                    "sd": 0.9,
+                    "n": 89,
+                    "target": "women",
+                    "cite": "Le, T.-T., Tan, R. S., De Deyn, M., Goh, E. P. C., Han, Y., Leong, B. R., Cook, S. A., & Chin, C. W.-L. (2016). Cardiovascular magnetic resonance reference ranges for the heart and aorta in Chinese at 3T. Journal of Cardiovascular Magnetic Resonance, 18, 21. https://doi.org/10.1186/s12968-016-0236-3"
+                },
+                {
+                    "mean": 5.6,
+                    "sd": 1.1,
+                    "n": 91,
+                    "target": "men",
+                    "cite": "Le, T.-T., Tan, R. S., De Deyn, M., Goh, E. P. C., Han, Y., Leong, B. R., Cook, S. A., & Chin, C. W.-L. (2016). Cardiovascular magnetic resonance reference ranges for the heart and aorta in Chinese at 3T. Journal of Cardiovascular Magnetic Resonance, 18, 21. https://doi.org/10.1186/s12968-016-0236-3"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.1,
+                    "n": 464,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                },
+                {
+                    "mean": 4.9,
+                    "sd": 1.0,
+                    "n": 632,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                }
+            ]
+        },
+        {
+            "name": "D_ED(4ch)",
+            "full_name": "LV End-diastolic diameter (4 chamber long axis)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 5.2,
+                    "sd": 0.5,
+                    "n": 227,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                },
+                {
+                    "mean": 4.9,
+                    "sd": 0.5,
+                    "n": 188,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                }
+            ]
+        },
+        {
+            "name": "D_ES(4ch)",
+            "full_name": "LV End-systolic diameter (4 chamber long axis)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 3.2,
+                    "sd": 0.3,
+                    "n": 54,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                },
+                {
+                    "mean": 2.8,
+                    "sd": 0.6,
+                    "n": 53,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                }
+            ]
+        },
+        {
+            "name": "D_ED(sax)",
+            "full_name": "LV End-diastolic diameter (short axis)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 5.3,
+                    "sd": 0.5,
+                    "n": 400,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                },
+                {
+                    "mean": 4.9,
+                    "sd": 0.4,
+                    "n": 572,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                }
+            ]
+        },
+        {
+            "name": "D_ES(sax)",
+            "full_name": "LV End-systolic diameter (short axis)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 3.4,
+                    "sd": 0.3,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                },
+                {
+                    "mean": 3.1,
+                    "sd": 0.4,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                }
+            ]
+        },
+        {
+            "name": "EF",
+            "full_name": "Ejection Fraction",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 64,
+                    "sd": 8,
+                    "n": 875,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 66,
+                    "sd": 7,
+                    "n": 931,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 60,
+                    "sd": 7,
+                    "n": 51,
+                    "target": "men, 20-29years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table3"
+                },
+                {
+                    "mean": 63,
+                    "sd": 7,
+                    "n": 105,
+                    "target": "men, 30-39years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table3"
+                },
+                {
+                    "mean": 62,
+                    "sd": 7,
+                    "n": 110,
+                    "target": "men, 40-49years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table3"
+                },
+                {
+                    "mean": 63,
+                    "sd": 7,
+                    "n": 78,
+                    "target": "men, 50-59years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table3"
+                },
+                {
+                    "mean": 62,
+                    "sd": 7,
+                    "n": 34,
+                    "target": "men, 60-69years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table3"
+                },
+                {
+                    "mean": 62,
+                    "sd": 6,
+                    "n": 43,
+                    "target": "women, 20-29years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table4"
+                },
+                {
+                    "mean": 64,
+                    "sd": 6,
+                    "n": 110,
+                    "target": "women, 30-39years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table4"
+                },
+                {
+                    "mean": 63,
+                    "sd": 7,
+                    "n": 127,
+                    "target": "women, 40-49years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table4"
+                },
+                {
+                    "mean": 65,
+                    "sd": 6,
+                    "n": 93,
+                    "target": "women, 50-59years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table4"
+                },
+                {
+                    "mean": 65,
+                    "sd": 6,
+                    "n": 41,
+                    "target": "women, 60-69years",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table4"
+                },
+                {
+                    "mean": 63,
+                    "sd": 6,
+                    "n": 832,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                },
+                {
+                    "mean": 66,
+                    "sd": 7,
+                    "n": 1064,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                }
+            ]
+        },
+        {
+            "name": "V_ED",
+            "full_name": "LVEDV",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 155,
+                    "sd": 30,
+                    "n": 464,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 123,
+                    "sd": 22,
+                    "n": 485,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 145,
+                    "sd": 31,
+                    "n": 832,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                },
+                {
+                    "mean": 112,
+                    "sd": 21,
+                    "n": 1064,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                }
+            ]
+        },
+        {
+            "name": "V_ES",
+            "full_name": "LVESV",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 55,
+                    "sd": 15,
+                    "n": 464,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 43,
+                    "sd": 11,
+                    "n": 485,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 53,
+                    "sd": 18,
+                    "n": 832,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                },
+                {
+                    "mean": 39,
+                    "sd": 12,
+                    "n": 1064,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                }
+            ]
+        },
+        {
+            "name": "SV",
+            "full_name": "LVSV (Stroke Volume)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 103,
+                    "sd": 21,
+                    "n": 410,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 83,
+                    "sd": 16,
+                    "n": 432,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 91,
+                    "sd": 18,
+                    "n": 832,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                },
+                {
+                    "mean": 73,
+                    "sd": 13,
+                    "n": 1064,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                }
+            ]
+        }
+    ],
+    "Myo": [
+        {
+            "name": "Mass_ES",
+            "full_name": "LVM",
+            "note": "The mass should be approximately the same at ED and ES. We directly copy result as Mass_ED",
+            "reference_range": [
+                {
+                    "mean": 121,
+                    "sd": 28,
+                    "n": 464,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 83,
+                    "sd": 21,
+                    "n": 485,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 105,
+                    "sd": 24,
+                    "n": 832,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                },
+                {
+                    "mean": 73,
+                    "sd": 15,
+                    "n": 1064,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                }
+            ]
+        },
+        {
+            "name": "Mass_ED",
+            "full_name": "LVM",
+            "note": "The mass should be approximately the same at ED and ES. We only report them in ES here",
+            "reference_range": [
+                {
+                    "mean": 121,
+                    "sd": 28,
+                    "n": 464,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 83,
+                    "sd": 21,
+                    "n": 485,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
+                },
+                {
+                    "mean": 105,
+                    "sd": 24,
+                    "n": 832,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                },
+                {
+                    "mean": 73,
+                    "sd": 15,
+                    "n": 1064,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
+                }
+            ]
+        }
+    ],
+    "LA": [
+        
+    ],
+    "RV": [
+        
+    ],
+    "LVOT": [
+        {
+            "name": "Aortic Sinuses Diameter",
+            "full_name": "Aortic Sinuses Diameter",
+            "note": "There are two sets of measurements, one through cusp-cusp and another through cusp-commisure, see Burman, E. D., Keegan, J., & Kilner, P. J. (2008). Aortic root measurement by cardiovascular magnetic resonance: specification of planes and lines of measurement and corresponding normal values. Circulation: Cardiovascular Imaging, 1(2), 104-113. for details",
+            "reference_range": [
+                {
+                    "mean": 34,
+                    "sd": 3,
+                    "n": 60,
+                    "target": "men, systolic, cusp-commissure",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 32,
+                    "sd": 4,
+                    "n": 60,
+                    "target": "men, diastolic, cusp-commissure",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 30,
+                    "sd": 3,
+                    "n": 60,
+                    "target": "women, systolic, cusp-commissure",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 28,
+                    "sd": 3,
+                    "n": 60,
+                    "target": "women, diastolic, cusp-commissure",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 36,
+                    "sd": 4,
+                    "n": 60,
+                    "target": "men, systolic, cusp-cusp",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 35,
+                    "sd": 4,
+                    "n": 60,
+                    "target": "men, diastolic, cusp-cusp",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 32,
+                    "sd": 3,
+                    "n": 60,
+                    "target": "women, systolic, cusp-cusp",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 31,
+                    "sd": 3,
+                    "n": 60,
+                    "target": "women, diastolic, cusp-cusp",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table38"
+                },
+                {
+                    "mean": 32,
+                    "sd": 6,
+                    "n": 359,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table42"
+                },
+                {
+                    "mean": 28,
+                    "sd": 5,
+                    "n": 388,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table42"
+                },
+                {
+                    "mean": 39,
+                    "sd": 5,
+                    "n": 19,
+                    "target": "tricuspid aortic valve",
+                    "cite": "Bech-Hanssen, O., Svensson, F., Polte, C. L., Johnsson, Å. A., Gao, S. A., & Lagerstrand, K. M. (2018). Characterization of complex flow patterns in the ascending aorta in patients with aortic regurgitation using conventional phase-contrast velocity MRI. The International Journal of Cardiovascular Imaging, 34(3), 419–429. https://doi.org/10.1007/s10554-017-1239-3"
+                },
+                {
+                    "mean": 42,
+                    "sd": 5,
+                    "n": 21,
+                    "target": "bicuspid aortic valve",
+                    "cite": "Bech-Hanssen, O., Svensson, F., Polte, C. L., Johnsson, Å. A., Gao, S. A., & Lagerstrand, K. M. (2018). Characterization of complex flow patterns in the ascending aorta in patients with aortic regurgitation using conventional phase-contrast velocity MRI. The International Journal of Cardiovascular Imaging, 34(3), 419–429. https://doi.org/10.1007/s10554-017-1239-3"
+                },
+                {
+                    "mean": 48,
+                    "sd": 6,
+                    "n": 83,
+                    "target": "root",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                },
+                {
+                    "mean": 40,
+                    "sd": 5.1,
+                    "n": 364,
+                    "target": "ascending",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                },
+                {
+                    "mean": 38,
+                    "sd": 5.1,
+                    "n": 209,
+                    "target": "arch",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                }
+            ]
+        },
+        {
+            "name": "Aortic Valve Annulus Diameter",
+            "full_name": "Aortic Valve Annulus Diameter",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 23,
+                    "sd": 5,
+                    "n": 299,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table42"
+                },
+                {
+                    "mean": 20,
+                    "sd": 3,
+                    "n": 328,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table42"
+                },
+                {
+                    "mean": 26,
+                    "sd": 4.3,
+                    "n": 83,
+                    "target": "root",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                },
+                {
+                    "mean": 24,
+                    "sd": 4.1,
+                    "n": 364,
+                    "target": "ascending",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                },
+                {
+                    "mean": 24,
+                    "sd": 3.7,
+                    "n": 209,
+                    "target": "arch",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                }
+            ]
+        },
+        {
+            "name": "Sinotubular Junction Diameter",
+            "full_name": "Sinotubular Junction Diameter",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 25,
+                    "sd": 6,
+                    "n": 299,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table42"
+                },
+                {
+                    "mean": 21,
+                    "sd": 5,
+                    "n": 328,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table42"
+                },
+                {
+                    "mean": 32,
+                    "sd": 6,
+                    "n": 19,
+                    "target": "tricuspid aortic valve",
+                    "cite": "Bech-Hanssen, O., Svensson, F., Polte, C. L., Johnsson, Å. A., Gao, S. A., & Lagerstrand, K. M. (2018). Characterization of complex flow patterns in the ascending aorta in patients with aortic regurgitation using conventional phase-contrast velocity MRI. The International Journal of Cardiovascular Imaging, 34(3), 419–429. https://doi.org/10.1007/s10554-017-1239-3"
+                },
+                {
+                    "mean": 36,
+                    "sd": 4,
+                    "n": 21,
+                    "target": "bicuspid aortic valve",
+                    "cite": "Bech-Hanssen, O., Svensson, F., Polte, C. L., Johnsson, Å. A., Gao, S. A., & Lagerstrand, K. M. (2018). Characterization of complex flow patterns in the ascending aorta in patients with aortic regurgitation using conventional phase-contrast velocity MRI. The International Journal of Cardiovascular Imaging, 34(3), 419–429. https://doi.org/10.1007/s10554-017-1239-3"
+                },
+                {
+                    "mean": 43,
+                    "sd": 7.6,
+                    "n": 83,
+                    "target": "root",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                },
+                {
+                    "mean": 40,
+                    "sd": 5.9,
+                    "n": 364,
+                    "target": "ascending",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                },
+                {
+                    "mean": 36,
+                    "sd": 5.1,
+                    "n": 209,
+                    "target": "arch",
+                    "cite": "Wojnarski, C. M., Roselli, E. E., Idrees, J. J., Zhu, Y., Carnes, T. A., Lowry, A. M., Collier, P. H., Griffin, B., Ehrlinger, J., Blackstone, E. H., Svensson, L. G., & Lytle, B. W. (2018). Machine-learning phenotypic classification of bicuspid aortopathy. The Journal of Thoracic and Cardiovascular Surgery, 155(2), 461-469.e4. https://doi.org/10.1016/j.jtcvs.2017.08.123"
+                }
+            ]
+        }
+    ]
+}
