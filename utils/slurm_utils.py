@@ -10,11 +10,19 @@ def generate_header_cpu(jobname, pipeline_dir, file_i, file_script, retest_suffi
     file_script.write("#SBATCH --ntasks=1\n")
     file_script.write("#SBATCH --cpus-per-task=16\n")
     if retest_suffix is None:
-        file_script.write(f"#SBATCH --job-name={jobname}_{file_i}\n")
-        file_script.write(f"#SBATCH --output={jobname}_{file_i}.out\n")
+        if file_i:
+            file_script.write(f"#SBATCH --job-name={jobname}_{file_i}\n")
+            file_script.write(f"#SBATCH --output={jobname}_{file_i}.out\n")
+        else:
+            file_script.write(f"#SBATCH --job-name={jobname}\n")
+            file_script.write(f"#SBATCH --output={jobname}.out\n")
     else:
-        file_script.write(f"#SBATCH --job-name={jobname}_{file_i}_{retest_suffix}\n")
-        file_script.write(f"#SBATCH --output={jobname}_{file_i}_{retest_suffix}.out\n")
+        if file_i:
+            file_script.write(f"#SBATCH --job-name={jobname}_{file_i}_{retest_suffix}\n")
+            file_script.write(f"#SBATCH --output={jobname}_{file_i}_{retest_suffix}.out\n")
+        else:
+            file_script.write(f"#SBATCH --job-name={jobname}_{retest_suffix}\n")
+            file_script.write(f"#SBATCH --output={jobname}_{retest_suffix}.out\n")
     file_script.write("#SBATCH --mem=16G\n")
     file_script.write("#SBATCH --time=48:00:00\n")
     file_script.write("#SBATCH --partition=general\n")
@@ -29,11 +37,19 @@ def generate_header_gpu(jobname, pipeline_dir, file_i, file_script, retest_suffi
     file_script.write("#SBATCH --ntasks=1\n")
     file_script.write("#SBATCH --cpus-per-task=16\n")
     if retest_suffix is None:
-        file_script.write(f"#SBATCH --job-name={jobname}_{file_i}\n")
-        file_script.write(f"#SBATCH --output={jobname}_{file_i}.out\n")
+        if file_i:
+            file_script.write(f"#SBATCH --job-name={jobname}_{file_i}\n")
+            file_script.write(f"#SBATCH --output={jobname}_{file_i}.out\n")
+        else:
+            file_script.write(f"#SBATCH --job-name={jobname}\n")
+            file_script.write(f"#SBATCH --output={jobname}.out\n")
     else:
-        file_script.write(f"#SBATCH --job-name={jobname}_{file_i}_{retest_suffix}\n")
-        file_script.write(f"#SBATCH --output={jobname}_{file_i}_{retest_suffix}.out\n")
+        if file_i:
+            file_script.write(f"#SBATCH --job-name={jobname}_{file_i}_{retest_suffix}\n")
+            file_script.write(f"#SBATCH --output={jobname}_{file_i}_{retest_suffix}.out\n")
+        else:
+            file_script.write(f"#SBATCH --job-name={jobname}_{retest_suffix}\n")
+            file_script.write(f"#SBATCH --output={jobname}_{retest_suffix}.out\n")
     file_script.write("#SBATCH --mem=16G\n")
     file_script.write("#SBATCH --time=48:00:00\n")
     file_script.write(f"#SBATCH --partition={config.partition}\n")
@@ -47,21 +63,21 @@ def generate_header_gpu(jobname, pipeline_dir, file_i, file_script, retest_suffi
     file_script.write("\n")
 
 
-def generate_aggregate(file_aggregate, feature_name, retest_suffix=None):
+def generate_aggregate(file_aggregate, csv_folder_name, feature_name=None, retest_suffix=None):
     if retest_suffix is None:
         file_aggregate.write(
             "python ./script/aggregate_csv.py "
-            f"--csv_dir={os.path.join(config.features_visit1_dir, feature_name)} "
+            f"--csv_dir={os.path.join(config.features_visit1_dir, csv_folder_name)} "
             f"--target_dir={os.path.join(config.features_visit1_dir, 'aggregated')} "
-            f"--prefix={feature_name}\n"
+            f"--prefix={csv_folder_name if not feature_name else feature_name}\n"
         )
-        file_aggregate.write(f"rm -r {os.path.join(config.features_visit1_dir, feature_name)}\n\n")
+        file_aggregate.write(f"rm -r {os.path.join(config.features_visit1_dir, csv_folder_name)}\n\n")
 
     else:
         file_aggregate.write(
             "python ./script/aggregate_csv.py "
-            f"--csv_dir={os.path.join(config.features_visit2_dir, feature_name)} "
+            f"--csv_dir={os.path.join(config.features_visit2_dir, csv_folder_name)} "
             f"--target_dir={os.path.join(config.features_visit2_dir, 'aggregated')} "
-            f"--prefix={feature_name}\n"
+            f"--prefix={csv_folder_name if not feature_name else feature_name}\n"
         )
-        file_aggregate.write(f"rm -r {os.path.join(config.features_visit2_dir, feature_name)}\n\n")
+        file_aggregate.write(f"rm -r {os.path.join(config.features_visit2_dir, csv_folder_name)}\n\n")

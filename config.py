@@ -55,7 +55,7 @@ modality = ["aortic_scout", "la", "sa", "aortic_dist", "tag", "lvot", "aortic_bl
 useECG = True
 
 # * Configure the parameters for segmentation -----------------------------------------
-partition = "volta-gpu"  # define the partition used for slurm job
+partition = "htzhulab"  # define the name of partition used for slurm job
 # The virtual environment to be activated before prediction
 model_envs = {
     "nnUNet": "/work/users/y/u/yuukias/Annotation/nnUNet/env_nnUNet",

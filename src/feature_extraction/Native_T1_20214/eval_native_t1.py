@@ -84,10 +84,10 @@ if __name__ == "__main__":
 
             feature_dict.update(
                 {
-                    "Native T1 (Global_uncorrected) [ms]": f"{t1_global_uncorrected:.2f}",
-                    "Native T1 (IVS_uncorrected) [ms]": f"{t1_IVS_uncorrected:.2f}",
-                    "Native T1 (FW_uncorrected) [ms]": f"{t1_FW_uncorrected:.2f}",
-                    "Native T1 (Blood_uncorrected) [ms]": f"{t1_blood:.2f}",
+                    "Native T1: Global-uncorrected [ms]": f"{t1_global_uncorrected:.2f}",
+                    "Native T1: IVS-uncorrected [ms]": f"{t1_IVS_uncorrected:.2f}",
+                    "Native T1: FW-uncorrected [ms]": f"{t1_FW_uncorrected:.2f}",
+                    "Native T1: Blood-uncorrected [ms]": f"{t1_blood:.2f}",
                 }
             )
         except (ValueError, IndexError) as e:
