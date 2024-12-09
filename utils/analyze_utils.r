@@ -23,6 +23,10 @@ FreqFit = function(means, sds, n) {
     m.reml = metagen(means.use, sds.use/sqrt(n), comb.fixed = FALSE, 
                      comb.random = TRUE, method.tau = "REML", hakn = FALSE, 
                      prediction = TRUE)
+    # * Estimate the CI for pooled mean
+    lower.random = m.reml$lower.random
+    upper.random = m.reml$upper.random
+
     # * Estimate the prediction intervals for new study mean
     lower.predict = m.reml$lower.predict
     upper.predict = m.reml$upper.predict
@@ -38,7 +42,7 @@ FreqFit = function(means, sds, n) {
     # * Estimates for limits of reference range
     lower_limit = qnorm(0.025, mean = mu_hat, sd = sqrt(total.var))
     upper_limit = qnorm(0.975, mean = mu_hat, sd = sqrt(total.var))
-    return(list(lower.predict, upper.predict, lower_limit, upper_limit))
+    return(list(lower.random, upper.random, lower.predict, upper.predict, lower_limit, upper_limit))
 }
 
 
@@ -98,6 +102,10 @@ EmpFit = function(means, sds, n) {
     m.reml = metagen(means.use, sds.use/sqrt(n), comb.fixed = FALSE, 
                      comb.random = TRUE, method.tau = "REML", hakn = FALSE, 
                      prediction = TRUE)
+    # * Estimate the CI for pooled mean
+    lower.random = m.reml$lower.random
+    upper.random = m.reml$upper.random
+
     # * Estimate the prediction intervals for new study mean
     lower.predict = m.reml$lower.predict
     upper.predict = m.reml$upper.predict
@@ -110,7 +118,7 @@ EmpFit = function(means, sds, n) {
     lower_limit = qnorm(0.025, mean = mu_hat, sd = sqrt(total.var))
     upper_limit = qnorm(0.975, mean = mu_hat, sd = sqrt(total.var))
 
-    return(list(lower.predict, upper.predict, lower_limit, upper_limit))
+    return(list(lower.random, upper.random, lower.predict, upper.predict, lower_limit, upper_limit))
 }
 
 
