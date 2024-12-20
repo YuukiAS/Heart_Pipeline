@@ -25,7 +25,7 @@ lib_dir = "/work/users/y/u/yuukias/Heart_Pipeline/lib"
 model_dir = "/work/users/y/u/yuukias/Heart_Pipeline/model"
 
 # The directory to store all features
-features_dir = "/work/users/y/u/yuukias/Heart_Pipeline/doc/Pipeline_Result/"
+features_dir = "/work/users/y/u/yuukias/Heart_Pipeline/data/features/Pipeline_Result"
 # * Note: The final results will be stored in 'aggregated' subfolder
 features_visit1_dir = os.path.join(features_dir, "visit1")
 features_visit2_dir = os.path.join(features_dir, "visit2")

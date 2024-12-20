@@ -1,6 +1,4 @@
-![Static Badge](https://img.shields.io/badge/Documentation-blue?link=https%3A%2F%2Fyuukias.github.io%2FHeart_Pipeline%2F)
-
-
+[![Documentation](https://img.shields.io/badge/Documentation-blue)](https://yuukias.github.io/Heart_Pipeline/)
 
 # Overview
 This is a modified version of [Wenjia Bai's Pipeline](https://github.com/baiwenjia/ukbb_cardiac) to process UKBiobank data.
