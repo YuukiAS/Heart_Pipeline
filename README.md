@@ -1,3 +1,7 @@
+![Static Badge](https://img.shields.io/badge/Documentation-blue?link=https%3A%2F%2Fyuukias.github.io%2FHeart_Pipeline%2F)
+
+
+
 # Overview
 This is a modified version of [Wenjia Bai's Pipeline](https://github.com/baiwenjia/ukbb_cardiac) to process UKBiobank data.
 
@@ -39,5 +43,6 @@ Thanks to the code generously provided by the following papers:
 4. S. Petersen, et al. Reference ranges for cardiac structure and function using cardiovascular magnetic resonance (CMR) in Caucasians from the UK Biobank population cohort. Journal of Cardiovascular Magnetic Resonance, 19:18, 2017.
 5. Beeche, Cameron et al. “Thoracic Aortic 3-Dimensional Geometry: Effects of Aging and Genetic Determinants.” bioRxiv : the preprint server for biology 2024.05.09.593413. 19 Aug. 2024, doi:10.1101/2024.05.09.593413. Preprint.
 6. Ferdian, Edward et al. “Fully Automated Myocardial Strain Estimation from Cardiovascular MRI-tagged Images Using a Deep Learning Framework in the UK Biobank.” Radiology. Cardiothoracic imaging vol. 2,1 e190032. 27 Feb. 2020, doi:10.1148/ryct.2020190032
+7. Fries, Jason A., et al. “Weakly Supervised Classification of Aortic Valve Malformations Using Unlabeled Cardiac MRI Sequences.” Nature Communications, vol. 10, no. 1, July 2019, p. 3111. DOI.org (Crossref), https://doi.org/10.1038/s41467-019-11012-3.
 
 There are many other papers related to how to extract features from CMR images, as well as the reference ranges for such features, please see our paper.
