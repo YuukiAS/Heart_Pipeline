@@ -41,6 +41,7 @@ from .image_utils import (
     make_sequence,
     auto_crop_image,
 )
+from .quality_control_utils import sa_pass_quality_control2
 
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -1146,15 +1147,18 @@ def determine_sa_apical_slice(seg_sa: Tuple[float, float, float]):
         return z
 
 
-def determine_axes(label_i, nim, long_axis):
+def determine_axes(label, nim, long_axis, intersect=None):
     """
-    Determine the major axis and minor axis using the binary segmentation and
+    Determine the major axis and minor axis using the binary segmentation of ventricle/atrium and 
     return the axes as well as lines that represents the major/minor axis that entirely covered by the segmentation.
+
+    By default, the returned image_line_major and image_line_minor will pass through the center at bottom third.
+    The two lines can be specified to pass through a specific point (image coordinate) by setting the intersect parameter.
     """
-    if label_i.ndim != 2:
+    if label.ndim != 2:
         raise ValueError("The input should be a 2D image.")
 
-    points_label = np.nonzero(label_i)
+    points_label = np.nonzero(label)
     points = []
     for j in range(len(points_label[0])):  # the number of points
         x = points_label[0][j]
@@ -1166,10 +1170,12 @@ def determine_axes(label_i, nim, long_axis):
     points = points[points[:, 2].argsort()]
 
     n_points = len(points)
+
+    # The center at the top part
     top_points = points[int(2 * n_points / 3) :]
     cx, cy, _ = np.mean(top_points, axis=0)
 
-    # The centre at the bottom part (bottom third)
+    # The center at the bottom part (bottom third)
     bottom_points = points[: int(n_points / 3)]
     bx, by, _ = np.mean(bottom_points, axis=0)
 
@@ -1177,14 +1183,25 @@ def determine_axes(label_i, nim, long_axis):
     major_axis = np.array([cx - bx, cy - by])  # major_axis is a vector
     major_axis = major_axis / np.linalg.norm(major_axis)  # normalization
 
-    px = cx + major_axis[0] * 100
-    py = cy + major_axis[1] * 100
-    qx = cx - major_axis[0] * 100
-    qy = cy - major_axis[1] * 100
+    image_line_major = np.zeros(label.shape)
+    if intersect is None:
+        # * If the intersection point is not specified, then image_line_major will go through center at the top by default
+        px = bx + major_axis[0] * 100
+        py = by + major_axis[1] * 100
+        qx = bx - major_axis[0] * 100
+        qy = by - major_axis[1] * 100
+        
+        cv2.line(image_line_major, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
+        image_line_major = label & (image_line_major > 0)
+    else:
+        # * If the intersection point is specified, then image_line_major will go through the intersection point
+        px = intersect[0] + major_axis[0] * 100
+        py = intersect[1] + major_axis[1] * 100
+        qx = intersect[0] - major_axis[0] * 100
+        qy = intersect[1] - major_axis[1] * 100
 
-    image_line_major = np.zeros(label_i.shape)
-    cv2.line(image_line_major, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
-    image_line_major = label_i & (image_line_major > 0)
+        cv2.line(image_line_major, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
+        image_line_major = label & (image_line_major > 0)
 
     minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
     minor_axis = minor_axis / np.linalg.norm(minor_axis)  # normalization
@@ -1199,9 +1216,9 @@ def determine_axes(label_i, nim, long_axis):
     if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
         raise ValueError("Minor axis can not determined.")
 
-    image_line_minor = np.zeros(label_i.shape)
+    image_line_minor = np.zeros(label.shape)
     cv2.line(image_line_minor, (int(sy), int(sx)), (int(ry), int(rx)), (1, 0, 0))
-    image_line_minor = label_i & (image_line_minor > 0)
+    image_line_minor = label & (image_line_minor > 0)
 
     return major_axis, minor_axis, image_line_major, image_line_minor
 
@@ -2003,8 +2020,8 @@ def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa
     label_sa = label_sa[:, :, basal_slice]
 
     # Go through the label class
-    L = []
-    landmarks = []
+    landmarks_major = []
+    landmarks_minor = []
 
     lab = 1  # We are only interested in left ventricle
     # The binary label map
@@ -2013,55 +2030,52 @@ def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa
     # Get the largest component in case we have a bad segmentation
     label_i = get_largest_cc(label_i)
 
-    _, _, image_line, image_line_minor = determine_axes(label_i, nim_sa, long_axis)
+    _, _, image_line_major, image_line_minor = determine_axes(label_i, nim_sa, long_axis)
 
-    points_line = np.nonzero(image_line)
+    # * We will use the larger diameter in two image lines
 
-    points = []
-    points_image = []  # for easier visualization
+    points_line = np.nonzero(image_line_major)
+
+    points_major = []
     for j in range(len(points_line[0])):
         x = points_line[0][j]
         y = points_line[1][j]
-        # World coordinate
+        # real coordinate
         point = np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3]
-        # Distance along the long-axis
-        points += [np.append(point, np.dot(point, long_axis))]  # (x,y,distance)
-        points_image += [np.append((x, y), np.dot(point, long_axis))]
-    points = np.array(points)
-    points_image = np.array(points_image)
-    if len(points) == 0:
+        # distance along the long-axis
+        points_major += [np.append(point, [x, y, np.dot(point, long_axis)])]  # (x,y,distance)
+    points_major = np.array(points_major)
+    if len(points_major) == 0:
         raise ValueError("No intersection points found in the ventricle.")
-    points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
-    points_image = points_image[points_image[:, 2].argsort(), :2]
+    points_major = points_major[points_major[:, 3].argsort(), :5]  # sort by the distance along the long-axis
 
-    # Landmarks of the intersection points are the top and bottom points along points_line
-    landmarks += [points_image[0]]
-    landmarks += [points_image[-1]]
+    landmarks_major += [points_major[0, 3:5]]
+    landmarks_major += [points_major[-1, 3:5]]
     # Longitudinal diameter; Unit: cm
-    L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]
+    L_major = np.linalg.norm(points_major[-1, :3] - points_major[0, :3]) * 1e-1
 
     points_line_minor = np.nonzero(image_line_minor)
     points_minor = []
-    points_minor_image = []
     for j in range(len(points_line_minor[0])):
         x = points_line_minor[0][j]
         y = points_line_minor[1][j]
-        # World coordinate
         point = np.dot(nim_sa.affine, np.array([x, y, 0, 1]))[:3]
-        # Distance along the short axis
-        points_minor += [np.append(point, np.dot(point, short_axis))]
-        points_minor_image += [np.append((x, y), np.dot(point, short_axis))]
+        # distance along the short-axis
+        points_minor += [np.append(point, [x, y, np.dot(point, short_axis)])]
     points_minor = np.array(points_minor)
-    points_minor_image = np.array(points_minor_image)
-    points_minor = points_minor[points_minor[:, 3].argsort(), :3]  # sort by the distance along the short-axis
-    points_minor_image = points_minor_image[points_minor_image[:, 2].argsort(), :2]
+    if len(points_minor) == 0:
+        raise ValueError("No intersection points found in the ventricle.")
+    points_minor = points_minor[points_minor[:, 3].argsort(), :5]  # sort by the distance along the short-axis
 
-    landmarks += [points_minor_image[0]]
-    landmarks += [points_minor_image[-1]]
+    landmarks_minor += [points_minor[0, 3:5]]
+    landmarks_minor += [points_minor[-1, 3:5]]
     # Transverse diameter; Unit: cm
-    L += [np.linalg.norm(points_minor[-1] - points_minor[0]) * 1e-1]
+    L_minor = np.linalg.norm(points_minor[-1, :3] - points_minor[0, :3]) * 1e-1
 
-    return np.max(L), landmarks
+    if L_major > L_minor:
+        return L_major, landmarks_major, basal_slice
+    else:
+        return L_minor, landmarks_minor, basal_slice
 
 
 def evaluate_ventricular_length_lax(label_la_seg4: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis):
@@ -2075,41 +2089,76 @@ def evaluate_ventricular_length_lax(label_la_seg4: Tuple[float, float], nim_la: 
         raise ValueError("The label_la should have segmentation for all four chambers.")
 
     # Go through the label class
-    landmarks = []
+    landmarks_long = []
+    landmarks_trans = []
 
     labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
     label_LV = label_la_seg4 == labels["LV"]
 
     # Get the largest component in case we have a bad segmentation
     label_LV = get_largest_cc(label_LV)
-
-    _, _, image_line, _ = determine_axes(label_LV, nim_la, long_axis)
-
-    points_line = np.nonzero(image_line)
+    # Search through the entire LV
+    points_LV = np.nonzero(label_LV)
     points = []
-    points_image = []  # for easier visualization
+    for j in range(len(points_LV[0])):
+        x = points_LV[0][j]
+        y = points_LV[1][j]
+        point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
+
+        # (real coordinate, image coordinate, distance along long axis)
+        points += [np.append(point, [x, y, np.dot(point, long_axis)])]
+    points = np.array(points)
+    if len(points) == 0:
+        raise ValueError("No points found in the ventricle.")
+    apex_LV = np.array(points[points[:, 5].argmax(), 3:5])
+
+    _, _, image_line_major, _ = determine_axes(label_LV, nim_la, long_axis, intersect=apex_LV)
+
+    # Search through the image_line_major
+    points_line = np.nonzero(image_line_major)
+    points = []  # create new points array
     for j in range(len(points_line[0])):
         x = points_line[0][j]
         y = points_line[1][j]
-        # World coordinate
         point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
-        # Distance along the long-axis
-        points += [np.append(point, np.dot(point, long_axis))]
-        points_image += [np.append((x, y), np.dot(point, long_axis))]
+
+        # (real coordinate, image coordinate, distance along long axis)
+        points += [np.append(point, [x, y, np.dot(point, long_axis)])]
     points = np.array(points)
-    points_image = np.array(points_image)
     if len(points) == 0:
         raise ValueError("No intersection points found in the ventricle.")
-    points = points[points[:, 3].argsort(), :3]  # sort by the distance along the long-axis
-    points_image = points_image[points_image[:, 2].argsort(), :2]
+    points = points[points[:, 5].argsort(), :5]  # sort by the distance along the long-axis
 
     # Landmarks of the intersection points are the top and bottom points along points_line
-    landmarks += [points_image[0]]
-    landmarks += [points_image[-1]]
+    landmarks_long += [points[0, 3:5]]
+    landmarks_long += [points[-1, 3:5]]
     # Longitudinal diameter; Unit: cm
-    L = np.linalg.norm(points[-1] - points[0]) * 1e-1  # Here we have already applied nim.affine, no need to multiply
+    L_long = np.linalg.norm(points[-1, :3] - points[0, :3]) * 1e-1
 
-    return np.max(L), landmarks
+    _, _, _, image_line_minor = determine_axes(label_LV, nim_la, long_axis)
+
+    # Search through the image_line_minor
+    points_line = np.nonzero(image_line_minor)
+    points = []  # create new points array
+    for j in range(len(points_line[0])):
+        x = points_line[0][j]
+        y = points_line[1][j]
+        point = np.dot(nim_la.affine, np.array([x, y, 0, 1]))[:3]
+
+        # (real coordinate, image coordinate, distance along short axis)
+        points += [np.append(point, [x, y, np.dot(point, short_axis)])]
+    points = np.array(points)
+    if len(points) == 0:
+        raise ValueError("No intersection points found in the ventricle.")
+    points = points[points[:, 5].argsort(), :5]  # sort by the distance along the long-axis
+
+    # Landmarks of the intersection points are the top and bottom points along points_line
+    landmarks_trans += [points[0, 3:5]]
+    landmarks_trans += [points[-1, 3:5]]
+    # Longitudinal diameter; Unit: cm
+    L_trans = np.linalg.norm(points[-1, :3] - points[0, :3]) * 1e-1
+
+    return L_long, landmarks_long, L_trans, landmarks_trans
 
 
 def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti1.Nifti1Image, long_axis, short_axis):
@@ -2408,7 +2457,8 @@ def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti
         if np.cross(vector1, vector2) < 0:
             angle = 2 * np.pi - angle
         angles[i] = angle
-        zones[i] = int(angle // (np.pi / 3)) + 1  # 6 segments
+        # * Determine 6 segments using the angle with the line connection barycenters of ventricles
+        zones[i] = int(angle // (np.pi / 3)) + 1
 
         neighbors = []
         for j in range(-1, 2):
@@ -2494,12 +2544,16 @@ def evaluate_radius_thickness_disparity(
             basal_slice = determine_sa_basal_slice(seg_sa_t)
             apical_slice = determine_sa_apical_slice(seg_sa_t)
         except ValueError:
+            logger.warning(f"Basal slice or apical slice cannot be determined at {t}, skipped.")
             continue
 
         radius_t = []
         thickness_t = []
         for s in range(basal_slice, apical_slice + 1):
             seg_sa_s_t = seg_sa_t[:, :, s]
+            if not sa_pass_quality_control2(seg_sa_s_t, pixel_thres=25):
+                logger.warning(f"Slice {s} at time {t} does not pass quality control, skipped.")
+                continue
             radius_segments, thickness_segments = evaluate_radius_thickness(seg_sa_s_t, nim_sa, BSA_value)
             radius_t.append(radius_segments)
             thickness_t.append(thickness_segments)
@@ -2525,6 +2579,7 @@ def evaluate_radius_thickness_disparity(
         thickness_t = thickness[t]
         thickness_t_0 = thickness_t[0]
         thickness_t = sorted(thickness_t)
+        # exclude top 10% and bottom 10%
         thickness_t = thickness_t[int(0.1 * len(thickness_t)) : int(0.9 * len(thickness_t))]
         thickness_t = [t / thickness_t_0 for t in thickness_t]
         thickness_disparity_t = max(thickness_t) - min(thickness_t)

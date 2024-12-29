@@ -21,6 +21,8 @@ import nibabel as nib
 import vtk
 import math
 from tqdm import tqdm
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 import sys
 
@@ -85,19 +87,23 @@ if __name__ == "__main__":
 
         # Segmentation
         sa = nib.load(sa_name).get_fdata()
+        la_4ch = nib.load(la_4ch_name).get_fdata()
         seg_sa = nib.load(seg_sa_name).get_fdata()
         seg_sa_nan = np.where(seg_sa == 0, np.nan, seg_sa)
         seg4_la = nib.load(seg4_la_name).get_fdata()
-        L_sax = {}
-        L_4ch = {}
+        L_sax = {}  # define transverse diameter
+        L_4ch_long = {}  # define longitudinal diameter
+        L_4ch_trans = {}
+        lm_sax = {}
+        lm_4ch_long = {}
+        lm_4ch_trans = {}
         V = {}
         V["LV"] = np.sum(seg_sa == 1, axis=(0, 1, 2)) * volume_per_pix
         V["RV"] = np.sum(seg_sa == 3, axis=(0, 1, 2)) * volume_per_pix
-        lm_sax = {}
-        lm_4ch = {}
 
         T_ED = 0  # bSSFP uses retrospective gating
         T_ES = np.argmin(V["LV"])
+        logger.info(f"{subject}: ED frame: {T_ED}, ES frame: {T_ES}")
 
         # Save time series of volume and display the time series of ventricular volume
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
@@ -105,10 +111,10 @@ if __name__ == "__main__":
         data_time = {
             "LV: Volume [mL]": V["LV"],
             "RV: Volume [mL]": V["RV"],
-            "LV: T_ED [frame]": T_ED, 
+            "LV: T_ED [frame]": T_ED,
             "LV: T_ES [frame]": T_ES,
             "LV: T_ED [ms]": T_ED * temporal_resolution,
-            "LV: T_ES [ms]": T_ES * temporal_resolution
+            "LV: T_ES [ms]": T_ES * temporal_resolution,
         }
         np.savez(f"{sub_dir}/timeseries/ventricle.npz", **data_time)
 
@@ -119,8 +125,8 @@ if __name__ == "__main__":
         fig_ED, ax_ED = plt.subplots(2, N_slice // 2, figsize=(20, 10))
         for s, ax in enumerate(ax_ED.flat):
             ax.imshow(sa[:, :, s, T_ED], cmap="gray")
-            ax.imshow(seg_sa_nan[:, :, s, T_ED], cmap="jet", alpha=0.5) 
-            ax.set_title(f"ED: Slice {s + 1}") 
+            ax.imshow(seg_sa_nan[:, :, s, T_ED], cmap="jet", alpha=0.5)
+            ax.set_title(f"ED: Slice {s + 1}")
             ax.axis("off")
         plt.tight_layout()
         plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ED.png")
@@ -129,8 +135,8 @@ if __name__ == "__main__":
         fig_ES, ax_ES = plt.subplots(2, N_slice // 2, figsize=(20, 10))
         for s, ax in enumerate(ax_ES.flat):
             ax.imshow(sa[:, :, s, T_ES], cmap="gray")
-            ax.imshow(seg_sa_nan[:, :, s, T_ES], cmap="jet", alpha=0.5) 
-            ax.set_title(f"ES: Slice {s + 1}") 
+            ax.imshow(seg_sa_nan[:, :, s, T_ES], cmap="jet", alpha=0.5)
+            ax.set_title(f"ES: Slice {s + 1}")
             ax.axis("off")
         plt.tight_layout()
         plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ES.png")
@@ -144,10 +150,10 @@ if __name__ == "__main__":
         feature_dict.update(
             {
                 "LV: V_ED [mL]": np.sum(seg_sa[:, :, :, T_ED] == 1) * volume_per_pix,
-                "LVM: Mass_ED [g]": np.sum(seg_sa[:, :, :, T_ED] == 2) * volume_per_pix * density,
+                "Myo: Mass_ED [g]": np.sum(seg_sa[:, :, :, T_ED] == 2) * volume_per_pix * density,
                 "RV: V_ED [mL]": np.sum(seg_sa[:, :, :, T_ED] == 3) * volume_per_pix,
                 "LV: V_ES [mL]": np.sum(seg_sa[:, :, :, T_ES] == 1) * volume_per_pix,
-                "LVM: Mass_ES [g]": np.sum(seg_sa[:, :, :, T_ES] == 2) * volume_per_pix * density,
+                "Myo: Mass_ES [g]": np.sum(seg_sa[:, :, :, T_ES] == 2) * volume_per_pix * density,
                 "RV: V_ES [mL]": np.sum(seg_sa[:, :, :, T_ES] == 3) * volume_per_pix,
             }
         )
@@ -183,10 +189,10 @@ if __name__ == "__main__":
         feature_dict.update(
             {
                 "LV: V_ED/BSA [mL/m^2]": feature_dict["LV: V_ED [mL]"] / BSA_subject,
-                "LVM: Mass_ED/BSA [g/m^2]": feature_dict["LVM: Mass_ED [g]"] / BSA_subject,
+                "Myo: Mass_ED/BSA [g/m^2]": feature_dict["Myo: Mass_ED [g]"] / BSA_subject,
                 "RV: V_ED/BSA [mL/m^2]": feature_dict["RV: V_ED [mL]"] / BSA_subject,
                 "LV: V_ES/BSA [mL/m^2]": feature_dict["LV: V_ES [mL]"] / BSA_subject,
-                "LVM: Mass_ES/BSA [g/m^2]": feature_dict["LVM: Mass_ES [g]"] / BSA_subject,
+                "Myo: Mass_ES/BSA [g/m^2]": feature_dict["Myo: Mass_ES [g]"] / BSA_subject,
                 "RV: V_ES/BSA [mL/m^2]": feature_dict["RV: V_ES [mL]"] / BSA_subject,
                 # define Cardiac Index
                 # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4830061/pdf/12968_2016_Article_236.pdf
@@ -201,7 +207,9 @@ if __name__ == "__main__":
         short_axis = nim_la_4ch.affine[:3, 2] / np.linalg.norm(nim_la_4ch.affine[:3, 2])
 
         try:
-            L_sax["ED"], lm_sax["ED"] = evaluate_ventricular_length_sax(seg_sa[:, :, :, T_ED], nim_sa, long_axis, short_axis)
+            L_sax["ED"], lm_sax["ED"], slice_ED = evaluate_ventricular_length_sax(
+                seg_sa[:, :, :, T_ED], nim_sa, long_axis, short_axis
+            )
             points = vtk.vtkPoints()
             for p in lm_sax["ED"]:
                 points.InsertNextPoint(p[0], p[1], 0)
@@ -210,37 +218,74 @@ if __name__ == "__main__":
             writer = vtk.vtkPolyDataWriter()
             writer.SetInputData(poly)
             os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
-            writer.SetFileName(f"{sub_dir}/landmark/ventricle_sa_ED.vtk")
+            writer.SetFileName(f"{sub_dir}/landmark/ventricle_transverse_diameter_sa_ED.vtk")
             writer.Write()
 
-            L_4ch["ED"], lm_4ch["ED"] = evaluate_ventricular_length_lax(seg4_la[:, :, 0, T_ED], nim_la_4ch, long_axis, short_axis)
+            L_4ch_long["ED"], lm_4ch_long["ED"], L_4ch_trans["ED"], lm_4ch_trans["ED"] = evaluate_ventricular_length_lax(
+                seg4_la[:, :, 0, T_ED], nim_la_4ch, long_axis, short_axis
+            )
             points = vtk.vtkPoints()
-            for p in lm_4ch["ED"]:
+            for p in lm_4ch_long["ED"]:
                 points.InsertNextPoint(p[0], p[1], 0)
             poly = vtk.vtkPolyData()
             poly.SetPoints(points)
             writer = vtk.vtkPolyDataWriter()
             writer.SetInputData(poly)
             os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
-            writer.SetFileName(f"{sub_dir}/landmark/ventricle_4ch_ED.vtk")
+            writer.SetFileName(f"{sub_dir}/landmark/ventricle_longitudinal_diameter_4ch_ED.vtk")
+            writer.Write()
+
+            points = vtk.vtkPoints()
+            for p in lm_4ch_trans["ED"]:
+                points.InsertNextPoint(p[0], p[1], 0)
+            poly = vtk.vtkPolyData()
+            poly.SetPoints(points)
+            writer = vtk.vtkPolyDataWriter()
+            writer.SetInputData(poly)
+            os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
+            writer.SetFileName(f"{sub_dir}/landmark/ventricle_transverse_diameter_4ch_ED.vtk")
             writer.Write()
 
             # * We use the diameter measured in long-axis to calculate spherical index, see https://pubmed.ncbi.nlm.nih.gov/27571232/
-            V_sphere_ED = 4 / 3 * math.pi * (L_4ch["ED"] / 2) ** 3
+            V_sphere_ED = 4 / 3 * math.pi * (L_4ch_long["ED"] / 2) ** 3
 
             feature_dict.update(
                 {
-                    "LV: D_ED(sax) [cm]": L_sax["ED"],
-                    "LV: D_ED(4ch) [cm]": L_4ch["ED"],
-                    "LV: Spherical Index": feature_dict["LV: V_ED [mL]"] / V_sphere_ED,
+                    "LV: D_transverse_ED (sax) [cm]": L_sax["ED"],
+                    "LV: D_longitudinal_ED (4ch) [cm]": L_4ch_long["ED"],
+                    "LV: D_transverse_ED (4ch) [cm]": L_4ch_trans["ED"],
+                    "LV: Sphericity_Index_ED": feature_dict["LV: V_ED [mL]"] / V_sphere_ED,
                 }
             )
+
+            plt.imshow(sa[:, :, slice_ED, 0], cmap="gray")
+            x_coords = [p[1] for p in lm_sax["ED"]]
+            y_coords = [p[0] for p in lm_sax["ED"]]
+            plt.scatter(x_coords, y_coords, c="r", label="Transverse", s=8)
+            plt.title(f"ED: Transverse Diameter (sax-slice{slice_ED + 1})")
+            plt.legend(loc="lower right")
+            plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ED_diameter.png")
+            plt.close()
+
+            plt.imshow(la_4ch[:, :, 0, 0], cmap="gray")
+            x_coords = [p[1] for p in lm_4ch_long["ED"]]
+            y_coords = [p[0] for p in lm_4ch_long["ED"]]
+            plt.scatter(x_coords, y_coords, c="r", label="Longitudinal", s=8)
+            x_coords = [p[1] for p in lm_4ch_trans["ED"]]
+            y_coords = [p[0] for p in lm_4ch_trans["ED"]]
+            plt.scatter(x_coords, y_coords, c="b", label="Transverse", s=8)
+            plt.title("ED: Longitudinal and Transverse Diameter (4ch)")
+            plt.legend(loc="lower right")
+            plt.savefig(f"{sub_dir}/visualization/ventricle/la_ED_diameter.png")
+            plt.close()
 
         except ValueError:
             logger.warning(f"{subject}: Failed to determine the diameter of left ventricle at ED")
 
         try:
-            L_sax["ES"], lm_sax["ES"] = evaluate_ventricular_length_sax(seg_sa[:, :, :, T_ES], nim_sa, long_axis, short_axis)
+            L_sax["ES"], lm_sax["ES"], slice_ES = evaluate_ventricular_length_sax(
+                seg_sa[:, :, :, T_ES], nim_sa, long_axis, short_axis
+            )
             points = vtk.vtkPoints()
             for p in lm_sax["ES"]:
                 points.InsertNextPoint(p[0], p[1], 0)
@@ -249,27 +294,65 @@ if __name__ == "__main__":
             writer = vtk.vtkPolyDataWriter()
             writer.SetInputData(poly)
             os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
-            writer.SetFileName(f"{sub_dir}/landmark/ventricle_sa_ES.vtk")
+            writer.SetFileName(f"{sub_dir}/landmark/ventricle_longitudinal_diameter_sa_ES.vtk")
             writer.Write()
 
-            L_4ch["ES"], lm_4ch["ES"] = evaluate_ventricular_length_lax(seg4_la[:, :, 0, T_ES], nim_la_4ch, long_axis, short_axis)
+            L_4ch_long["ES"], lm_4ch_long["ES"], L_4ch_trans["ES"], lm_4ch_trans["ES"] = evaluate_ventricular_length_lax(
+                seg4_la[:, :, 0, T_ES], nim_la_4ch, long_axis, short_axis
+            )
             points = vtk.vtkPoints()
-            for p in lm_4ch["ES"]:
+            for p in lm_4ch_long["ES"]:
                 points.InsertNextPoint(p[0], p[1], 0)
             poly = vtk.vtkPolyData()
             poly.SetPoints(points)
             writer = vtk.vtkPolyDataWriter()
             writer.SetInputData(poly)
             os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
-            writer.SetFileName(f"{sub_dir}/landmark/ventricle_4ch_ES.vtk")
+            writer.SetFileName(f"{sub_dir}/landmark/ventricle_longitudinal_diameter_4ch_ES.vtk")
             writer.Write()
+
+            points = vtk.vtkPoints()
+            for p in lm_4ch_trans["ES"]:
+                points.InsertNextPoint(p[0], p[1], 0)
+            poly = vtk.vtkPolyData()
+            poly.SetPoints(points)
+            writer = vtk.vtkPolyDataWriter()
+            writer.SetInputData(poly)
+            os.makedirs(f"{sub_dir}/landmark", exist_ok=True)
+            writer.SetFileName(f"{sub_dir}/landmark/ventricle_transverse_diameter_4ch_ES.vtk")
+            writer.Write()
+
+            V_sphere_ES = 4 / 3 * math.pi * (L_4ch_long["ES"] / 2) ** 3
 
             feature_dict.update(
                 {
-                    "LV: D_ES(sax) [cm]": L_sax["ES"],
-                    "LV: D_ES(4ch) [cm]": L_4ch["ES"],
+                    "LV: D_transverse_ES (sax) [cm]": L_sax["ES"],
+                    "LV: D_longitudinal_ES (4ch) [cm]": L_4ch_long["ES"],
+                    "LV: D_transverse_ES (4ch) [cm]": L_4ch_trans["ES"],
+                    "LV: Sphericity_Index_ES": feature_dict["LV: V_ES [mL]"] / V_sphere_ES,
                 }
             )
+
+            plt.imshow(sa[:, :, slice_ES, T_ES], cmap="gray")
+            x_coords = [p[1] for p in lm_sax["ES"]]
+            y_coords = [p[0] for p in lm_sax["ES"]]
+            plt.scatter(x_coords, y_coords, c="r", label="Transverse", s=8)
+            plt.title(f"ES: Transverse Diameter (sax-slice{slice_ES + 1})")
+            plt.legend(loc="lower right")
+            plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ES_diameter.png")
+            plt.close()
+
+            plt.imshow(la_4ch[:, :, 0, T_ES], cmap="gray")
+            x_coords = [p[1] for p in lm_4ch_long["ES"]]
+            y_coords = [p[0] for p in lm_4ch_long["ES"]]
+            plt.scatter(x_coords, y_coords, c="r", label="Longitudinal", s=8)
+            x_coords = [p[1] for p in lm_4ch_trans["ES"]]
+            y_coords = [p[0] for p in lm_4ch_trans["ES"]]
+            plt.scatter(x_coords, y_coords, c="b", label="Transverse", s=8)
+            plt.title("ES: Longitudinal and Transverse Diameter (4ch)")
+            plt.legend(loc="lower right")
+            plt.savefig(f"{sub_dir}/visualization/ventricle/la_ES_diameter.png")
+            plt.close()
         except ValueError:
             logger.warning(f"{subject}: Failed to determine the diameter of left ventricle at ES")
 
@@ -294,23 +377,23 @@ if __name__ == "__main__":
         plt.close(fig)
 
         try:
-            T_PFR, _, PFR, _ = analyze_time_series_derivative(time_grid_real, V["LV"], n_pos=2, n_neg=0)
+            T_PFR, _, PFR, _ = analyze_time_series_derivative(time_grid_real / 1000, V["LV"], n_pos=2, n_neg=0)  # unit: ml/s
             logger.info(f"{subject}: Implementing peak filling rate (PFR) features")
             # define PER_E: Early atrial peak emptying rate, PER_A: Late atrial peak emptying rate
             PFR_E = PFR[np.argmin(T_PFR)]
             PFR_A = PFR[np.argmax(T_PFR)]
             if PFR_E <= 0:
-                raise ValueError("PFR_E should not be negative")
-            if PFR_A >= 0:
-                raise ValueError("PFR_A should be negative")
+                raise ValueError("PFR_E should be positive")
+            if PFR_A <= 0:
+                raise ValueError("PFR_A should be positive")
             if PFR_E < 10 or PFR_A < 10:
                 raise ValueError("Extremely small PFR values detected, skipped.")
             feature_dict.update(
                 {
-                    "LV: PFR-E [mL/s]": PFR_E * 1000,  # convert ms to s
-                    "LV: PFR-A [mL/s]": PFR_A * 1000,
-                    "LV: PFR-E/BSA [mL/s/m^2]": PFR_E * 1000 / BSA_subject,
-                    "LV: PFR-A/BSA [mL/s/m^2]": PFR_A * 1000 / BSA_subject,
+                    "LV: PFR-E [mL/s]": PFR_E,  # convert ms to s
+                    "LV: PFR-A [mL/s]": PFR_A,
+                    "LV: PFR-E/BSA [mL/s/m^2]": PFR_E / BSA_subject,
+                    "LV: PFR-A/BSA [mL/s/m^2]": PFR_A / BSA_subject,
                     "LV: PFR-E/PFR-A": PFR_E / PFR_A,
                 }
             )
