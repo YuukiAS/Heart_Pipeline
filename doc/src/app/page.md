@@ -1,112 +1,59 @@
 ---
-title: Getting started
+title: Cardiovascular Magnetic Resonance Imaging (CMR)
 ---
 
-Learn how to get CacheAdvance set up in your project in under thirty minutes or it's free. {% .lead %}
+## Heart Anatomy
 
-{% quick-links %}
+The heart is considered to have three segments: the atria, ventricles and the great vessels.
 
-{% quick-link title="Installation" icon="installation" href="/" description="Step-by-step guides to setting up your system and installing the library." /%}
+The atria and ventricles are each partitioned into two counterparts, the left and right sides, with two atrioventricular valves (tricuspid valve and mitral valve) that connect the respective ventricle to the atria and the semilunar valves (pulmonary valve, aortic valve) that connect the great vessels to the ventricles.
 
-{% quick-link title="Architecture guide" icon="presets" href="/" description="Learn how the internals work and contribute." /%}
+On the other hand, the right atrium (green chamber in Fig. 1c)  (see Fig. 1b). The right ventricle (blue chamber)  (brown artery in Fig. 1c).
 
-{% quick-link title="Plugins" icon="plugins" href="/" description="Extend the library with third-party plugins or write your own." /%}
++ The *left atrium (LA)* receives oxygenated blood via the pulmonary veins and is connected to the left ventricle through the *mitral valve* which has two leaflets
 
-{% quick-link title="API reference" icon="theming" href="/" description="Learn to easily customize and modify your app's visual design to fit your brand." /%}
++ The *left ventricle (LV)* is the main pumping chamber that pumps blood through the aorta causing the three leaflets *aortic valve* (see Fig. 1b) to open during systole and to close during diastole.
 
-{% /quick-links %}
++ The *right atrium (RA)* receives deoxygenated blood from the superior and inferior vena cava and is connected to the right ventricle through the *tricuspid valve* that has three leaflets.
 
-Possimus saepe veritatis sint nobis et quam eos. Architecto consequatur odit perferendis fuga eveniet possimus rerum cumque. Ea deleniti voluptatum deserunt voluptatibus ut non iste.
++ The *right ventricle (RV)* pumps blood through the three-leaflets *pulmonary valve* towards the pulmonary artery.
 
----
+![Heart Anatomy Static](https://raw.githubusercontent.com/YuukiAS/ImageHost/main/heart/20241223115534112.png)
+*The blue part corresponds to deoxygenated blood, while the red part corresponds to oxygenated blood*
 
-## Quick start
+![Heart Anatomy Dynamic](https://upload.wikimedia.org/wikipedia/commons/7/77/Blood_Circulation.gif?20130928190520)
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur.
 
-### Installing dependencies
+## Imaging Planes of the Body
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
+The body is divided into three planes:
 
-```shell
-npm install @tailwindlabs/cache-advance
-```
+1. The axial plane (transverse, Z) plane that cuts the body from top to bottom (or superior to inferior).
+2. The coronal plane (Y) plane that cuts the body from front to back (or anterior to posterior).
+3. The sagittal plane (X) plane that cuts the body from right to left.
 
-Possimus saepe veritatis sint nobis et quam eos. Architecto consequatur odit perferendis fuga eveniet possimus rerum cumque. Ea deleniti voluptatum deserunt voluptatibus ut non iste. Provident nam asperiores vel laboriosam omnis ducimus enim nesciunt quaerat. Minus tempora cupiditate est quod.
+![Imaging Plane](https://raw.githubusercontent.com/YuukiAS/ImageHost/main/heart/20241223120003134.png)
 
-{% callout type="warning" title="Oh no! Something bad happened!" %}
-This is what a disclaimer message looks like. You might want to include inline `code` in it. Or maybe you’ll want to include a [link](/) in it. I don’t think we should get too carried away with other scenarios like lists or tables — that would be silly.
-{% /callout %}
 
-### Configuring the library
+## Overview of CMR Protocol for UK Biobank
 
-Sit commodi iste iure molestias qui amet voluptatem sed quaerat. Nostrum aut pariatur. Sint ipsa praesentium dolor error cumque velit tenetur quaerat exercitationem. Consequatur et cum atque mollitia qui quia necessitatibus.
+![UKB Protocol](https://raw.githubusercontent.com/YuukiAS/ImageHost/main/heart/20241223120308544.png)
+*(Petersen et al., 2015)*
 
-```js
-// cache-advance.config.js
-export default {
-  strategy: 'predictive',
-  engine: {
-    cpus: 12,
-    backups: ['./storage/cache.wtf'],
-  },
-}
-```
+The information for each modality will be detailed in each section. 
 
-Possimus saepe veritatis sint nobis et quam eos. Architecto consequatur odit perferendis fuga eveniet possimus rerum cumque. Ea deleniti voluptatum deserunt voluptatibus ut non iste. Provident nam asperiores vel laboriosam omnis ducimus enim nesciunt quaerat. Minus tempora cupiditate est quod.
+## Reference Ranges of Features
 
-{% callout title="You should know!" %}
-This is what a disclaimer message looks like. You might want to include inline `code` in it. Or maybe you’ll want to include a [link](/) in it. I don’t think we should get too carried away with other scenarios like lists or tables — that would be silly.
-{% /callout %}
+For each feature, the corresponding reference range can be found in `/tasks/reference_range.json` file.
 
----
+Most features can be indexed using BSA, calculated using the DuBois & DuBois formula: $BSA=0.007184\cdot H^{0.725}\cdot W^{0.425}$, where $H$ is the height in cm and $W$ is the weight in kg (Du Bois & Du Bois, 1916).
 
-## Basic usage
+## References
 
-Praesentium laudantium magni. Consequatur reiciendis aliquid nihil iusto ut in et. Quisquam ut et aliquid occaecati. Culpa veniam aut et voluptates amet perspiciatis. Qui exercitationem in qui. Vel qui dignissimos sit quae distinctio.
+M.D, R. W. B., Biederman, R. W. W., Doyle, M., & Yamrozik, J. (2008). The Cardiovascular MRI Tutorial: Lectures and Learning. Lippincott Williams & Wilkins.
 
-### Your first cache
+Viola, F., Del Corso, G., De Paulis, R., & Verzicco, R. (2023). GPU accelerated digital twins of the human heart open new routes for cardiovascular research. Scientific Reports, 13(1), 8230. https://doi.org/10.1038/s41598-023-34098-8
 
-Minima vel non iste debitis. Consequatur repudiandae et quod accusamus sit molestias consequatur aperiam. Et sequi ipsa eum voluptatibus ipsam. Et quisquam ut.
+Petersen, S. E., Matthews, P. M., Francis, J. M., Robson, M. D., Zemrak, F., Boubertakh, R., Young, A. A., Hudson, S., Weale, P., Garratt, S., Collins, R., Piechnik, S., & Neubauer, S. (2015). UK Biobank’s cardiovascular magnetic resonance protocol. Journal of Cardiovascular Magnetic Resonance, 18(1), 8. https://doi.org/10.1186/s12968-016-0227-4
 
-Qui quae esse aspernatur fugit possimus. Quam sed molestiae temporibus. Eum perferendis dignissimos provident ea et. Et repudiandae quasi accusamus consequatur dolore nobis. Quia reiciendis necessitatibus a blanditiis iste quia. Ut quis et amet praesentium sapiente.
-
-Atque eos laudantium. Optio odit aspernatur consequuntur corporis soluta quidem sunt aut doloribus. Laudantium assumenda commodi.
-
-### Clearing the cache
-
-Vel aut velit sit dolor aut suscipit at veritatis voluptas. Laudantium tempore praesentium. Qui ut voluptatem.
-
-Ea est autem fugiat velit esse a alias earum. Dolore non amet soluta eos libero est. Consequatur qui aliquam qui odit eligendi ut impedit illo dignissimos.
-
-Ut dolore qui aut nam. Natus temporibus nisi voluptatum labore est ex error vel officia. Vero repellendus ut. Suscipit voluptate et placeat. Eius quo corporis ab et consequatur quisquam. Nihil officia facere dolorem occaecati alias deleniti deleniti in.
-
-### Adding middleware
-
-Officia nobis tempora maiores id iusto magni reprehenderit velit. Quae dolores inventore molestiae perspiciatis aut. Quis sequi officia quasi rem officiis officiis. Nesciunt ut cupiditate. Sunt aliquid explicabo enim ipsa eum recusandae. Vitae sunt eligendi et non beatae minima aut.
-
-Harum perferendis aut qui quibusdam tempore laboriosam voluptatum qui sed. Amet error amet totam exercitationem aut corporis accusantium dolorum. Perspiciatis aut animi et. Sed unde error ut aut rerum.
-
-Ut quo libero aperiam mollitia est repudiandae quaerat corrupti explicabo. Voluptas accusantium sed et doloribus voluptatem fugiat a mollitia. Numquam est magnam dolorem asperiores fugiat. Soluta et fuga amet alias temporibus quasi velit. Laudantium voluptatum perspiciatis doloribus quasi facere. Eveniet deleniti veniam et quia veritatis minus veniam perspiciatis.
-
----
-
-## Getting help
-
-Consequuntur et aut quisquam et qui consequatur eligendi. Necessitatibus dolorem sit. Excepturi cumque quibusdam soluta ullam rerum voluptatibus. Porro illo sequi consequatur nisi numquam nisi autem. Ut necessitatibus aut. Veniam ipsa voluptatem sed.
-
-### Submit an issue
-
-Inventore et aut minus ut voluptatem nihil commodi doloribus consequatur. Facilis perferendis nihil sit aut aspernatur iure ut dolores et. Aspernatur odit dignissimos. Aut qui est sint sint.
-
-Facere aliquam qui. Dolorem officia ipsam adipisci qui molestiae. Error voluptatem reprehenderit ex.
-
-Consequatur enim quia maiores aperiam et ipsum dicta. Quam ut sit facere sit quae. Eligendi veritatis aut ut veritatis iste ut adipisci illo.
-
-### Join the community
-
-Praesentium facilis iste aliquid quo quia a excepturi. Fuga reprehenderit illo sequi voluptatem voluptatem omnis. Id quia consequatur rerum consectetur eligendi et omnis. Voluptates iusto labore possimus provident praesentium id vel harum quisquam. Voluptatem provident corrupti.
-
-Eum et ut. Qui facilis est ipsa. Non facere quia sequi commodi autem. Dicta autem sit sequi omnis impedit. Eligendi amet dolorum magnam repudiandae in a.
-
-Molestiae iusto ut exercitationem dolorem unde iusto tempora atque nihil. Voluptatem velit facere laboriosam nobis ea. Consequatur rerum velit ipsum ipsam. Et qui saepe consequatur minima laborum tempore voluptatum et. Quia eveniet eaque sequi consequatur nihil eos.
+Du Bois D, Du Bois EF. A formula to estimate the approximate surface area if height and weight be known. 1916. Nutrition 1989;5:303311; discussion 312–303.
