@@ -87,6 +87,10 @@ if __name__ == "__main__":
     if contour1_nest:
         logger.info(f"{subject}: Correcting the segmentation of LV and myocardium")
         label_corrected = np.where(label == 1, 2, np.where(label == 2, 1, label))
+        # expand dimensions back to 4 and cast to integter
+        label_corrected = np.expand_dims(label_corrected, axis=-1)
+        label_corrected = np.expand_dims(label_corrected, axis=-1)
+        label_corrected = np.round(label_corrected).astype(np.uint8)
         nii_label_corrected = nib.Nifti1Image(label_corrected, nii_label_original.affine, nii_label_original.header)
         os.remove(os.path.join(data_dir, f"seg_shmolli_t1map.nii.gz"))
         nib.save(nii_label_corrected, os.path.join(data_dir, f"seg_shmolli_t1map.nii.gz"))
