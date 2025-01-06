@@ -399,6 +399,10 @@ def _query_reference_range(json_data, region, name, diagnosis=False):
                 else:
                     CI, PI, AD_RR = calculate_reference_range(n, means=means, sds=sds, log_transform=False, diagnosis=diagnosis)
 
+            # Correct PI when the mean is positive and sd is large
+            if np.all(np.vectorize(lambda x: x is not None and x > 0)(means)):
+                if PI[0] < 0:
+                    PI = (0, PI[1])
             return CI, PI, AD_RR
 
     raise ValueError(f"Feature {name} in region {region} not found in the reference range json file.")
@@ -461,13 +465,12 @@ def analyze_aggregated_csv(
                 logger.warning(f"Feature {feature} does not match the naming convention, skipped.")
                 continue
 
-        # for region, name, unit, we can directly use columns
-        _, _, units, CIs, PIs, AD_RRs = zip(*features_list)
+        _, names, units, CIs, PIs, AD_RRs = zip(*features_list)
         # Make sure units are the same
         if not all(unit == units[0] for unit in units):
             raise ValueError("All specified columns must have the same unit.")
         unit = units[0]
-        reference_ranges = list(zip(CIs, PIs, AD_RRs))
+        reference_ranges = {name: (CI, PI, AD_RR) for name, CI, PI, AD_RR in zip(names, CIs, PIs, AD_RRs)}
         column_features = columns
         csv_features = csv[column_features]
         csv_melted = csv_features.melt(var_name="Feature", value_name=f"{unit}")
@@ -488,8 +491,17 @@ def analyze_aggregated_csv(
             plt.title(f"Boxplot of Features in with unit {unit}", fontsize=12)
         else:
             plt.title("Boxplot of Features in with no unit", fontsize=12)
-        for index, reference_range in enumerate(reference_ranges):
+
+        reference_ranges_ordered = []
+        for name_i in feature_order:
+            name_str = str(name_i).strip()
+            if reference_ranges[name_str]:
+                reference_ranges_ordered.append(reference_ranges[name_str])
+            else:
+                reference_ranges_ordered.append((None, None, None))
+        for index, reference_range in enumerate(reference_ranges_ordered):
             # If there is reference range for certain features, add them to the boxplot
+            CI, PI, AD_RR = reference_range
             if CI:
                 ax.fill_betweenx(
                     y=[CI[0], CI[1]],
@@ -565,7 +577,8 @@ def analyze_aggregated_csv(
         region_old = None
         for (region, unit), features_info in features_dict.items():
             features, CIs, PIs, AD_RRs = zip(*features_info)
-            reference_ranges = list(zip(CIs, PIs, AD_RRs))
+            # this will be extended and sorted later
+            reference_ranges = {feature: (CI, PI, AD_RR) for feature, CI, PI, AD_RR in zip(features, CIs, PIs, AD_RRs)}
             if region != region_old:
                 cnt = 0
             region_old = region
@@ -679,7 +692,16 @@ def analyze_aggregated_csv(
                     plt.title(f"Boxplot of Features in {region} with no unit", fontsize=12)
 
                 # If there is reference range for certain features, add them to the boxplot
-                for index, reference_range in enumerate(reference_ranges):
+                # We need to sort according to the feature_order before adding reference range
+                reference_ranges_ordered = []
+                for name_i in feature_order:
+                    name_str = str(name_i).strip()
+                    if reference_ranges[name_str]:
+                        reference_ranges_ordered.append(reference_ranges[name_str])
+                    else:
+                        reference_ranges_ordered.append((None, None, None))
+                    # for index, reference_range in enumerate(reference_ranges):
+                for index, reference_range in enumerate(reference_ranges_ordered):
                     CI, PI, AD_RR = reference_range
                     if CI:
                         ax.fill_betweenx(
