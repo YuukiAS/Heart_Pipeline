@@ -2930,6 +2930,7 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     seg_myo_FW = seg_myo - seg_myo_IVS
     seg_myo_FW = get_largest_cc(seg_myo_FW)
 
+    # erosion to obtain the midwall midventricular native t1
     seg_myo_IVS_eroded = binary_erosion(get_largest_cc(seg_myo_IVS), iterations=2)
     seg_myo_FW_eroded = binary_erosion(get_largest_cc(seg_myo_FW), iterations=2)
     seg_myo_eroded = seg_myo_IVS_eroded + seg_myo_FW_eroded
@@ -2961,7 +2962,9 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     T1_global = img_ShMOLLI[seg_myo_eroded == 1]
     T1_IVS = img_ShMOLLI[seg_myo_IVS_eroded == 1]
     T1_FW = img_ShMOLLI[seg_myo_FW_eroded == 1]
-    T1_blood = img_ShMOLLI[seg_blood_eroded == 1]
+    # T1_blood = img_ShMOLLI[seg_blood_eroded == 1]
+    T1_blood_left = img_ShMOLLI[seg_LV_eroded == 1]
+    T1_blood_right = img_ShMOLLI[seg_RV_eroded == 1]
 
     # visualization
     figure = plt.figure(figsize=(15, 5))
@@ -2980,7 +2983,7 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     plt.imshow(img_ShMOLLI, cmap="gray")
     plt.imshow(seg_blood_eroded, cmap="gray", alpha=0.5)
     plt.title("Blood pool")
-    return (T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood.mean(), figure)
+    return (T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood_left.mean(), T1_blood_right.mean(), figure)
 
 
 def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float], 
@@ -2994,8 +2997,9 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
     T = seg_morphology.shape[2]
 
     velocity = []
+    gradient = []
     flow = []
-    flow_center = []  # define Center of velocity of forward flow
+    velocity_center = []
     velocity_map_all = np.zeros_like(img_phase)
 
     for t in range(T):
@@ -3007,7 +3011,12 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
         velocity_map = (phase_normalized / np.pi) * VENC
         velocity_map_roi = velocity_map[mask == 1]
 
-        velocity.append(np.mean(velocity_map_roi))  # unit: cm/s
+        # Ref Kany, S., et.al (2023). Assessment of valvular function in over 47,000 people using deep learning-based flow measurements.https://doi.org/10.1101/2023.04.29.23289299
+        # * We follow the paper and selects the 99th percentile to reduce supuriously high peak velocity
+        peak_velocity = np.percentile(velocity_map_roi, 99)
+        velocity.append(peak_velocity)  # unit: cm/s
+        # * Gradient is determined by using the Bernoulli formula, first convert speed to m/s
+        gradient.append(4 * (peak_velocity / 100) ** 2)  # unit: mmHg
         flow.append(np.sum(velocity_map_roi) * square_per_pix)  # unit: cm^3/s=mL/s
 
         # Ref Systolic Flow Displacement Correlates With Future Ascending Aortic Growth in Patients With Bicuspid Aortic Valves
@@ -3017,8 +3026,8 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
         total_weight = np.sum(weights)
         center_x = np.sum(velocity_map_x_coords * weights) / total_weight
         center_y = np.sum(velocity_map_y_coords * weights) / total_weight
-        flow_center.append((center_x, center_y))
+        velocity_center.append((center_x, center_y))
 
         velocity_map_all[:, :, t] = velocity_map
 
-    return np.array(velocity), np.array(flow), np.array(flow_center), velocity_map_all
+    return np.array(velocity), np.array(gradient), np.array(flow), np.array(velocity_center), velocity_map_all

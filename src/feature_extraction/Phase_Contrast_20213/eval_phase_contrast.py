@@ -1,12 +1,17 @@
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 import nibabel as nib
 import pandas as pd
+from scipy.ndimage import find_objects
+from matplotlib import cm
+import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from mpl_toolkits.mplot3d import Axes3D
 import argparse
 from tqdm import tqdm
 import sys
 from pydicom.filereader import dcmread
+import warnings
 from csa_header import CsaHeader
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -14,7 +19,9 @@ import config
 
 from utils.log_utils import setup_logging
 from utils.cardiac_utils import evaluate_velocity_flow
-from utils.analyze_utils import plot_time_series_double_x
+from utils.analyze_utils import plot_time_series_double_x, analyze_time_series_root
+
+warnings.filterwarnings("ignore", category=cm.cbook.MatplotlibDeprecationWarning)
 
 logger = setup_logging("eval_phase_contrast")
 
@@ -42,55 +49,70 @@ if __name__ == "__main__":
 
         if (
             not os.path.exists(img_morphology_name)
-            or not os.path.exists(seg_morphology_name)
             or not os.path.exists(img_phase_name)
             or not os.path.exists(img_magnitude_name)
         ):
             logger.error(f"{subject}: At least one modality for phase contrast MRI files is missing")
             continue
 
-        nim_img = nib.load(img_morphology_name)
+        if not os.path.exists(seg_morphology_name):
+            logger.error(f"{subject}: Segmentation of phase contrast MRI files is missing")
+            continue
+
+        nii_img = nib.load(img_morphology_name)
         img_morephology = nib.load(img_morphology_name).get_fdata()
         seg_morphology = nib.load(seg_morphology_name).get_fdata()
         seg_morphology_nan = np.where(seg_morphology == 0, np.nan, seg_morphology)
         img_phase = nib.load(img_phase_name).get_fdata()
         img_magnitude = nib.load(img_magnitude_name).get_fdata()
 
-        T = nim_img.header["dim"][4]  # number of time frames
-        temporal_resolution = nim_img.header["pixdim"][4] * 1000  # unit: ms
-        pixdim = nim_img.header["pixdim"][1:4]  # spatial resolution
+        T = nii_img.header["dim"][4]  # number of time frames
+        temporal_resolution = nii_img.header["pixdim"][4] * 1000  # unit: ms
+        pixdim = nii_img.header["pixdim"][1:4]  # spatial resolution
         square_per_pix = pixdim[0] * pixdim[1] * 1e-2  # unit: cm^2
 
-        logger.info(f"{subject}: Generating a comparison of all modalities in phase-contrast MRI")
-        os.makedirs(f"{sub_dir}/visualization/aorta", exist_ok=True)
+        aortic_area = []
 
+        logger.info(f"{subject}: Visualizing aortic flow segmentation of CINE, magnitude and phase")
+        os.makedirs(f"{sub_dir}/visualization/aorta", exist_ok=True)
         for t in range(T):
-            plt.figure(figsize=(18, 5))
+            aortic_area.append(np.sum(seg_morphology[:, :, 0, t]) * square_per_pix)
+            plt.figure(figsize=(20, 8))
             plt.subplot(1, 5, 1)
-            plt.imshow(img_morephology[:, :, 0, 0], cmap="gray")
-            plt.imshow(seg_morphology_nan[:, :, 0, 0], cmap="jet", alpha=0.5)
-            plt.title("Morphology (CINE)")
+            plt.imshow(img_morephology[:, :, 0, t], cmap="gray")
+            plt.imshow(seg_morphology_nan[:, :, 0, t], cmap="jet", alpha=0.5)
+            plt.title(f"Frame {t}: Morphology (CINE)")
             plt.subplot(1, 5, 2)
-            plt.imshow(img_magnitude[:, :, 0, 0], cmap="gray")
-            plt.title("Magnitude")
+            plt.imshow(img_magnitude[:, :, 0, t], cmap="gray")
+            plt.title(f"Frame {t}: Magnitude")
             plt.subplot(1, 5, 3)
-            plt.imshow(img_magnitude[:, :, 0, 0], cmap="gray")
-            plt.imshow(seg_morphology_nan[:, :, 0, 0], cmap="jet", alpha=0.5)
-            plt.title("Magnitude with label")
+            plt.title(f"Frame {t}: Magnitude with label")
+            plt.imshow(img_magnitude[:, :, 0, t], cmap="gray")
+            plt.imshow(seg_morphology_nan[:, :, 0, t], cmap="jet", alpha=0.5)
             plt.subplot(1, 5, 4)
-            plt.imshow(img_phase[:, :, 0, 0], cmap="gray")
-            plt.title("Phase")
+            plt.title(f"Frame {t}: Phase")
+            plt.imshow(img_phase[:, :, 0, t], cmap="gray")
             plt.subplot(1, 5, 5)
-            plt.imshow(img_phase[:, :, 0, 0], cmap="gray")
-            plt.imshow(seg_morphology_nan[:, :, 0, 0], cmap="jet", alpha=0.5)
-            plt.title("Phase with label")
-            plt.suptitle(f"Aortic Flow: Time {t}", fontsize=16)
-            plt.savefig(f"{sub_dir}/visualization/aorta/aortic_flow_segmentation_{t:02d}.png")
+            plt.title(f"Frame {t}: Phase with label")
+            plt.imshow(img_phase[:, :, 0, t], cmap="gray")
+            plt.imshow(seg_morphology_nan[:, :, 0, t], cmap="jet", alpha=0.5)
+            plt.tight_layout()
+            plt.savefig(f"{sub_dir}/visualization/aorta/aortic_flow_segmentation_{(t + 1):02d}.png")
             plt.close()
 
         feature_dict = {
             "eid": subject,
         }
+
+        # * Feature1: Aortic area (not aortic valve area)
+        # Ref A Simplified Continuity Equation Approach to the Quantification of Stenotic Bicuspid Aortic Valves https://doi.org/10.1080/10976640701693717
+        aortic_area = np.array(aortic_area)
+        feature_dict.update(
+            {
+                "Aortic Flow: Maximum Area [mm^2]": np.max(aortic_area),
+                "Aortic Flow: Minimum Area [mm^2]": np.min(aortic_area),
+            }
+        )
 
         logger.info(f"{subject}: Determining Aliasing velocity (VENC) from DICOM files")
         dicom_folder = os.path.join(os.path.dirname(os.path.dirname(sub_dir)), "dicom", subject)
@@ -101,13 +123,13 @@ if __name__ == "__main__":
         dicom_file = dcmread(os.path.join(dicom_phase_folder, dicom_files[0]))
         raw_csa = dicom_file.get((0x29, 0x1010)).value
         parsed_csa = CsaHeader(raw_csa).read()
-        VENC = parsed_csa["FlowVenc"]["value"]
+        VENC = parsed_csa["FlowVenc"]["value"]  # unit: cm/s
         logger.info(f"{subject}: VENC is set to {VENC}cm/s")
 
-        # * Feature1: Aortic flow velocity and flow
+        # * Feature2: Aortic flow velocity, gradient, flow
 
-        logger.info(f"{subject}: Obtaining aortic velocities and flows")
-        velocity, flow, flow_center, velocity_map = evaluate_velocity_flow(
+        logger.info(f"{subject}: Obtaining aortic velocity, gradient and flow information")
+        velocity, gradient, flow, velocity_center, velocity_map = evaluate_velocity_flow(
             seg_morphology[:, :, 0, :],
             img_phase[:, :, 0, :],
             VENC,
@@ -117,44 +139,123 @@ if __name__ == "__main__":
         time_grid_point = np.arange(T)
         time_grid_real = time_grid_point * temporal_resolution  # unit: ms
 
-        for t in range(T):
-            plt.imshow(velocity_map[:, :, t], cmap="jet")
-            plt.colorbar()
-            plt.title(f"Subject {subject}: Aortic Velocity Map at Time {t}")
-            plt.contour(seg_morphology[:, :, 0, t], levels=[0.5], colors="red", linewidths=0.5)
-            plt.savefig(f"{sub_dir}/visualization/aorta/aortic_velocity_map_{t:02d}.png")
-            plt.close()
+        # * Determine timepoint of peak systole and end systole using flow curve
+        # * Note the information extracted using short axis/long axis will be used as reference
 
-        # * Determing stenosis using peak velocity
+        # Ref Aortic flow is associated with aging and exercise capacity https://doi.org/10.1093/ehjopen/oead079
+        # define Systole phase: T_ED ~ T_ES
+        # define Late systole phase: T_peak_systole ~ T_ES
+        # define Diastole phase: T_ES ~ T_last
+        try:
+            n_root = 1
+            root = analyze_time_series_root(time_grid_point, flow, n_root)  # linear interpolation by default
+            while root < 5:
+                # This is a heuristic threshold, as the ES time point is usually around 10~11 (320~350ms)
+                n_root += 1
+                root = analyze_time_series_root(time_grid_point, flow, n_root)
+            T_ES = analyze_time_series_root(time_grid_point, flow, n_root, method="round")
+            T_ES_real = T_ES * temporal_resolution
+            T_peak_systole = np.argmax(velocity)
+        except ValueError:
+            logger.error(f"{subject}: Unable to determine end-systole point from the flow curve")
+            continue
 
-        logger.info(f"{subject}: Determining velocity features, gradient, and level of aortic stenosis ")
-
-        peak_velocity = np.max(velocity)  # cm/s
-        print(peak_velocity)
-        # * Gradient is determined by using the Bernoulli formula, first convert speed to m/s
-        peak_gradient = 4 * (peak_velocity / 100) ** 2  # unit: mmHg
-
-        ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
-        T_ES_real = ventricle["LV: T_ES [ms]"]
-        T_ES = int(T_ES_real / temporal_resolution)
-        T_systole = np.argmax(velocity)
-
-        if T_systole >= T_ES:
+        if T_peak_systole >= T_ES:
             logger.error(f"{subject}: Time for peak systole should be ahead of end systole")
             continue
 
-        # define Mean velocity is the average of the numbers from ED to ES
-        # Ref Biederman, Robert W., et al. The cardiovascular MRI tutorial: lectures and learning.
-        mean_velocity = np.mean(velocity[: T_ES + 1])
-        mean_gradient = 4 * (mean_velocity / 100) ** 2
+        try:
+            ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
+            logger.info(f"{subject}: Reference time from ventricle segmentation")
+            T_ES_real_ref = ventricle["LV: T_ES [ms]"]
+            T_ES_ref = int(T_ES_real / temporal_resolution)
+            # a very rough check
+            if max(T_ES_real_ref, T_ES_real) > 2 * min(T_ES_real_ref, T_ES_real):
+                logger.error(f"{subject}: Time extracted from flow curve is not consistent with one from ventricle segmentation")
+                continue
+        except FileNotFoundError:
+            logger.info(f"{subject}: No reference time from ventricle segmentation")
 
+        logger.info(f"{subject}: End-systole time point is {T_ES} ({T_ES_real:.2f}ms)")
+        logger.info(f"{subject}: Peak systole time point is {T_peak_systole} ({T_peak_systole * temporal_resolution:.2f}ms)")
+
+        os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
+        logger.info(f"{subject}: Saving aortic valve time data")
+        data_time = {
+            "Aortic Flow: T_ES [frame]": T_ES,
+            "Aortic Flow: T_peak_systole [frame]": T_peak_systole,
+            "Aortic Flow: T_ES [ms]": T_ES_real,
+            "Aortic Flow: T_peak_systole [ms]": T_peak_systole * temporal_resolution,
+        }
+        np.savez(f"{sub_dir}/timeseries/aorta.npz", **data_time)
+
+        # * Visualize all velocity maps in one figure
+        # * For better visualization, we first determine a largest bounding box for the aortic valve
+        logger.info(f"{subject}: Visualizing aortic flow velocity maps")
+        fig = plt.figure(figsize=(12, 10))
+
+        bounding_boxes = []
+
+        for t in range(T):
+            objects = find_objects(seg_morphology[:, :, 0, t].astype(np.uint8))
+            col_start = objects[0][1].start
+            col_end = objects[0][1].stop
+            row_start = objects[0][0].start
+            row_end = objects[0][0].stop
+            bounding_boxes.append((row_start, row_end, col_start, col_end))
+
+        bounding_boxes = np.array(bounding_boxes)
+        bounding_box = (
+            np.min(bounding_boxes[:, 0]),
+            np.max(bounding_boxes[:, 1]),
+            np.min(bounding_boxes[:, 2]),
+            np.max(bounding_boxes[:, 3]),
+        )
+
+        width = bounding_box[3] - bounding_box[2] + 1
+        height = bounding_box[1] - bounding_box[0] + 1
+
+        velocity_map_roi = np.zeros((height, width, T))
+
+        for t in range(T):
+            velocity_map_roi[:, :, t] = (velocity_map[:, :, t] * seg_morphology[:, :, 0, t])[
+                bounding_box[0] : bounding_box[1] + 1, bounding_box[2] : bounding_box[3] + 1
+            ]
+
+        x = np.linspace(0, 10, width)
+        y = np.linspace(0, 10, height)
+        X, Y = np.meshgrid(x, y)
+        rows, cols = 6, 5
+        fig = plt.figure(figsize=(12, 10))
+        gs = GridSpec(rows, cols, figure=fig, wspace=0, hspace=0)
+
+        for t in range(T):
+            row, col = divmod(t, cols)
+            ax = fig.add_subplot(gs[row, col], projection="3d")
+            ax.plot_surface(X, Y, velocity_map_roi[:, :, t], cmap="viridis", edgecolor="none")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_zticks([])
+            ax.axis("off")
+            ax.set_title(f"Frame {t + 1}", fontsize=8)
+
+        # add a supertitle
+        plt.suptitle(f"Aortic Valve Velocity (VENC is set to {VENC} cm/s)", fontsize=16, y=0.98)
+
+        norm = cm.colors.Normalize(vmin=np.min(velocity_map_roi), vmax=np.max(velocity_map_roi))
+        sm = cm.ScalarMappable(cmap="viridis", norm=norm)
+        sm.set_array([])
+        cbar = fig.colorbar(sm)
+        cbar.set_label("Velocity (cm/s)", fontsize=8)
+        plt.tight_layout()
+        plt.savefig(f"{sub_dir}/visualization/aorta/aortic_flow_velocity.png")
+
+        # define Mean velocity is the average during systole
+        peak_velocity = np.max(velocity)
         feature_dict.update(
             {
-                "Aortic Flow: Vlocity encoding factor (VENC) [cm/s]": VENC,
                 "Aortic Flow: Peak Velocity [cm/s]": peak_velocity,
-                "Aortic Flow: Peak Gradient [mmHg]": peak_gradient,
-                "Aortic Flow: Mean Velocity [cm/s]": mean_velocity,
-                "Aortic Flow: Mean Gradient [mmHg]": mean_gradient,
+                "Aortic Flow: Mean Gradient [mmHg]": np.mean(gradient[: T_ES + 1]),
             }
         )
 
@@ -165,25 +266,33 @@ if __name__ == "__main__":
             velocity,
             "Time [frame]",
             "Time [ms]",
-            "Velocity [cm/s]",
+            "Peak Velocity [cm/s]",
             lambda x: x * temporal_resolution,
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Velocity",
         )
+        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_ES,
+            ax1.get_ylim()[1],
+            "End Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_peak_systole,
+            ax1.get_ylim()[1],
+            "Peak Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
         fig.savefig(f"{sub_dir}/timeseries/aortic_velocity.png")
         plt.close(fig)
-
-        # Ref Nishimura et al. 2014 AHA/ACC guideline for the management of patients with valvular heart disease
-        # Ref Nishimura et al. 2017 AHA/ACC Focused Update of the 2014 AHA/ACC Guideline for the Management of Patients
-        if peak_velocity / 100 < 3:
-            stenosis = "None or mild"
-        elif peak_velocity / 100 < 4:
-            stenosis = "Moderate"
-        elif peak_velocity / 100 < 5:
-            stenosis = "Severe"
-        else:
-            stenosis = "Very severe"
-        feature_dict.update({"Aortic Flow: Level of Stenosis": stenosis})
 
         # * Determining regurgitation
         logger.info(f"{subject}: Determining flow features and level of aortic regurgitation")
@@ -191,10 +300,13 @@ if __name__ == "__main__":
         flow_positive = np.where(flow > 0, flow, 0)
         flow_negative = np.where(flow < 0, flow, 0)
 
-        forward_flow = np.trapz(flow_positive, dx=temporal_resolution)  # unit: mL
-        backward_flow = np.trapz(flow_negative, dx=temporal_resolution)
+        forward_flow = np.trapz(flow_positive, dx=temporal_resolution) / 1000  # unit: mL
+        backward_flow = np.trapz(flow_negative, dx=temporal_resolution) / 1000
 
         regurgitant_fraction = abs(backward_flow) / forward_flow * 100
+        if regurgitant_fraction > 100:
+            logger.error(f"{subject}: Regurgitant fraction should be less than 100%")
+            continue
 
         feature_dict.update(
             {
@@ -215,45 +327,106 @@ if __name__ == "__main__":
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Flow",
         )
-        fig.savefig(f"{sub_dir}/timeseries/aortic_flow.png")
         fig.text(
-            0.15,
+            0.8,
             0.8,
             f"Forward Flow: {forward_flow:.2f} mL\nBackward Flow: {backward_flow:.2f} mL",
             fontsize=10,
             verticalalignment="top",
             bbox=dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.5),
         )
+        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_ES,
+            ax1.get_ylim()[1],
+            "End Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_peak_systole,
+            ax1.get_ylim()[1],
+            "Peak Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        fig.savefig(f"{sub_dir}/timeseries/aortic_flow.png")
         plt.close(fig)
 
-        if regurgitant_fraction < 30:
-            regurgitation = "None or mild"
-        elif regurgitant_fraction < 50:
-            regurgitation = "Moderate"
-        else:
-            regurgitation = "Severe"
+        # * Feature3: Aortic valve area (AVA)
 
-        feature_dict.update({"Aortic Flow: Level of Regurgitation": regurgitation})
+        VTI = np.trapz(velocity, dx=temporal_resolution)  # define velocity-time-integral
+        # ref Yap, etal. (2007). https://doi.org/10.1080/10976640701693717
+        AVA = forward_flow / VTI  # unit: cm^2
 
-        # * Feature2: Flow displacement average
-        # define This is a quantitative parameter for measuring eccentric aortic systolic flow
-        # Ref Comparison of Four-Dimensional Flow Parameters for Quantification of Flow Eccentricity in the Ascending Aorta
+        feature_dict.update(
+            {
+                "Aortic Flow: Aortic Valve Area [cm^2]": AVA,
+            }
+        )
+
+        # * Feature4: Flow displacement
+        # This is a quantitative parameter for measuring eccentric aortic systolic flow
+        # Ref Comparison of Four-Dimensional Flow Parameters for Quantification of Flow Eccentricity in the Ascending Aorta https://pubmed.ncbi.nlm.nih.gov/21928387/
         flow_displacement = []
+        lumen_center = []
         for t in range(T):
             # We will keep all distance in image space rather than the real distances
             lumen_coords_t = np.argwhere(seg_morphology[:, :, 0, t] > 0)
             lumen_center_t = np.mean(lumen_coords_t, axis=0)
             # swap the x and y axis
             lumen_center_t = np.array([lumen_center_t[1], lumen_center_t[0]])
+            lumen_center.append(lumen_center_t)
             lumen_diameter_t = np.max(np.linalg.norm(lumen_coords_t - lumen_center_t, axis=1)) * 2
-            flow_center_t = flow_center[t]
-            flow_dispacement_t = np.linalg.norm(flow_center_t - lumen_center_t) / lumen_diameter_t * 100
+            velocity_center_t = velocity_center[t]
+            # * The average vessel radius is used to normalize the flow displacement
+            flow_dispacement_t = np.linalg.norm(velocity_center_t - lumen_center_t) / (lumen_diameter_t / 2) * 100
             flow_displacement.append(flow_dispacement_t)
 
-        # Ref Automated Quantification of Simple and Complex Aortic Flow Using 2D Phase Contrast MRI
+        lumen_center = np.array(lumen_center)
+
+        logger.info(f"{subject}: Visualizing aortic flow displacement")
+        for t in range(T):
+            plt.figure(figsize=(12, 8))
+            plt.imshow(velocity_map[:, :, t], cmap="jet")
+            plt.contour(seg_morphology[:, :, 0, t], levels=[0.5], colors="black", linewidths=0.5)
+            plt.scatter(
+                velocity_center[t][0],
+                velocity_center[t][1],
+                c="red",
+                s=3,
+                label="Center of velocity",
+            )
+            plt.scatter(
+                lumen_center[t][0],
+                lumen_center[t][1],
+                c="blue",
+                s=3,
+                label="Center of lumen",
+            )
+            plt.annotate(
+                "",
+                xy=(velocity_center[t][0], velocity_center[t][1]),
+                xytext=(lumen_center[t][0], lumen_center[t][1]),
+                arrowprops=dict(arrowstyle="->", color="green", lw=1.5),
+            )
+            plt.legend(loc="lower right")
+            plt.title(f"Frame {t}: Flow Displacement is {flow_displacement[t]:.2f}%")
+            norm = cm.colors.Normalize(vmin=np.min(velocity_map), vmax=np.max(velocity_map))
+            sm = cm.ScalarMappable(cmap="viridis", norm=norm)
+            sm.set_array([])
+            cbar = plt.colorbar(sm)
+            cbar.set_label("Velocity (cm/s)")
+            plt.tight_layout()
+            plt.savefig(f"{sub_dir}/visualization/aorta/aortic_flow_displacement_{(t + 1):02d}.png")
+            plt.close()
+
         flow_displacement = np.array(flow_displacement)
-        FDs = np.mean(flow_displacement[: T_ES + 1])  # flow displacement systolic average
-        FDls = np.mean(flow_displacement[T_systole : T_ES + 1])  # flow displacement late systolic average
 
         fig, ax1, ax2 = plot_time_series_double_x(
             time_grid_point,
@@ -266,23 +439,135 @@ if __name__ == "__main__":
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Flow Displacement",
         )
+        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_ES,
+            ax1.get_ylim()[1],
+            "End Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_peak_systole,
+            ax1.get_ylim()[1],
+            "Peak Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
         fig.savefig(f"{sub_dir}/timeseries/aortic_flow_displacement.png")
         plt.close(fig)
 
-        # todo: Too small, fix it and generate velocity map
+        # Ref Automated Quantification of Simple and Complex Aortic Flow Using 2D Phase Contrast MRI https://doi.org/10.3390/medicina60101618
+        FDs = np.mean(flow_displacement[: T_ES + 1])  # flow displacement systolic average
+        FDls = np.mean(flow_displacement[T_peak_systole : T_ES + 1])  # flow displacement late systolic average
+        FDd = np.mean(flow_displacement[T_ES + 1 :])  # flow displacement diastolic average
+
         feature_dict.update(
             {
                 "Aortic Flow: Flow Displacement Systolic Average [%]": FDs,
                 "Aortic Flow: Flow Displacement Late Systolic Average [%]": FDls,
+                "Aortic Flow: Flow Displacement Diastolic Average [%]": FDd,
             }
         )
 
-        # todo: Delta RA (rotation angle)
-        # define: Late systole is defined as the time from the peak systolic velocity to the end of systole
+        # * Determing level of aortic stenosis and regurgitation
 
-        # todo: Aortic valve size & area
+        # Ref Nishimura et al. 2014 AHA/ACC guideline for the management of patients with valvular heart disease
+        # Ref Nishimura et al. 2017 AHA/ACC Focused Update of the 2014 AHA/ACC Guideline for the Management of Patients
+        # if peak_velocity / 100 < 3:
+        #     stenosis = "None or mild"
+        # elif peak_velocity / 100 < 4:
+        #     stenosis = "Moderate"
+        # elif peak_velocity / 100 < 5:
+        #     stenosis = "Severe"
+        # else:
+        #     stenosis = "Very severe"
+        # feature_dict.update({"Aortic Flow: Level of Stenosis": stenosis})
 
-        # todo: Number of valve cusp
+        # if regurgitant_fraction < 30:
+        #     regurgitation = "None or mild"
+        # elif regurgitant_fraction < 50:
+        #     regurgitation = "Moderate"
+        # else:
+        #     regurgitation = "Severe"
+
+        # feature_dict.update({"Aortic Flow: Level of Regurgitation": regurgitation})
+
+        # * Feature5: Rotation angle (RA), ΔRA
+
+        logger.info(f"{subject}: Determining aortic flow rotation angle")
+        # Ref Aortic flow is associated with aging and exercise capacity https://doi.org/10.1093/ehjopen/oead079
+        # Ref Aortic flow is abnormal in HFpEF https://pmc.ncbi.nlm.nih.gov/articles/PMC10940846/pdf/wellcomeopenres-8-23435.pdf
+        rotation_angle = []
+
+        for t in range(T):
+            # * Since rotation angle is sensitive to errors, FD=12% is chosen as the threshold when setting RA=0
+            if flow_displacement[t] < 12:
+                angle = 0
+            else:
+                angle = (
+                    np.arctan2(velocity_center[t][0] - lumen_center[t][0], velocity_center[t][1] - lumen_center[t][1])
+                    / np.pi
+                    * 180
+                )
+                angle = (360 - angle) % 360  # make sure mapping to (0, 360°)
+            rotation_angle.append(angle)
+
+        # todo ΔRA
+
+        # We also need to determine the time where the rotation angle stablize before ES
+
+        fig, ax1, ax2 = plot_time_series_double_x(
+            time_grid_point,
+            time_grid_real,
+            rotation_angle,
+            "Time [frame]",
+            "Time [ms]",
+            "FD Rotation Angle [°]",
+            lambda x: x * temporal_resolution,
+            lambda x: x / temporal_resolution,
+            title=f"Subject {subject}: Aortic Flow Displacement Rotation Angle",
+        )
+        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_ES,
+            ax1.get_ylim()[1],
+            "End Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_peak_systole,
+            ax1.get_ylim()[1],
+            "Peak Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        fig.savefig(f"{sub_dir}/timeseries/aortic_flow_rotation_angle.png")
+        plt.close(fig)
+
+        # * Feature6: Systolic flow reversal ratio (SFR)
+
+        # This is very similar to regurgitant fraction, but we only consider the systolic phase
+        systolic_forward_flow = np.trapz(flow_positive[: T_ES + 1], dx=temporal_resolution) / 1000
+        systolic_backward_flow = np.trapz(flow_negative[: T_ES + 1], dx=temporal_resolution) / 1000
+        SFR = abs(systolic_backward_flow) / systolic_forward_flow * 100
+
+        feature_dict.update({
+            "Aortic Flow: Systolic Forward Flow [mL]": systolic_forward_flow,
+            "Aortic Flow: Systolic Reverse Flow [mL]": abs(systolic_backward_flow),  # a bit different name
+            "Aortic Flow: Systolic Flow Reversal Ratio [%]": SFR,
+        })
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
