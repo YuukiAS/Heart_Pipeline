@@ -33,6 +33,7 @@ def generate_scripts(
     os.makedirs(code_step2_dir)
 
     sub_total = os.listdir(data_dir)
+    sub_total = sorted(sub_total)
     length_total = len(sub_total)
     logger.info(f"Total number of subjects: {length_total}")
     num_files = length_total // num_subjects_per_file + 1
@@ -196,6 +197,13 @@ if __name__ == "__main__":
     retest_suffix = config.retest_suffix
 
     os.makedirs(code_dir, exist_ok=True)
+
+    # Clean up existing files in temporary directory
+    logger.info("Clean up existing files in temporary directory")
+    temp_dir = config.temp_dir
+    raw_folder = os.path.join(temp_dir, "nnUNet_raw")
+    if os.path.exists(raw_folder):
+        shutil.rmtree(raw_folder)
 
     logger.info("Generate scripts to segment for visit1 data")
     generate_scripts(pipeline_dir, data_visit1_dir, code_dir, modality, cpu=False)

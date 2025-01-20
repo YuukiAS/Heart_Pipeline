@@ -58,8 +58,8 @@ def prepare_files_to_segment(nii_path: str, subject: str, ID: int, name: str):
         raise ValueError("The input nii file should have 4 dimensions")
 
     temp_dir = config.temp_dir
-    imagesTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "imagesTs")
-    labelsTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "labelsTs")  # used to store predictions
+    imagesTs_folder = os.path.join(temp_dir, "nnUNet_raw", subject, f"Dataset{ID}_{name}", "imagesTs")
+    labelsTs_folder = os.path.join(temp_dir, "nnUNet_raw", subject, f"Dataset{ID}_{name}", "labelsTs")  # store predictions
 
     os.makedirs(imagesTs_folder, exist_ok=True)
     os.makedirs(labelsTs_folder, exist_ok=True)
@@ -74,8 +74,8 @@ def prepare_files_to_segment(nii_path: str, subject: str, ID: int, name: str):
 
 def run_segment_code(subject: str, ID: int, name: str, model):
     temp_dir = config.temp_dir
-    imagesTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "imagesTs")
-    labelsTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "labelsTs")  # used to store predictions
+    imagesTs_folder = os.path.join(temp_dir, "nnUNet_raw", subject, f"Dataset{ID}_{name}", "imagesTs")
+    labelsTs_folder = os.path.join(temp_dir, "nnUNet_raw", subject, f"Dataset{ID}_{name}", "labelsTs")  # store predictions
 
     if model == "nnUNet":
         # nnUNetv2_predict -d $dataset \
@@ -119,12 +119,10 @@ def run_segment_code(subject: str, ID: int, name: str, model):
 
 def obtain_files_segmented(subject: str, ID: int, name: str, target_name: str):
     temp_dir = config.temp_dir
-    imagesTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "imagesTs")
-    labelsTs_folder = os.path.join(temp_dir, "nnUNet_raw", f"Dataset{ID}_{name}", "labelsTs")  # used to store predictions
+    imagesTs_folder = os.path.join(temp_dir, "nnUNet_raw", subject, f"Dataset{ID}_{name}", "imagesTs")
+    labelsTs_folder = os.path.join(temp_dir, "nnUNet_raw", subject, f"Dataset{ID}_{name}", "labelsTs")
 
-    # pattern_image = re.compile(r".*_(\d{2})_(\d{2})_0000\.nii\.gz$")
-    pattern_image = re.compile(rf"{name}_{subject}_(\d{{2}})_(\d{{2}})_0000\.nii\.gz$")
-    # pattern_label = re.compile(r".*_(\d{2})_(\d{2})\.nii\.gz$")
+    # pattern_image = re.compile(rf"{name}_{subject}_(\d{{2}})_(\d{{2}})_0000\.nii\.gz$")
     pattern_label = re.compile(rf"{name}_{subject}_(\d{{2}})_(\d{{2}})\.nii\.gz$")
     slice_indices = []
     timeframe_indices = []
@@ -165,17 +163,12 @@ def obtain_files_segmented(subject: str, ID: int, name: str, target_name: str):
 
     if cnt != S * T:
         raise ValueError("The number of segmented images does not match the expected number of slices and timeframes")
-
-    for file_name in os.listdir(imagesTs_folder):
-        match = pattern_image.match(file_name)
-        if match:
-            os.remove(os.path.join(imagesTs_folder, file_name))
-
-    for file_name in os.listdir(labelsTs_folder):
-        match = pattern_label.match(file_name)
-        if match:
-            os.remove(os.path.join(labelsTs_folder, file_name))
     
     nii_file = nib.Nifti1Image(nii, nii_affine, nii_file_first_header)
     nii_file.header["pixdim"][1:4] = nii_file_first_header["pixdim"][1:4]
     nib.save(nii_file, target_name)
+
+    # Clean up temporary folders
+    shutil.rmtree(imagesTs_folder)
+    shutil.rmtree(labelsTs_folder)
+    shutil.rmtree(os.path.join(temp_dir, "nnUNet_raw", subject, f"Dataset{ID}_{name}"))
