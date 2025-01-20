@@ -86,7 +86,7 @@
         },
         {
             "name": "SV",
-            "full_name": "LVSV (Stroke Volume)",
+            "full_name": "Stroke Volume",
             "note": "",
             "reference_range": [
                 {
@@ -123,6 +123,13 @@
                     "n": 108,
                     "target": "all",
                     "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
+                },
+                {
+                    "mean": 69,
+                    "sd": 16,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance"
                 }
             ]
         },
@@ -277,6 +284,13 @@
                     "n": 8,
                     "target": "control",
                     "cite": "Kono, T., Sabbah, H. N., Stein, P. D., Brymer, J. F., & Khaja, F. (1991). Left ventricular shape as a determinant of functional mitral regurgitation in patients with severe heart failure secondary to either coronary artery disease or idiopathic dilated cardiomyopathy. The American Journal of Cardiology, 68(4), 355–359. https://doi.org/10.1016/0002-9149(91)90831-5"
+                },
+                {
+                    "mean": 64,
+                    "sd": 5,
+                    "n": 10,
+                    "target": "control",
+                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
                 }
             ]
         },
@@ -312,9 +326,18 @@
                     "n": 572,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2" 
+                },
+                {
+                    "mean": 3.6,
+                    "sd": 0.9,
+                    "n": 10,
+                    "target": "control",
+                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
                 }
             ]
         },
+
+
         {
             "name": "D_transverse_ED (sax)",
             "full_name": "Transverse diameter obtained using short axis at end-diastole",
@@ -337,11 +360,95 @@
             ]
         },
         {
-            "name": "D_longitudinal_ED (sax)",
+            "name": "D_longitudinal_ED (4ch)",
             "full_name": "Longitudinal diameter obtained using four chamber long axis at end-diastole",
             "note": "",
             "reference_range": [
+                {
+                    "lower": 8.9,
+                    "upper": 11.0,
+                    "n": 33,
+                    "target": "male, age 16-20",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 8.8,
+                    "upper": 11.0,
+                    "n": 27,
+                    "target": "male, age 21-30",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 8.8,
+                    "upper": 11.6,
+                    "n": 28,
+                    "target": "male, age 31-40",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 9.1,
+                    "upper": 11.2,
+                    "n": 28,
+                    "target": "male, age 41-50",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 8.7,
+                    "upper": 11.1,
+                    "n": 29,
+                    "target": "male, age 51-60",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 8.5,
+                    "upper": 11.0,
+                    "n": 28,
+                    "target": "male, age > 60",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
                 
+                {
+                    "lower": 9.0,
+                    "upper": 11.0,
+                    "n": 20,
+                    "target": "female, age 16-20",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 8.7,
+                    "upper": 10.7,
+                    "n": 24,
+                    "target": "female, age 21-30",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 8.5,
+                    "upper": 10.4,
+                    "n": 23,
+                    "target": "female, age 31-40",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 8.0,
+                    "upper": 10.0,
+                    "n": 23,
+                    "target": "female, age 41-50",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 7.5,
+                    "upper": 9.9,
+                    "n": 22,
+                    "target": "female, age 51-60",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                },
+                {
+                    "lower": 6.7,
+                    "upper": 9.6,
+                    "n": 23,
+                    "target": "female, age > 60",
+                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                }
             ]
         },
         {
@@ -360,55 +467,6 @@
                     "mean": 4.9,
                     "sd": 0.5,
                     "n": 188,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
-                }
-            ]
-        },
-        {
-            "name": "D_transverse_ES (sax)",
-            "full_name": "Transverse diameter obtained using short axis at end-systole",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 3.4,
-                    "sd": 0.3,
-                    "n": 60,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
-                },
-                {
-                    "mean": 3.1,
-                    "sd": 0.4,
-                    "n": 60,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
-                }
-            ]
-        },
-        {
-            "name": "D_longitudinal_ES (4ch)",
-            "full_name": "Longitudinal diameter obtained using four chamber long axis at end-systole",
-            "note": "",
-            "reference_range": [
-            ]
-        },
-        {
-            "name": " D_transverse_ES (4ch)",
-            "full_name": "Transverse diameter obtained using four chamber long axis at end-systole",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 3.2,
-                    "sd": 0.3,
-                    "n": 54,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
-                },
-                {
-                    "mean": 2.8,
-                    "sd": 0.6,
-                    "n": 53,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
                 }
@@ -442,6 +500,51 @@
                 }
             ]
         },
+
+
+        {
+            "name": "D_transverse_ES (sax)",
+            "full_name": "Transverse diameter obtained using short axis at end-systole",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 3.4,
+                    "sd": 0.3,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                },
+                {
+                    "mean": 3.1,
+                    "sd": 0.4,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                }
+            ]
+        },
+        // To my knowledge, I have only found reference range for D_longitudinal_ED (4ch), and that for D_longitudinal_ES (4ch) is not reported
+        {
+            "name": " D_transverse_ES (4ch)",
+            "full_name": "Transverse diameter obtained using four chamber long axis at end-systole",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 3.2,
+                    "sd": 0.3,
+                    "n": 54,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                },
+                {
+                    "mean": 2.8,
+                    "sd": 0.6,
+                    "n": 53,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                }
+            ]
+        },
         {
             "name": "Sphericity_Index_ES",
             "full_name": "Sphericity index at end-systole",
@@ -470,12 +573,33 @@
                 }
             ]
         },
+
         {
             "name": "PFR-E",
             "full_name": "Early peak filling rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 527,
+                    "sd": 140,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 477,
+                    "sd": 146,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 375,
+                    "sd": 63,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
+                }
             ]
         },
         {
@@ -483,7 +607,27 @@
             "full_name": "Atrial peak filling rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 527,
+                    "sd": 140,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 477,
+                    "sd": 146,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 177,
+                    "sd": 56,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
+                }           
             ]
         },
         {
@@ -491,56 +635,63 @@
             "full_name": "Ratio between early peak filling rate and atrial peak filling rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 1.4,
+                    "sd": 0.3,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 1.7,
+                    "sd": 0.3,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 2.3,
+                    "sd": 1,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
+                }              
+            ]
+        },
+
+        {
+            "name": "AVPD",
+            "full_name": "Atrioventricular plane displacement",
+            "note": "We use the lateral AVPD here, refer to cardiac_utils.py",
+            "reference_range": [
+                {
+                    "mean": 1.8,
+                    "sd": 0.4,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 1.7,
+                    "sd": 0.3,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 1.4,
+                    "sd": 0.3,
+                    "n": 24,
+                    "target": "healthy control",
+                    "cite": "Seemann, F., Pahlm, U., Steding-Ehrenborg, K., Ostenfeld, E., Erlinge, D., Dubois-Rande, J.-L., Jensen, S. E., Atar, D., Arheden, H., Carlsson, M., & Heiberg, E. (2017). Time-resolved tracking of the atrioventricular plane displacement in Cardiovascular Magnetic Resonance (CMR) images. BMC Medical Imaging, 17(1), 19. https://doi.org/10.1186/s12880-017-0189-5"
+                }
             ]
         }
     ],
     "Myo": [
         {
-            "name": "Mass_ES",
-            "full_name": "LVM",
-            "note": "The mass should be approximately the same at ED and ES. We directly copy result as Mass_ED",
-            "reference_range": [
-                {
-                    "mean": 121,
-                    "sd": 28,
-                    "n": 464,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
-                },
-                {
-                    "mean": 83,
-                    "sd": 21,
-                    "n": 485,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table2"
-                },
-                {
-                    "mean": 105,
-                    "sd": 24,
-                    "n": 832,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
-                },
-                {
-                    "mean": 73,
-                    "sd": 15,
-                    "n": 1064,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table5"
-                },
-                {
-                    "mean": 112,
-                    "sd": 27,
-                    "n": 108,
-                    "target": "all",
-                    "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
-                }
-            ]
-        },
-        {
             "name": "Mass_ED",
-            "full_name": "LVM",
+            "full_name": "Myocardium mass at ED",
             "note": "The mass should be approximately the same at ED and ES. We only report them in ES here",
             "reference_range": [
                 {
@@ -579,59 +730,409 @@
                     "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
                 }
             ]
-        }
-    ],
-    "LA": [
+        },
         {
-            "name": "A_max (4ch)",
-            "full_name": "Maximum LA area (4 chamber long axis)",
+            "name": "Mass_ES",
+            "full_name": "Myocardium mass at ES",
             "note": "",
             "reference_range": [
+
+            ]
+        },
+        
+
+        {
+            "name": "Thickness (AHA_1)",
+            "full_name": "Myocardium thickness of segment 1 (basal anterior)",
+            "note": "Measured on short axis, we will not use table27",
+            "reference_range": [
                 {
-                    "mean": 23,
-                    "sd": 5,
-                    "n": 233,
+                    "mean": 7.8,
+                    "sd": 1.3,
+                    "n": 387,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
                 },
                 {
-                    "mean": 21,
-                    "sd": 4,
-                    "n": 173,
+                    "mean": 6.4,
+                    "sd": 1.1,
+                    "n": 467,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
-                },
-                {
-                    "mean": 21,
-                    "sd": 3.7,
-                    "n": 120,
-                    "target": "all",
-                    "cite": "Maceira, A. M., Cosín-Sales, J., Roughton, M., Prasad, S. K., & Pennell, D. J. (2010). Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 12(1), 65. https://doi.org/10.1186/1532-429X-12-65"
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
                 }
             ]
         },
         {
-            "name": "A_max (2ch)",
-            "full_name": "Maximum LA area (2 chamber long axis)",
+            "name": "Thickness (AHA_2)",
+            "full_name": "Myocardium thickness of segment 2 (basal anteroseptal)",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 21,
-                    "sd": 5,
-                    "n": 60,
+                    "mean": 9.0,
+                    "sd": 1.4,
+                    "n": 900,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 7.6,
+                    "sd": 1.2,
+                    "n": 1114,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+  
+            ]
+        },
+        {
+            "name": "Thickness (AHA_3)",
+            "full_name": "Myocardium thickness of segment 3 (basal inferoseptal)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 8.8,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 7.3,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_4)",
+            "full_name": "Myocardium thickness of segment 4 (basal inferior)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 7.9,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 6.4,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_5)",
+            "full_name": "Myocardium thickness of segment 5 (basal inferolateral)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 7.7,
+                    "sd": 1.2,
+                    "n": 900,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 6.3,
+                    "sd": 1.1,
+                    "n": 1114,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_6)",
+            "full_name": "Myocardium thickness of segment 6 (basal anterolateral)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 7.5,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_7)",
+            "full_name": "Myocardium thickness of segment 7 (mid anterior)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 6.7,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.6,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },        
+        {
+            "name": "Thickness (AHA_8)",
+            "full_name": "Myocardium thickness of segment 8 (mid anteroseptal)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 7.4,
+                    "sd": 1.3,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_9)",
+            "full_name": "Myocardium thickness of segment 9 (mid inferoseptal)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 7.9,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 6.6,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }                
+            ]
+        },
+        {
+            "name": "Thickness (AHA_10)",
+            "full_name": "Myocardium thickness of segment 10 (mid inferior)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 7.0,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.8,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_11)",
+            "full_name": "Myocardium thickness of segment 10 (mid inferolateral)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 6.5,
+                    "sd": 1.4,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.3,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_12)",
+            "full_name": "Myocardium thickness of segment 10 (mid anterolateral)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 6.6,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.5,
+                    "sd": 1.1,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_13)",
+            "full_name": "Myocardium thickness of segment 13 (apical anterior)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 6.5,
+                    "sd": 1.2,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.9,
+                    "sd": 1.3,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_14)",
+            "full_name": "Myocardium thickness of segment 14 (apical septal)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 6.8,
+                    "sd": 1.3,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.8,
+                    "sd": 1.1,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_15)",
+            "full_name": "Myocardium thickness of segment 15 (apical inferior)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 6.1,
+                    "sd": 1.1,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.2,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+        {
+            "name": "Thickness (AHA_16)",
+            "full_name": "Myocardium thickness of segment 16 (apical lateral)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 6.2,
+                    "sd": 1.1,
+                    "n": 387,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                },
+                {
+                    "mean": 5.6,
+                    "sd": 1.0,
+                    "n": 467,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                }
+            ]
+        },
+
+        // Radius motion disparity and thickness motion disparity is defined in https://www.sciencedirect.com/science/article/pii/S1361841519300519, but no reference range is reported.
+
+        {
+            "name": "Fractal dimension",
+            "full_name": "Fractal dimension of myocardium",
+            "note": "We calculate the global FD here",
+            "reference_range": [
+               {
+                    "mean": 1.246,
+                    "sd": 0.005,
+                    "n": 30,
+                    "target": "black",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table31"
+               },
+               {
+                    "mean": 1.228,
+                    "sd": 0.002,
+                    "n": 75,
+                    "target": "white",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table31"
+               },
+               {
+                    "mean": 1.205,
+                    "sd": 0.031,
+                    "n": 180,
+                    "target": "Singaporean Chinese",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table31"
+               }
+            ]
+        }
+    ],
+    "LA": [
+        {
+            "name": "D_longitudinal (2ch)",
+            "full_name": "Longitudinal diameter (2 chamber long axis)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 4.9,
+                    "sd": 0.7,
+                    "n": 185,
                     "target": "men",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
                 },
                 {
-                    "mean": 19,
-                    "sd": 5,
-                    "n": 60,
+                    "mean": 4.6,
+                    "sd": 0.7,
+                    "n": 181,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
                 },
                 {
-                    "mean": 20,
-                    "sd": 4.7,
+                    "mean": 4.9,
+                    "sd": 0.7,
                     "n": 120,
                     "target": "all",
                     "cite": "Maceira, A. M., Cosín-Sales, J., Roughton, M., Prasad, S. K., & Pennell, D. J. (2010). Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 12(1), 65. https://doi.org/10.1186/1532-429X-12-65"
@@ -667,27 +1168,27 @@
             ]
         },
         {
-            "name": "D_longitudinal (2ch)",
-            "full_name": "Longitudinal diameter (2 chamber long axis)",
+            "name": "A_max (2ch)",
+            "full_name": "Maximum LA area (2 chamber long axis)",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 4.9,
-                    "sd": 0.7,
-                    "n": 185,
+                    "mean": 21,
+                    "sd": 5,
+                    "n": 60,
                     "target": "men",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
                 },
                 {
-                    "mean": 4.6,
-                    "sd": 0.7,
-                    "n": 181,
+                    "mean": 19,
+                    "sd": 5,
+                    "n": 60,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
                 },
                 {
-                    "mean": 4.9,
-                    "sd": 0.7,
+                    "mean": 20,
+                    "sd": 4.7,
                     "n": 120,
                     "target": "all",
                     "cite": "Maceira, A. M., Cosín-Sales, J., Roughton, M., Prasad, S. K., & Pennell, D. J. (2010). Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 12(1), 65. https://doi.org/10.1186/1532-429X-12-65"
@@ -695,27 +1196,34 @@
             ]
         },
         {
-            "name": "D_transverse (2ch)",
-            "full_name": "Transverse diameter (2 chamber long axis)",
+            "name": "A_min (2ch)",
+            "full_name": "Minimum LA area (2 chamber long axis)",
+            "note": "",
+            "reference_range": [
+            ]
+        },
+        {
+            "name": "A_max (4ch)",
+            "full_name": "Maximum LA area (4 chamber long axis)",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 4.4,
-                    "sd": 0.6,
-                    "n": 126,
+                    "mean": 23,
+                    "sd": 5,
+                    "n": 233,
                     "target": "men",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
                 },
                 {
-                    "mean": 4.3,
-                    "sd": 0.5,
-                    "n": 129,
+                    "mean": 21,
+                    "sd": 4,
+                    "n": 173,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
                 },
                 {
-                    "mean": 4.6,
-                    "sd": 0.5,
+                    "mean": 21,
+                    "sd": 3.7,
                     "n": 120,
                     "target": "all",
                     "cite": "Maceira, A. M., Cosín-Sales, J., Roughton, M., Prasad, S. K., & Pennell, D. J. (2010). Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 12(1), 65. https://doi.org/10.1186/1532-429X-12-65"
@@ -723,48 +1231,126 @@
             ]
         },
         {
-            "name": "D_transverse (4ch)",
-            "full_name": "Transverse diameter (4 chamber long axis)",
+            "name": "A_min (4ch)",
+            "full_name": "Minimum LA area (4 chamber long axis)",
             "note": "",
             "reference_range": [
-                {
-                    "mean": 4.3,
-                    "sd": 0.5,
-                    "n": 185,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
-                },
-                {
-                    "mean": 4.1,
-                    "sd": 0.5,
-                    "n": 181,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
-                },
-                {
-                    "mean": 4.1,
-                    "sd": 0.5,
-                    "n": 120,
-                    "target": "all",
-                    "cite": "Maceira, A. M., Cosín-Sales, J., Roughton, M., Prasad, S. K., & Pennell, D. J. (2010). Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 12(1), 65. https://doi.org/10.1186/1532-429X-12-65"
-                }
+
             ]
         },
         {
-            "name": "EI",
-            "full_name": "Expansion Index",
+            "name": "V_max (bip)",
+            "full_name": "Maximum LA Volume, Biplane area-length method",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 151.5,
-                    "sd": 46.8,
-                    "n": 35,
+                    "mean": 72,
+                    "sd": 20,
+                    "n": 734,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
+                },
+                {
+                    "mean": 64,
+                    "sd": 18,
+                    "n": 841,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
+                },
+                {
+                    "mean": 97,
+                    "sd": 27,
+                    "n": 108,
+                    "target": "all",
+                    "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
+                },
+                {
+                    "mean": 78.3,
+                    "sd": 20.5,
+                    "n": 112,
+                    "target": "all",
+                    "cite": "Truong, V. T., Palmer, C., Wolking, S., Sheets, B., Young, M., Ngo, T. N. M., Taylor, M., Nagueh, S. F., Zareba, K. M., Raman, S., & Mazur, W. (2019). Normal left atrial strain and strain rate using cardiac magnetic resonance feature tracking in healthy volunteers. European Heart Journal - Cardiovascular Imaging, jez157. https://doi.org/10.1093/ehjci/jez157"
+                },
+                {
+                    "mean": 38.3,
+                    "sd": 10,
+                    "n": 50,
                     "target": "controls",
-                    "cite": "Shang, Y., Zhang, X., Leng, W., Lei, X., Chen, L., Liang, Z., & Wang, J. (2018). Left atrium passive ejection fraction is the most sensitive index of type 2 diabetes mellitus-related cardiac changes. The International Journal of Cardiovascular Imaging, 34(1), 141–151. https://doi.org/10.1007/s10554-017-1213-0"
+                    "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
+                }
+            ]
+        },
+        {
+            "name": "V_min (bip)",
+            "full_name": "Minimum LA Volume, Biplane area-length method",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 44,
+                    "sd": 13,
+                    "n": 108,
+                    "target": "all",
+                    "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
                 },
                 {
-                    "mean": 219,
-                    "sd": 113,
+                    "mean": 32.3,
+                    "sd": 9.3,
+                    "n": 112,
+                    "target": "all",
+                    "cite": "Truong, V. T., Palmer, C., Wolking, S., Sheets, B., Young, M., Ngo, T. N. M., Taylor, M., Nagueh, S. F., Zareba, K. M., Raman, S., & Mazur, W. (2019). Normal left atrial strain and strain rate using cardiac magnetic resonance feature tracking in healthy volunteers. European Heart Journal - Cardiovascular Imaging, jez157. https://doi.org/10.1093/ehjci/jez157"
+                },
+                {
+                    "mean": 25,
+                    "sd": 10,
+                    "n": 171,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
+                },
+                {
+                    "mean": 22,
+                    "sd": 8,
+                    "n": 146,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
+                },
+                {
+                    "mean": 13.3,
+                    "sd": 5,
+                    "n": 50,
+                    "target": "controls",
+                    "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
+                }
+            ]
+        },
+        {
+            "name": "Total SV (bip)",
+            "full_name": "LA Total Stroke Volume",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 53,
+                    "sd": 21,
+                    "n": 108,
+                    "target": "all",
+                    "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
+                },
+                {
+                    "mean": 44,
+                    "sd": 12,
+                    "n": 468,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
+                },
+                {
+                    "mean": 42,
+                    "sd": 19,
+                    "n": 509,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
+                },
+                {
+                    "mean": 54.5,
+                    "sd": 9,
                     "n": 50,
                     "target": "controls",
                     "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
@@ -883,6 +1469,143 @@
                 }
             ]
         },
+
+
+        {
+            "name": "D_transverse (2ch)",
+            "full_name": "Transverse diameter (2 chamber long axis)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 4.4,
+                    "sd": 0.6,
+                    "n": 126,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
+                },
+                {
+                    "mean": 4.3,
+                    "sd": 0.5,
+                    "n": 129,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
+                },
+                {
+                    "mean": 4.6,
+                    "sd": 0.5,
+                    "n": 120,
+                    "target": "all",
+                    "cite": "Maceira, A. M., Cosín-Sales, J., Roughton, M., Prasad, S. K., & Pennell, D. J. (2010). Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 12(1), 65. https://doi.org/10.1186/1532-429X-12-65"
+                }
+            ]
+        },
+        {
+            "name": "D_transverse (4ch)",
+            "full_name": "Transverse diameter (4 chamber long axis)",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 4.3,
+                    "sd": 0.5,
+                    "n": 185,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
+                },
+                {
+                    "mean": 4.1,
+                    "sd": 0.5,
+                    "n": 181,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table15"
+                },
+                {
+                    "mean": 4.1,
+                    "sd": 0.5,
+                    "n": 120,
+                    "target": "all",
+                    "cite": "Maceira, A. M., Cosín-Sales, J., Roughton, M., Prasad, S. K., & Pennell, D. J. (2010). Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 12(1), 65. https://doi.org/10.1186/1532-429X-12-65"
+                }
+            ]
+        },
+
+        {
+            "name": "PER-E",
+            "full_name": "Early Atrial Peak Emptying Rate",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 130.6,
+                    "sd": 58.6,
+                    "n": 49,
+                    "target": "men",
+                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
+                },
+                {
+                    "mean": 86.3,
+                    "sd": 47.4,
+                    "n": 36,
+                    "target": "women",
+                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
+                },
+                {
+                    "mean": 152,
+                    "sd": 55,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
+                }
+            ]
+        },
+        {
+            "name": "PER-A",
+            "full_name": "Late Atrial Peak Emptying Rate",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 178.7,
+                    "sd": 85.4,
+                    "n": 49,
+                    "target": "men",
+                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
+                },
+                {
+                    "mean": 169.9,
+                    "sd": 84.5,
+                    "n": 36,
+                    "target": "women",
+                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
+                },
+                {
+                    "mean": 159,
+                    "sd": 47,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
+                }
+            ]
+        },
+
+        {
+            "name": "V_pre_a",
+            "full_name": "Pre-Atrial Contraction Volume",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 47.5,
+                    "sd": 13.3,
+                    "n": 112,
+                    "target": "all",
+                    "cite": "Truong, V. T., Palmer, C., Wolking, S., Sheets, B., Young, M., Ngo, T. N. M., Taylor, M., Nagueh, S. F., Zareba, K. M., Raman, S., & Mazur, W. (2019). Normal left atrial strain and strain rate using cardiac magnetic resonance feature tracking in healthy volunteers. European Heart Journal - Cardiovascular Imaging, jez157. https://doi.org/10.1093/ehjci/jez157"
+                },
+                {
+                    "mean": 22.3,
+                    "sd": 8,
+                    "n": 50,
+                    "target": "controls",
+                    "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
+                }
+            ]
+        },
         {
             "name": "EF_conduit",
             "full_name": "LA Emptying Fraction Conduit (Passive)",
@@ -967,220 +1690,166 @@
                 }
             ]
         },
+
         {
-            "name": "PER-A",
-            "full_name": "Late Atrial Peak Emptying Rate",
+            "name": "IPVT",
+            "full_name": "Isovolumetric Pulmonary Vein Transit Volume",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 152,
-                    "sd": 55,
+                    "mean": 36,
+                    "sd": 15,
                     "n": 25,
-                    "target": "control",
-                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3"
-                },
-                {
-                    "mean": 178.7,
-                    "sd": 85.4,
-                    "n": 49,
-                    "target": "men",
-                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
-                },
-                {
-                    "mean": 169.9,
-                    "sd": 84.5,
-                    "n": 36,
-                    "target": "women",
-                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance"
                 }
             ]
         },
         {
-            "name": "PER-E",
-            "full_name": "Early Atrial Peak Emptying Rate",
+            "name": "IPVT Ratio",
+            "full_name": "Isovolumetric Pulmonary Vein Transit Volume Ratio",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 152,
-                    "sd": 55,
+                    "mean": 1.2,
+                    "sd": 0.6,
                     "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance"
+                }
+            ]
+        },
+        {
+            "name": "% AC to LVSV",
+            "full_name": "Percent Atrial Contribution to LVSV",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 21.7,
+                    "sd": 21.4,
+                    "n": 10,
                     "target": "control",
-                    "cite": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9748677/pdf/fcvm-09-947975.pdf"
-                },
-                {
-                    "mean": 130.6,
-                    "sd": 58.6,
-                    "n": 49,
-                    "target": "men",
-                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
-                },
-                {
-                    "mean": 86.3,
-                    "sd": 47.4,
-                    "n": 36,
-                    "target": "women",
-                    "cite": "Bi, X., Song, Y., Yang, C., Song, Y., Zhao, S., Qiao, S., & Zhang, J. (2022). Sex differences in atrial remodeling and its relationship with myocardial fibrosis in hypertrophic obstructive cardiomyopathy. Frontiers in Cardiovascular Medicine, 9, 947975. https://doi.org/10.3389/fcvm.2022.947975"
+                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
                 }
             ]
         },
         {
-            "name": "V_max (bip)",
-            "full_name": "Maximum LA Volume, Biplane area-length method",
+            "name": "% AC to LVEDV",
+            "full_name": "Percent Atrial Contribution to LVEDV",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 72,
-                    "sd": 20,
-                    "n": 734,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
-                },
-                {
-                    "mean": 64,
-                    "sd": 18,
-                    "n": 841,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
-                },
-                {
-                    "mean": 97,
-                    "sd": 27,
-                    "n": 108,
-                    "target": "all",
-                    "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
-                },
-                {
-                    "mean": 78.3,
-                    "sd": 20.5,
-                    "n": 112,
-                    "target": "all",
-                    "cite": "Truong, V. T., Palmer, C., Wolking, S., Sheets, B., Young, M., Ngo, T. N. M., Taylor, M., Nagueh, S. F., Zareba, K. M., Raman, S., & Mazur, W. (2019). Normal left atrial strain and strain rate using cardiac magnetic resonance feature tracking in healthy volunteers. European Heart Journal - Cardiovascular Imaging, jez157. https://doi.org/10.1093/ehjci/jez157"
-                },
-                {
-                    "mean": 38.3,
-                    "sd": 10,
-                    "n": 50,
-                    "target": "controls",
-                    "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
-                }
-            ]
-        },
-        {
-            "name": "Total SV (bip)",
-            "full_name": "LA Total Stroke Volume",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 53,
-                    "sd": 21,
-                    "n": 108,
-                    "target": "all",
-                    "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
-                },
-                {
-                    "mean": 44,
-                    "sd": 12,
-                    "n": 468,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
-                },
-                {
-                    "mean": 42,
-                    "sd": 19,
-                    "n": 509,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
-                },
-                {
-                    "mean": 54.5,
-                    "sd": 9,
-                    "n": 50,
-                    "target": "controls",
-                    "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
-                }
-            ]
-        },
-        {
-            "name": "V_min (bip)",
-            "full_name": "Minimum LA Volume, Biplane area-length method",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 44,
-                    "sd": 13,
-                    "n": 108,
-                    "target": "all",
-                    "cite": "Hudsmith†, L., Petersen†, S., Francis, J., Robson, M., & Neubauer, S. (2005). Normal Human Left and Right Ventricular and Left Atrial Dimensions Using Steady State Free Precession Magnetic Resonance Imaging. Journal of Cardiovascular Magnetic Resonance, 7(5), 775–782. https://doi.org/10.1080/10976640500295516"
-                },
-                {
-                    "mean": 32.3,
-                    "sd": 9.3,
-                    "n": 112,
-                    "target": "all",
-                    "cite": "Truong, V. T., Palmer, C., Wolking, S., Sheets, B., Young, M., Ngo, T. N. M., Taylor, M., Nagueh, S. F., Zareba, K. M., Raman, S., & Mazur, W. (2019). Normal left atrial strain and strain rate using cardiac magnetic resonance feature tracking in healthy volunteers. European Heart Journal - Cardiovascular Imaging, jez157. https://doi.org/10.1093/ehjci/jez157"
-                },
-                {
-                    "mean": 25,
-                    "sd": 10,
-                    "n": 171,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
-                },
-                {
-                    "mean": 22,
-                    "sd": 8,
-                    "n": 146,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table14"
-                },
-                {
-                    "mean": 13.3,
-                    "sd": 5,
-                    "n": 50,
-                    "target": "controls",
-                    "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
-                }
-            ]
-        },
-        {
-            "name": "V_pre_a",
-            "full_name": "Pre-Atrial Contraction Volume",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 47.5,
-                    "sd": 13.3,
-                    "n": 112,
-                    "target": "all",
-                    "cite": "Truong, V. T., Palmer, C., Wolking, S., Sheets, B., Young, M., Ngo, T. N. M., Taylor, M., Nagueh, S. F., Zareba, K. M., Raman, S., & Mazur, W. (2019). Normal left atrial strain and strain rate using cardiac magnetic resonance feature tracking in healthy volunteers. European Heart Journal - Cardiovascular Imaging, jez157. https://doi.org/10.1093/ehjci/jez157"
-                },
-                {
-                    "mean": 22.3,
-                    "sd": 8,
-                    "n": 50,
-                    "target": "controls",
-                    "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
+                    "mean": 11.9,
+                    "sd": 9.4,
+                    "n": 10,
+                    "target": "control",
+                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
                 }
             ]
         }
+
     ],
     "RV": [
         {
-            "name": "CI",
-            "full_name": "Cardiac Index",
+            "name": "V_ED",
+            "full_name": "RVEDV",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 3,
-                    "sd": 0.7,
-                    "n": 155,
+                    "mean": 163,
+                    "sd": 27,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
+                },
+                {
+                    "mean": 127,
+                    "sd": 24,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
+                },
+                {
+                    "mean": 166,
+                    "sd": 39,
+                    "n": 896,
                     "target": "men",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
                 },
                 {
-                    "mean": 2.8,
-                    "sd": 0.6,
-                    "n": 149,
+                    "mean": 122,
+                    "sd": 27,
+                    "n": 977,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
+                }
+            ]
+        },
+        {
+            "name": "V_ES",
+            "full_name": "RVESV",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 57,
+                    "sd": 17,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
+                },
+                {
+                    "mean": 44,
+                    "sd": 15,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
+                },
+                {
+                    "mean": 73,
+                    "sd": 22,
+                    "n": 896,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
+                },
+                {
+                    "mean": 50,
+                    "sd": 15,
+                    "n": 977,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
+                }
+            ]
+        },
+        {
+            "name": "SV",
+            "full_name": "Stroke Volume",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 106,
+                    "sd": 18,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
+                },
+                {
+                    "mean": 66,
+                    "sd": 7,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
+                },
+                {
+                    "mean": 95,
+                    "sd": 26,
+                    "n": 842,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
+                },
+                {
+                    "mean": 74,
+                    "sd": 18,
+                    "n": 924,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
                 }
@@ -1299,105 +1968,21 @@
             ]
         },
         {
-            "name": "V_ED",
-            "full_name": "RVEDV",
+            "name": "CI",
+            "full_name": "Cardiac Index",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 163,
-                    "sd": 27,
-                    "n": 60,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
-                },
-                {
-                    "mean": 127,
-                    "sd": 24,
-                    "n": 60,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
-                },
-                {
-                    "mean": 166,
-                    "sd": 39,
-                    "n": 896,
+                    "mean": 3,
+                    "sd": 0.7,
+                    "n": 155,
                     "target": "men",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
                 },
                 {
-                    "mean": 122,
-                    "sd": 27,
-                    "n": 977,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
-                }
-            ]
-        },
-        {
-            "name": "V_ES",
-            "full_name": "RVESV",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 57,
-                    "sd": 17,
-                    "n": 60,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
-                },
-                {
-                    "mean": 44,
-                    "sd": 15,
-                    "n": 60,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
-                },
-                {
-                    "mean": 73,
-                    "sd": 22,
-                    "n": 896,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
-                },
-                {
-                    "mean": 50,
-                    "sd": 15,
-                    "n": 977,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
-                }
-            ]
-        },
-        {
-            "name": "SV",
-            "full_name": "RVSV",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 106,
-                    "sd": 18,
-                    "n": 60,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
-                },
-                {
-                    "mean": 66,
-                    "sd": 7,
-                    "n": 60,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table9"
-                },
-                {
-                    "mean": 95,
-                    "sd": 26,
-                    "n": 842,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
-                },
-                {
-                    "mean": 74,
-                    "sd": 18,
-                    "n": 924,
+                    "mean": 2.8,
+                    "sd": 0.6,
+                    "n": 149,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table10"
                 }
@@ -1405,6 +1990,27 @@
         }
     ],
     "RA": [
+        {
+            "name": "D_longitudinal",
+            "full_name": "RA Longitudinal Diameter",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 5.3,
+                    "sd": 0.6,
+                    "n": 126,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
+                },
+                {
+                    "mean": 5.1,
+                    "sd": 0.6,
+                    "n": 129,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
+                }
+            ]
+        },
         {
             "name": "A_max",
             "full_name": "RA Max Area",
@@ -1432,69 +2038,6 @@
             "note": "",
             "reference_range": [
                 
-            ]
-        },
-        {
-            "name": "D_longitudinal",
-            "full_name": "RA Longitudinal Diameter",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 5.3,
-                    "sd": 0.6,
-                    "n": 126,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
-                },
-                {
-                    "mean": 5.1,
-                    "sd": 0.6,
-                    "n": 129,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
-                }
-            ]
-        },
-        {
-            "name": "D_transverse",
-            "full_name": "RA Transverse Diameter",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 4.8,
-                    "sd": 0.6,
-                    "n": 126,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
-                },
-                {
-                    "mean": 4.3,
-                    "sd": 0.6,
-                    "n": 129,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
-                }
-            ]
-        },
-        {
-            "name": "EF_total",
-            "full_name": "RA Total Ejection Fraction",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 50,
-                    "sd": 9,
-                    "n": 66,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table17"
-                },
-                {
-                    "mean": 56,
-                    "sd": 9,
-                    "n": 69,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table17"
-                }
             ]
         },
         {
@@ -1538,8 +2081,51 @@
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table17"
                 }
             ]
+        },
+        {
+            "name": "EF_total",
+            "full_name": "RA Total Ejection Fraction",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 50,
+                    "sd": 9,
+                    "n": 66,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table17"
+                },
+                {
+                    "mean": 56,
+                    "sd": 9,
+                    "n": 69,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table17"
+                }
+            ]
+        },
+        {
+            "name": "D_transverse",
+            "full_name": "RA Transverse Diameter",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 4.8,
+                    "sd": 0.6,
+                    "n": 126,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
+                },
+                {
+                    "mean": 4.3,
+                    "sd": 0.6,
+                    "n": 129,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
+                }
+            ]
         }
     ],
+
     "LVOT": [
         {
             "name": "Aortic Sinuses Diameter",
@@ -1815,6 +2401,7 @@
             ]
         }
     ],
+
     "Aortic Flow": [
         {
             "name": "Maximum Area",
@@ -2322,6 +2909,172 @@
             ]
         }
     ],
+
+    "Native T1": [
+        {
+            "name": "Myocardium-Global",
+            "full_name": "T1 value for the LV midwall myocardium",
+            "note": "Features are derived using 1.5T ShMOLLI",
+            "reference_range": [
+                {
+                    "mean": 932,
+                    "sd": 50,
+                    "n": 4148,
+                    "target": "healthy",
+                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                },
+                {
+                    "mean": 974,
+                    "sd": 23,
+                    "n": 173,
+                    "target": "female, global",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                },
+                {
+                    "mean": 964,
+                    "sd": 21,
+                    "n": 173,
+                    "target": "female, midwall",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                },
+                {
+                    "mean": 950,
+                    "sd": 20,
+                    "n": 169,
+                    "target": "male, global",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                },
+                {
+                    "mean": 943,
+                    "sd": 19,
+                    "n": 169,
+                    "target": "male, midwall",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                },
+                {
+                    "mean": 960,
+                    "sd": 29,
+                    "n": 971,
+                    "target": "all",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table61"
+                }
+            ]
+        },
+        {
+            "name": "Myocardium-IVS",
+            "full_name": "T1 value for the LV intra-ventricular septum",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 937,
+                    "sd": 49,
+                    "n": 4148,
+                    "target": "healthy",
+                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                }
+            ]
+        },
+        {
+            "name": "Myocardium-FW",
+            "full_name": "T1 value for the LV free wall",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 930,
+                    "sd": 55,
+                    "n": 4148,
+                    "target": "healthy",
+                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                }
+            ]
+        },
+        {
+            "name": "LV Blood Pool",
+            "full_name": "T1 value for the LV blood pool",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 1577,
+                    "sd": 70,
+                    "n": 173,
+                    "target": "female",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                },
+                {
+                    "mean": 1491,
+                    "sd": 55,
+                    "n": 169,
+                    "target": "male",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                }
+            ]
+        },
+        {
+            "name": "RV Blood Pool",
+            "full_name": "T1 value for the RV blood pool",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 1567,
+                    "sd": 82,
+                    "n": 173,
+                    "target": "female",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                },
+                {
+                    "mean": 1461,
+                    "sd": 66,
+                    "n": 169,
+                    "target": "male",
+                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                }
+            ]
+        },
+        {
+            "name": "Myocardium-Global-corrected",
+            "full_name": "T1 value for the LV midwall myocardium after correction",
+            "note": "Features are derived using 1.5T ShMOLLI",
+            "reference_range": [
+                {
+                    "mean": 930,
+                    "sd": 45,
+                    "n": 4148,
+                    "target": "healthy",
+                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                }
+            ]
+        },
+        {
+            "name": "Myocardium-IVS-corrected",
+            "full_name": "T1 value for the LV intra-ventricular septum after correction",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 934,
+                    "sd": 43,
+                    "n": 4148,
+                    "target": "healthy",
+                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                }
+            ]
+        },
+        {
+            "name": "Myocardium-FW-corrected",
+            "full_name": "T1 value for the LV free wall after correction",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 928,
+                    "sd": 50,
+                    "n": 4148,
+                    "target": "healthy",
+                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                }
+            ]
+        }
+    ],
+
+    // todo Table39/40/41 can be used for 20207
     "Ascending Aorta": [
         {
             "name": "Distensibility",
@@ -2480,138 +3233,160 @@
             ]
         }
     ],
-    "Native T1": [
+
+    // todo: More strain reference range
+    // todo: torsion and recoil rate
+    "Strain": [
         {
-            "name": "Myocardium-Global",
-            "full_name": "T1 value for the LV midwall myocardium",
-            "note": "Features are derived using 1.5T ShMOLLI",
+            "name": "Circumferential Strain (Feature Tracking)",
+            "full_name": "Circumferential Strain measured using feature tracking",
+            "note": "",
             "reference_range": [
                 {
-                    "mean": 945,
-                    "sd": 54,
-                    "n": 50,
-                    "target": "manual",
-                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                    "mean": -20.9,
+                    "sd": 3.2,
+                    "n": 295,
+                    "target": "men (2D)",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
                 },
                 {
-                    "mean": 955,
-                    "sd": 66,
-                    "n": 50,
-                    "target": "automatic",
-                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                    "mean": -22.7,
+                    "sd": 3.3,
+                    "n": 301,
+                    "target": "women (2D)",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
                 },
                 {
-                    "mean": 974,
-                    "sd": 23,
-                    "n": 173,
-                    "target": "female, global",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
-                },
-                {
-                    "mean": 964,
-                    "sd": 21,
-                    "n": 173,
-                    "target": "female, midwall",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
-                },
-                {
-                    "mean": 950,
-                    "sd": 20,
-                    "n": 169,
-                    "target": "male, global",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
-                },
-                {
-                    "mean": 943,
-                    "sd": 19,
-                    "n": 169,
-                    "target": "male, midwall",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                    "mean": -17.6,
+                    "sd": 2.6,
+                    "n": 100,
+                    "target": "all (3D)",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table67"
                 }
             ]
         },
         {
-            "name": "Myocardium-IVS",
-            "full_name": "T1 value for the LV intra-ventricular septum",
+            "name": "Longitudinal Strain (Feature Tracking)",
+            "full_name": "Longitudinal Strain measured using feature tracking",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 952,
-                    "sd": 41,
-                    "n": 50,
-                    "target": "manual",
-                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                    "mean": -19.4,
+                    "sd": 3.3,
+                    "n": 295,
+                    "target": "men (2D)",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
                 },
                 {
-                    "mean": 960,
-                    "sd": 58,
-                    "n": 50,
-                    "target": "automatic",
-                    "cite": "Puyol-Antón, E., Ruijsink, B., Baumgartner, C. F., Masci, P.-G., Sinclair, M., Konukoglu, E., Razavi, R., & King, A. P. (2020). Automated quantification of myocardial tissue characteristics from native T1 mapping using neural networks with uncertainty-based quality-control. Journal of Cardiovascular Magnetic Resonance, 22(1), 60. https://doi.org/10.1186/s12968-020-00650-y"
+                    "mean": -21.4,
+                    "sd": 3.6,
+                    "n": 301,
+                    "target": "women (2D)",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
+                },
+                {
+                    "mean": -14.6,
+                    "sd": 2.7,
+                    "n": 100,
+                    "target": "all (3D)",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table67"
                 }
             ]
         },
         {
-            "name": "Myocardium-FW",
-            "full_name": "T1 value for the LV free wall",
+            "name": "Radial Strain (Feature Tracking)",
+            "full_name": "Radial Strain measured using feature tracking",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Circumferential Strain (Tagged MRI)",
+            "full_name": "Circumferential Strain measured using Tagged MRI",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 941,
-                    "sd": 65,
-                    "n": 50,
-                    "tamidwall rget": "manual",
-                    "cite": "/work/users/y/u/yuukias/Heart_Pipeline/data/features/Pipeline_Result/visit2/native_T1"
-                },
-                {
-                    "mean": 959,
-                    "sd": 72,
-                    "n": 50,
-                    "target": "automatic",
-                    "cite": "/work/users/y/u/yuukias/Heart_Pipeline/data/features/Pipeline_Result/visit2/native_T1"
+                    "lower": -26,
+                    "upper": -14.2,
+                    "n": 204,
+                    "target": "all",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table65"
                 }
             ]
         },
         {
-            "name": "LV Blood Pool",
-            "full_name": "T1 value for the LV blood pool",
+            "name": "Longitudinal Strain (Tagged MRI)",
+            "full_name": "Longitudinal Strain measured using Tagged MRI",
             "note": "",
             "reference_range": [
+                
+            ]
+        }
+    ],
+
+    "Valve": [
+        {
+            "name": "Tricuspid Diameter",
+            "full_name": "Tricuspid Valve Annulus Diameter",
+            "note": "Obtained at ED",
+            "reference_range": [
                 {
-                    "mean": 1577,
-                    "sd": 70,
-                    "n": 173,
-                    "target": "female",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
-                },
-                {
-                    "mean": 1491,
-                    "sd": 55,
-                    "n": 169,
+                    "lower": 2.3,
+                    "upper": 4.1,
+                    "n": 328,
                     "target": "male",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.1,
+                    "upper": 3.5,
+                    "n": 393,
+                    "target": "female",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
                 }
             ]
         },
         {
-            "name": "RV Blood Pool",
-            "full_name": "T1 value for the RV blood pool",
+            "name": "Mitral Diameter",
+            "full_name": "Mitral Valve Annulus Diameter",
+            "note": "Obtained at ED",
+            "reference_range": [
+                {
+                    "lower": 2.4,
+                    "upper": 4.1,
+                    "n": 328,
+                    "target": "male",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.4,
+                    "upper": 3.6,
+                    "n": 393,
+                    "target": "female",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                }                
+            ]
+        },
+        {
+            "name": "TA/MA Diameter Ratio",
+            "full_name": "Ratio of Tricuspid Annulus Diameter to Mitral Annulus Diameter",
             "note": "",
             "reference_range": [
                 {
-                    "mean": 1567,
-                    "sd": 82,
-                    "n": 173,
-                    "target": "female",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
+                    "lower": 0.7,
+                    "upper": 1.3,
+                    "n": 328,
+                    "target": "male",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
                 },
                 {
-                    "mean": 1461,
-                    "sd": 66,
-                    "n": 169,
-                    "target": "male",
-                    "cite": "Piechnik, S. K., Ferreira, V. M., Lewandowski, A. J., Ntusi, N. A., Banerjee, R., Holloway, C., Hofman, M. B., Sado, D. M., Maestrini, V., White, S. K., Lazdam, M., Karamitsos, T., Moon, J. C., Neubauer, S., Leeson, P., & Robson, M. D. (2013). Normal variation of magnetic resonance T1 relaxation times in the human population at 1.5 T using ShMOLLI. Journal of Cardiovascular Magnetic Resonance, 15(1), 13. https://doi.org/10.1186/1532-429X-15-13"
-                }
+                    "lower": 0.7,
+                    "upper": 1.2,
+                    "n": 393,
+                    "target": "female",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                }                      
             ]
         }
     ]
