@@ -101,23 +101,29 @@ if __name__ == "__main__":
             T_area[label] = {}
 
             A_label = np.sum(seg_aorta == value, axis=(0, 1, 2)) * area_per_pixel
-            areas[label]["max"] = A_label.max()
-            areas[label]["min"] = A_label.min()
             diameters[label]["max"] = 2 * math.sqrt(A_label.max() / np.pi)
             diameters[label]["min"] = 2 * math.sqrt(A_label.min() / np.pi)
+            diameters[label]["mean"] = 2 * math.sqrt(A_label.mean() / np.pi)
+            areas[label]["max"] = A_label.max()
+            areas[label]["min"] = A_label.min()
+            areas[label]["mean"] = A_label.mean()
             T_area[label]["max"] = np.argmax(A_label)
             T_area[label]["min"] = np.argmin(A_label)
 
         feature_dict.update(
             {
-                "Ascending Aorta: Maxium Area [mm^2]": areas["AAo"]["max"],
-                "Ascending Aorta: Minimum Area [mm^2]": areas["AAo"]["min"],
-                "Descending Aorta: Maxium Area [mm^2]": areas["DAo"]["max"],
-                "Descending Aorta: Minimum Area [mm^2]": areas["DAo"]["min"],
-                "Ascending Aorta: Maxium Diameter [mm]": diameters["AAo"]["max"],
-                "Ascending Aorta: Minimum Diameter [mm]": diameters["AAo"]["min"],
-                "Descending Aorta: Maxium Diameter [mm]": diameters["DAo"]["max"],
-                "Descending Aorta: Minimum Diameter [mm]": diameters["DAo"]["min"],
+                "Aortic Distensibility-Ascending Aorta: Maxium Diameter [mm]": diameters["AAo"]["max"],
+                "Aortic Distensibility-Ascending Aorta: Mean Diameter [mm]": diameters["AAo"]["mean"],
+                "Aortic Distensibility-Ascending Aorta: Minimum Diameter [mm]": diameters["AAo"]["min"],
+                "Aortic Distensibility-Descending Aorta: Maxium Diameter [mm]": diameters["DAo"]["max"],
+                "Aortic Distensibility-Descending Aorta: Mean Diameter [mm]": diameters["DAo"]["mean"],
+                "Aortic Distensibility-Descending Aorta: Minimum Diameter [mm]": diameters["DAo"]["min"],
+                "Aortic Distensibility-Ascending Aorta: Maxium Area [mm^2]": areas["AAo"]["max"],
+                "Aortic Distensibility-Ascending Aorta: Mean Area [mm^2]": areas["AAo"]["mean"],
+                "Aortic Distensibility-Ascending Aorta: Minimum Area [mm^2]": areas["AAo"]["min"],
+                "Aortic Distensibility-Descending Aorta: Maxium Area [mm^2]": areas["DAo"]["max"],
+                "Aortic Distensibility-Descending Aorta: Mean Area [mm^2]": areas["DAo"]["mean"],
+                "Aortic Distensibility-Descending Aorta: Minimum Area [mm^2]": areas["DAo"]["min"],
             }
         )
 
@@ -128,17 +134,17 @@ if __name__ == "__main__":
         plt.imshow(aorta[:, :, 0, T_area["AAo"]["max"]], cmap="gray")
         plt.imshow(seg_aorta_nan[:, :, 0, T_area["AAo"]["max"]], cmap="jet", alpha=0.5)
         plt.title("Ascending Aorta: Maximum Area")
-        ascending_aorta_patch = mpatches.Patch(color='blue', label='Ascending Aorta')
-        descending_aorta_patch = mpatches.Patch(color='red', label='Descending Aorta')
-        plt.legend(handles=[ascending_aorta_patch, descending_aorta_patch], loc='upper right')
+        ascending_aorta_patch = mpatches.Patch(color="blue", label="Ascending Aorta")
+        descending_aorta_patch = mpatches.Patch(color="red", label="Descending Aorta")
+        plt.legend(handles=[ascending_aorta_patch, descending_aorta_patch], loc="upper right")
         plt.axis("off")
         plt.subplot(1, 2, 2)
         plt.imshow(aorta[:, :, 0, T_area["AAo"]["min"]], cmap="gray")
         plt.imshow(seg_aorta_nan[:, :, 0, T_area["AAo"]["min"]], cmap="jet", alpha=0.5)
         plt.title("Ascending Aorta: Minimum Area")
-        ascending_aorta_patch = mpatches.Patch(color='blue', label='Ascending Aorta')
-        descending_aorta_patch = mpatches.Patch(color='red', label='Descending Aorta')
-        plt.legend(handles=[ascending_aorta_patch, descending_aorta_patch], loc='upper right')
+        ascending_aorta_patch = mpatches.Patch(color="blue", label="Ascending Aorta")
+        descending_aorta_patch = mpatches.Patch(color="red", label="Descending Aorta")
+        plt.legend(handles=[ascending_aorta_patch, descending_aorta_patch], loc="upper right")
         os.makedirs(os.path.join(sub_dir, "visualization", "aorta"), exist_ok=True)
         plt.savefig(os.path.join(sub_dir, "visualization", "aorta", "aortic_area.png"))
         plt.close()
@@ -168,18 +174,23 @@ if __name__ == "__main__":
             pressure_info = pd.read_csv(config.pressure_file)[["eid", config.pressure_col_name]]
             pressure_subject = pressure_info[pressure_info["eid"] == int(subject)][config.pressure_col_name].values[0]
             if pressure_subject < 10:
-                raise ValueError
+                logger.warning(f"{subject}: Central pulse pressure < 10 mmHg, no distensibility calculated.")
+                continue
             logger.info(f"{subject}: Measuring distensibility for the ascending and descending aorta")
 
             for label in ["AAo", "DAo"]:
                 areas[label]["distensibility"] = (
-                    (areas[label]["max"] - areas[label]["min"]) / (areas[label]["min"] * pressure_subject * 1e3)
+                    (areas[label]["max"] - areas[label]["min"]) / (areas[label]["min"] * pressure_subject) * 1e3
                 )
 
+            # Unit conversion: 1(10^-3/mmHg) = 7.5(10^-3/kPa)
+            if areas["AAo"]["distensibility"] > 20 or areas["DAo"]["distensibility"] > 20:
+                logger.warning(f"{subject}: Abnormal distensibility value detected, skipped")
+                continue
             feature_dict.update(
                 {
-                    "Ascending Aorta: Distensibility [10^-3/mmHg]": areas["AAo"]["distensibility"],
-                    "Descending Aorta: Distensibility [10^-3/mmHg]": areas["DAo"]["distensibility"],
+                    "Aortic Distensibility-Ascending Aorta: Distensibility [10^-3/mmHg]": areas["AAo"]["distensibility"],
+                    "Aortic Distensibility-Descending Aorta: Distensibility [10^-3/mmHg]": areas["DAo"]["distensibility"],
                 }
             )
         except (FileNotFoundError, IndexError):
