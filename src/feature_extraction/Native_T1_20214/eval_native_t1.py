@@ -45,7 +45,7 @@ if __name__ == "__main__":
             logger.error(f"Segmentation of native T1 mapping file for {subject} does not exist")
             continue
 
-        labels = {"LV": 1, "Myo": 2, "RV": 3}
+        labels = {"Myo": 1, "LV": 2, "RV": 3}
 
         if not shmolli_pass_quality_control(seg_ShMOLLI_name, labels):
             logger.error(f"{subject}: seg_ShMOLLI does not pass quality control, skipped.")
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         plt.imshow(ShMOOLI[:, :, 0, 0], cmap="gray")
         plt.imshow(seg_ShMOLLI_nan[:, :, 0, 0], cmap="jet", alpha=0.5)
         plt.colorbar()
-        legend_labels = ["LV", "Myocardium", "RV"]
+        legend_labels = ["Myocardium", "LV", "RV"]
         colors = ["blue", "green", "red"]
         patches = [Patch(color=colors[i], label=legend_labels[i]) for i in range(len(legend_labels))]
         plt.legend(handles=patches, loc="lower right")
@@ -77,17 +77,18 @@ if __name__ == "__main__":
         logger.info(f"Calculating uncorrected native T1 for subject {subject}")
         # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00650-y
         try:
-            t1_global_uncorrected, t1_IVS_uncorrected, t1_FW_uncorrected, t1_blood, figure = evaluate_t1_uncorrected(
-                ShMOOLI[:, :, 0, 0], seg_ShMOLLI[:, :, 0, 0], labels
+            t1_global_uncorrected, t1_IVS_uncorrected, t1_FW_uncorrected, t1_blood_left, t1_blood_right, figure = (
+                evaluate_t1_uncorrected(ShMOOLI[:, :, 0, 0], seg_ShMOLLI[:, :, 0, 0], labels)
             )
             figure.savefig(f"{sub_dir}/visualization/ventricle/native_t1_ivs_fw_blood.png")
 
             feature_dict.update(
                 {
-                    "Native T1: Global-uncorrected [ms]": f"{t1_global_uncorrected:.2f}",
-                    "Native T1: IVS-uncorrected [ms]": f"{t1_IVS_uncorrected:.2f}",
-                    "Native T1: FW-uncorrected [ms]": f"{t1_FW_uncorrected:.2f}",
-                    "Native T1: Blood-uncorrected [ms]": f"{t1_blood:.2f}",
+                    "Native T1: Myocardium-Global [ms]": f"{t1_global_uncorrected:.2f}",
+                    "Native T1: Myocardium-IVS [ms]": f"{t1_IVS_uncorrected:.2f}",
+                    "Native T1: Myocardium-FW [ms]": f"{t1_FW_uncorrected:.2f}",
+                    "Native T1: LV Blood Pool [ms]": f"{t1_blood_left:.2f}",
+                    "Native T1: RV Blood Pool [ms]": f"{t1_blood_right:.2f}",
                 }
             )
         except (ValueError, IndexError) as e:
@@ -100,7 +101,7 @@ if __name__ == "__main__":
         df = pd.concat([df, df_row], ignore_index=True)
 
     target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
-    target_dir = os.path.join(target_dir, "native_t1")
+    target_dir = os.path.join(target_dir, "native_T1")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
     df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), index=False)

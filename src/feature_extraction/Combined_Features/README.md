@@ -1,0 +1,1 @@
+This folder contains scripts that should be run after basic features have been extracted from separate modalities. For instance, the `eval_native_t1_corrected.py` needs the mean of uncorrected native T1 values in the population to generate the corrected T1 values.
