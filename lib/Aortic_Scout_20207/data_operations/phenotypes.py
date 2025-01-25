@@ -18,6 +18,7 @@ from utils.log_utils import setup_logging
 
 logger = setup_logging("eval_aorta_structure_phenotypes")
 
+
 class Aorta(object):
     def __init__(self, itk_image, path=None, output_dir=None, pid=None):
         self.itk_image = itk_image
@@ -359,6 +360,7 @@ def tortuoisity(vtk_centerline):
 
     initial_final_length = np.absolute(np.linalg.norm(np.array(initial_point) - np.array(final_point))) * 0.1
 
+    # * Subtract 1 so that tort=0 means that the curve is a straight line
     tort = (length / initial_final_length) - 1
 
     initial_final_length = round(initial_final_length, 4)
@@ -412,7 +414,7 @@ def vmtk_curvature_torsion(vtk_centerline):
 
     geometry_centerline = geometry.Centerlines
     point_data = geometry_centerline.GetPointData()
-    point_array_names = [point_data.GetArrayName(i) for i in range(point_data.GetNumberOfArrays())]
+    # point_array_names = [point_data.GetArrayName(i) for i in range(point_data.GetNumberOfArrays())]
 
     # calculate curvature
     curvature = point_data.GetArray("Curvature")
