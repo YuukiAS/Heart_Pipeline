@@ -16,6 +16,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 from utils.log_utils import setup_logging
 from utils.quality_control_utils import lvot_pass_quality_control
+from utils.biobank_utils import query_BSA
 
 logger = setup_logging("eval_lvot")
 
@@ -196,9 +197,7 @@ if __name__ == "__main__":
 
         logger.info(f"{subject}: Calculate BSA-indexed aortic annulus and root diameters")
         try:
-            BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
-            BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
-
+            BSA_subject = query_BSA(subject)
             feature_dict.update(
                 {
                     "LVOT: Aortic Valve Annulus Diameter/BSA [mm/m^2]": np.median(L["aortic_valve_annulus"]) / BSA_subject,
