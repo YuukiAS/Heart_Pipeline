@@ -448,27 +448,29 @@
             "full_name": "Longitudinal diameter obtained using four chamber long axis at end-diastole",
             "note": "",
             "reference_range": [
-                {
-                    "lower": 8.9,
-                    "upper": 11.0,
-                    "n": 33,
-                    "target": "male, age 16-20",
-                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
-                },
-                {
-                    "lower": 8.8,
-                    "upper": 11.0,
-                    "n": 27,
-                    "target": "male, age 21-30",
-                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
-                },
-                {
-                    "lower": 8.8,
-                    "upper": 11.6,
-                    "n": 28,
-                    "target": "male, age 31-40",
-                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
-                },
+                // We will not use age 16~40, as only people aged between 40-69 years are recruited in the UK Biobank
+                // * The result will still be a bit lower than the reference range, as we don't cover the mitral valve.
+                // {
+                //     "lower": 8.9,
+                //     "upper": 11.0,
+                //     "n": 33,
+                //     "target": "male, age 16-20",
+                //     "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                // },
+                // {
+                //     "lower": 8.8,
+                //     "upper": 11.0,
+                //     "n": 27,
+                //     "target": "male, age 21-30",
+                //     "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                // },
+                // {
+                //     "lower": 8.8,
+                //     "upper": 11.6,
+                //     "n": 28,
+                //     "target": "male, age 31-40",
+                //     "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                // },
                 {
                     "lower": 9.1,
                     "upper": 11.2,
@@ -491,27 +493,27 @@
                     "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
                 },
                 
-                {
-                    "lower": 9.0,
-                    "upper": 11.0,
-                    "n": 20,
-                    "target": "female, age 16-20",
-                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
-                },
-                {
-                    "lower": 8.7,
-                    "upper": 10.7,
-                    "n": 24,
-                    "target": "female, age 21-30",
-                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
-                },
-                {
-                    "lower": 8.5,
-                    "upper": 10.4,
-                    "n": 23,
-                    "target": "female, age 31-40",
-                    "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
-                },
+                // {
+                //     "lower": 9.0,
+                //     "upper": 11.0,
+                //     "n": 20,
+                //     "target": "female, age 16-20",
+                //     "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                // },
+                // {
+                //     "lower": 8.7,
+                //     "upper": 10.7,
+                //     "n": 24,
+                //     "target": "female, age 21-30",
+                //     "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                // },
+                // {
+                //     "lower": 8.5,
+                //     "upper": 10.4,
+                //     "n": 23,
+                //     "target": "female, age 31-40",
+                //     "cite": "Aquaro, G. D., Camastra, G., Monti, L., Lombardi, M., Pepe, A., Castelletti, S., Maestrini, V., Todiere, G., Masci, P., Di Giovine, G., Barison, A., Dellegrottaglie, S., Perazzolo Marra, M., Pontone, G., Di Bella, G., & On behalf of the working group “Applicazioni della Risonanza Magnetica” of the Italian Society of Cardiology. (2017). Reference values of cardiac volumes, dimensions, and new functional parameters by MR: A multicenter, multivendor study. Journal of Magnetic Resonance Imaging, 45(4), 1055–1067. https://doi.org/10.1002/jmri.25450"
+                // },
                 {
                     "lower": 8.0,
                     "upper": 10.0,
@@ -540,6 +542,7 @@
             "full_name": "Transverse diameter obtained using four chamber long axis at end-diastole",
             "note": "",
             "reference_range": [
+                // * This will be a bit larger than the reference range, as we use the 
                 {
                     "mean": 5.2,
                     "sd": 0.5,
@@ -1154,9 +1157,9 @@
     ],
     "Myo": [
         {
-            "name": "Mass_ED",
-            "full_name": "Myocardium mass at ED",
-            "note": "The mass should be approximately the same at ED and ES. We will use the same reference range here",
+            "name": "Mass",
+            "full_name": "Myocardium mass",
+            "note": "",
             "reference_range": [
                 {
                     "mean": 121,
@@ -1251,34 +1254,40 @@
                 }
             ]
         },
-        {
-            "name": "Mass_ES",
-            "full_name": "Myocardium mass at ES",
-            "note": "",
-            "reference_range": [
-                // reported in Mass_ED
-            ]
-        },
         
-
+        // We will report the pooled result in Table26 separately.
         {
             "name": "Thickness (AHA_1)",
             "full_name": "Myocardium thickness of segment 1 (basal anterior)",
             "note": "Measured on short axis, we will not use table27",
             "reference_range": [
                 {
-                    "mean": 7.8,
-                    "sd": 1.3,
-                    "n": 387,
+                    "lower": 4.8,
+                    "upper": 9.5,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 6.4,
-                    "sd": 1.1,
-                    "n": 467,
+                    "lower": 4.1,
+                    "upper": 7.6,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 6.3,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.7,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1288,20 +1297,33 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 9.0,
-                    "sd": 1.4,
-                    "n": 900,
+                    "lower": 5.9,
+                    "upper": 10.2,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 7.6,
-                    "sd": 1.2,
-                    "n": 1114,
+                    "lower": 4.8,
+                    "upper": 8.0,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 7.1,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 8.7,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
-  
             ]
         },
         {
@@ -1310,18 +1332,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 8.8,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 6.2,
+                    "upper": 10.3,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 7.3,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 5.2,
+                    "upper": 8.5,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 7.1,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 8.7,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1331,18 +1367,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 7.9,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 5.9,
+                    "upper": 9.5,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 6.4,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 4.6,
+                    "upper": 7.7,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 6.2,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.7,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1352,18 +1402,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 7.7,
-                    "sd": 1.2,
-                    "n": 900,
+                    "lower": 5.9,
+                    "upper": 9.9,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 6.3,
-                    "sd": 1.1,
-                    "n": 1114,
+                    "lower": 4.7,
+                    "upper": 8.0,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.6,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.9,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1373,18 +1437,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 7.5,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 5.6,
+                    "upper": 9.7,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 6.1,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 4.5,
+                    "upper": 7.8,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.9,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.1,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1394,18 +1472,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 6.7,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 4.8,
+                    "upper": 8.6,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.6,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 3.8,
+                    "upper": 7.2,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.2,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },        
@@ -1415,18 +1507,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 7.4,
-                    "sd": 1.3,
-                    "n": 387,
+                    "lower": 5.1,
+                    "upper": 8.9,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 6.1,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 4.2,
+                    "upper": 7.1,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },                
+                {
+                    "mean": 5.6,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.7,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1436,19 +1542,33 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 7.9,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 5.7,
+                    "upper": 9.2,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 6.6,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 4.5,
+                    "upper": 7.5,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
-                }                
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 6.3,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.6,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                }             
             ]
         },
         {
@@ -1457,18 +1577,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 7.0,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 5.2,
+                    "upper": 8.7,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.8,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 4.3,
+                    "upper": 7.2,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.3,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.2,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1478,18 +1612,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 6.5,
-                    "sd": 1.4,
-                    "n": 387,
+                    "lower": 5.0,
+                    "upper": 9.2,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.3,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 4.0,
+                    "upper": 7.3,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 4.6,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 5.5,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1499,18 +1647,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 6.6,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 5.1,
+                    "upper": 8.9,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.5,
-                    "sd": 1.1,
-                    "n": 467,
+                    "lower": 4.2,
+                    "upper": 7.2,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.1,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 5.9,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1520,18 +1682,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 6.5,
-                    "sd": 1.2,
-                    "n": 387,
+                    "lower": 4.3,
+                    "upper": 7.9,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.9,
-                    "sd": 1.3,
-                    "n": 467,
+                    "lower": 3.5,
+                    "upper": 6.4,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 6.9,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.0,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1541,18 +1717,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 6.8,
-                    "sd": 1.3,
-                    "n": 387,
+                    "lower": 4.1,
+                    "upper": 7.8,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.8,
-                    "sd": 1.1,
-                    "n": 467,
+                    "lower": 3.3,
+                    "upper": 6.4,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.9,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.6,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1562,18 +1752,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 6.1,
-                    "sd": 1.1,
-                    "n": 387,
+                    "lower": 4.1,
+                    "upper": 7.8,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.2,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 3.3,
+                    "upper": 6.2,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.1,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 5.7,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -1583,18 +1787,32 @@
             "note": "",
             "reference_range": [
                 {
-                    "mean": 6.2,
-                    "sd": 1.1,
-                    "n": 387,
+                    "lower": 4.4,
+                    "upper": 8.3,
+                    "n": 196,
                     "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
                 },
                 {
-                    "mean": 5.6,
-                    "sd": 1.0,
-                    "n": 467,
+                    "lower": 3.5,
+                    "upper": 6.5,
+                    "n": 238,
                     "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table26"
+                    "cite": "Le Ven, F., Bibeau, K., De Larochellière, É., Tizón-Marcos, H., Deneault-Bissonnette, S., Pibarot, P., Deschepper, C. F., & Larose, É. (2016). Cardiac morphology and function reference values derived from a large subset of healthy young Caucasian adults by magnetic resonance imaging. European Heart Journal Cardiovascular Imaging, 17(9), 981–990. https://doi.org/10.1093/ehjci/jev217"
+                },
+                {
+                    "mean": 5.8,
+                    "sd": 1.1,
+                    "n": 169,
+                    "target": "women",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.3,
+                    "n": 131,
+                    "target": "men",
+                    "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
                 }
             ]
         },
@@ -2965,6 +3183,41 @@
                     "n": 24416,
                     "target": "women",
                     "cite": "Kany, S., Rämö, J. T., Hou, C., Jurgens, S. J., Nauffal, V., Cunningham, J., Lau, E. S., Butte, A. J., Ho, J. E., Olgin, J. E., Elmariah, S., Lindsay, M. E., Ellinor, P. T., & Pirruccello, J. P. (2023). Assessment of valvular function in over 47,000 people using deep learning-based flow measurements. Cardiovascular Medicine. https://doi.org/10.1101/2023.04.29.23289299"
+                },
+                {
+                    "lower": 86,
+                    "upper": 159,
+                    "n": 977,
+                    "target": "men",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 88,
+                    "upper": 165,
+                    "n": 926,
+                    "target": "women",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 108,
+                    "upper": 137,
+                    "n": 21,
+                    "target": "controls",
+                    "cite": "Evaluation of Aortic Valve Stenosis Using Cardiovascular Magnetic Resonance. (n.d.). https://doi.org/10.1161/CIRCIMAGING.111.971218"
+                },
+                {
+                    "mean": 117,
+                    "sd": 27,
+                    "n": 22,
+                    "target": "control",
+                    "cite": "Aortic and mitral flow quantification using dynamic valve tracking and machine learning: Prospective study assessing static and dynamic plane repeatability, variability and agreement. (n.d.). https://doi.org/10.1177/2048004021999900"
+                },
+                {
+                    "mean": 120,
+                    "sd": 20,
+                    "n": 48,
+                    "target": "healthy",
+                    "cite": "Guala, A., Teixido-Tura, G., Dux-Santoy, L., Granato, C., Ruiz-Muñoz, A., Valente, F., Galian-Gay, L., Gutiérrez, L., González-Alujas, T., Johnson, K. M., Wieben, O., Sao Avilés, A., Evangelista, A., & Rodriguez-Palomares, J. (2019). Decreased rotational flow and circumferential wall shear stress as early markers of descending aorta dilation in Marfan syndrome: A 4D flow CMR study. Journal of Cardiovascular Magnetic Resonance, 21(1), 63. https://doi.org/10.1186/s12968-019-0572-1"
                 }
             ]
         },
@@ -2986,12 +3239,33 @@
                     "n": 24416,
                     "target": "women",
                     "cite": "Kany, S., Rämö, J. T., Hou, C., Jurgens, S. J., Nauffal, V., Cunningham, J., Lau, E. S., Butte, A. J., Ho, J. E., Olgin, J. E., Elmariah, S., Lindsay, M. E., Ellinor, P. T., & Pirruccello, J. P. (2023). Assessment of valvular function in over 47,000 people using deep learning-based flow measurements. Cardiovascular Medicine. https://doi.org/10.1101/2023.04.29.23289299"
+                },
+                {
+                    "lower": 1.55,
+                    "upper": 4.90,
+                    "n": 977,
+                    "target": "men",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 1.58,
+                    "upper": 5.50,
+                    "n": 926,
+                    "target": "women",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 2.0,
+                    "upper": 3.8,
+                    "n": 21,
+                    "target": "controls",
+                    "cite": "Evaluation of Aortic Valve Stenosis Using Cardiovascular Magnetic Resonance. (n.d.). https://doi.org/10.1161/CIRCIMAGING.111.971218"
                 }
             ]
         },
         {
             "name": "Forward Flow",
-            "full_name": "Forward Flow",
+            "full_name": "Forward flow",
             "note": "",
             "reference_range": [
                 {
@@ -3033,7 +3307,7 @@
         },
         {
             "name": "Backward Flow",
-            "full_name": "Backward Flow",
+            "full_name": "Backward flow",
             "note": "",
             "reference_range": [
                 {
@@ -3056,15 +3330,91 @@
                     "n": 10,
                     "target": "old controls",
                     "cite": "Mehmood, Z., Assadi, H., Li, R., Kasmai, B., Matthews, G., Grafton-Clarke, C., Sanz-Cepero, A., Zhao, X., Zhong, L., Aung, N., Skinner, K., Hadinnapola, C., Swoboda, P., Swift, A. J., Vassiliou, V. S., Miller, C., Peterson, S., & Garg, P. (2024). Aortic flow is abnormal in HFpEF [version 2; peer review: Wellcome Open Research."
+                },
+                {
+                    "lower": 1.9,
+                    "upper": 12.7,
+                    "n": 22807,
+                    "target": "men",
+                    "cite": "Kany, S., Rämö, J. T., Hou, C., Jurgens, S. J., Nauffal, V., Cunningham, J., Lau, E. S., Butte, A. J., Ho, J. E., Olgin, J. E., Elmariah, S., Lindsay, M. E., Ellinor, P. T., & Pirruccello, J. P. (2023). Assessment of valvular function in over 47,000 people using deep learning-based flow measurements. Cardiovascular Medicine. https://doi.org/10.1101/2023.04.29.23289299"
+                },
+                {
+                    "lower": 0.9,
+                    "upper": 8.9,
+                    "n": 24416,
+                    "target": "women",
+                    "cite": "Kany, S., Rämö, J. T., Hou, C., Jurgens, S. J., Nauffal, V., Cunningham, J., Lau, E. S., Butte, A. J., Ho, J. E., Olgin, J. E., Elmariah, S., Lindsay, M. E., Ellinor, P. T., & Pirruccello, J. P. (2023). Assessment of valvular function in over 47,000 people using deep learning-based flow measurements. Cardiovascular Medicine. https://doi.org/10.1101/2023.04.29.23289299"
                 }
             ]
         },
         {
             "name": "Regurgitant Fraction",
-            "full_name": "Regurgitant Fraction",
+            "full_name": "Regurgitant fraction",
             "note": "",
             "reference_range": [
-
+                {
+                    "mean": 0.3,
+                    "sd": 0.4,
+                    "n": 22,
+                    "target": "control",
+                    "cite": "Aortic and mitral flow quantification using dynamic valve tracking and machine learning: Prospective study assessing static and dynamic plane repeatability, variability and agreement. (n.d.). https://doi.org/10.1177/2048004021999900"
+                },
+                {
+                    "mean": 1.11,
+                    "sd": 0.04,
+                    "n": 13,
+                    "target": "control, method1",
+                    "cite": "Feiring, A. J., & Rumberger, J. A. (1992). Ultrafast computed tomography analysis of regional radius-to-wall thickness ratios in normal and volume-overloaded human left ventricle. Circulation, 85(4), 1423–1432. https://doi.org/10.1161/01.CIR.85.4.1423"
+                },
+                {
+                    "mean": 1.07,
+                    "sd": 0.06,
+                    "n": 13,
+                    "target": "control, method2",
+                    "cite": "Feiring, A. J., & Rumberger, J. A. (1992). Ultrafast computed tomography analysis of regional radius-to-wall thickness ratios in normal and volume-overloaded human left ventricle. Circulation, 85(4), 1423–1432. https://doi.org/10.1161/01.CIR.85.4.1423"
+                },
+                {
+                    "mean": 1,
+                    "sd": 1,
+                    "n": 48,
+                    "target": "healthy",
+                    "cite": "Guala, A., Teixido-Tura, G., Dux-Santoy, L., Granato, C., Ruiz-Muñoz, A., Valente, F., Galian-Gay, L., Gutiérrez, L., González-Alujas, T., Johnson, K. M., Wieben, O., Sao Avilés, A., Evangelista, A., & Rodriguez-Palomares, J. (2019). Decreased rotational flow and circumferential wall shear stress as early markers of descending aorta dilation in Marfan syndrome: A 4D flow CMR study. Journal of Cardiovascular Magnetic Resonance, 21(1), 63. https://doi.org/10.1186/s12968-019-0572-1"
+                },
+                {
+                    "mean": 7.7,
+                    "sd": 6.5,
+                    "n": 40077,
+                    "target": "all",
+                    "cite": "Gomes, B., Singh, A., O’Sullivan, J. W., Amar, D., Kostur, M., Haddad, F., Salerno, M., Parikh, V. N., & Meder, B. (n.d.). Genetic architecture of cardiac dynamic flow volumes."
+                }
+            ]
+        },
+        {
+            "name": "Velocity Time Integral",
+            "full_name": "Aortic valve velocity time integral",
+            "note": "",
+            "reference_range": [
+                {
+                    "lower": 15.9,
+                    "upper": 31.7,
+                    "n": 977,
+                    "target": "men",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 16.8,
+                    "upper": 34.0,
+                    "n": 926,
+                    "target": "women",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 20,
+                    "upper": 27,
+                    "n": 21,
+                    "target": "controls",
+                    "cite": "Evaluation of Aortic Valve Stenosis Using Cardiovascular Magnetic Resonance. (n.d.). https://doi.org/10.1161/CIRCIMAGING.111.971218"
+                }
             ]
         },
         {
@@ -3085,6 +3435,27 @@
                     "n": 24416,
                     "target": "women",
                     "cite": "Kany, S., Rämö, J. T., Hou, C., Jurgens, S. J., Nauffal, V., Cunningham, J., Lau, E. S., Butte, A. J., Ho, J. E., Olgin, J. E., Elmariah, S., Lindsay, M. E., Ellinor, P. T., & Pirruccello, J. P. (2023). Assessment of valvular function in over 47,000 people using deep learning-based flow measurements. Cardiovascular Medicine. https://doi.org/10.1101/2023.04.29.23289299"
+                },
+                {
+                    "lower": 1.98,
+                    "upper": 4.84,
+                    "n": 977,
+                    "target": "men",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 1.57,
+                    "upper": 3.68,
+                    "n": 926,
+                    "target": "women",
+                    "cite": "Cotella, J. I., Miyoshi, T., Mor-Avi, V., Addetia, K., Schreckenberg, M., Sun, D., Slivnick, J. A., Blankenhagen, M., Hitschrich, N., Amuthan, V., Citro, R., Daimon, M., Gutiérrez-Fajardo, P., Kasliwal, R., Kirkpatrick, J. N., Monaghan, M. J., Muraru, D., Ogunyankin, K. O., Park, S. W., … Lang, R. M. (2023). Normative values of the aortic valve area and Doppler measurements using two-dimensional transthoracic echocardiography: Results from the Multicentre World Alliance of Societies of Echocardiography Study. European Heart Journal - Cardiovascular Imaging, 24(4), 415–423. https://doi.org/10.1093/ehjci/jeac220"
+                },
+                {
+                    "lower": 2.38,
+                    "upper": 3.07,
+                    "n": 21,
+                    "target": "controls",
+                    "cite": "Evaluation of Aortic Valve Stenosis Using Cardiovascular Magnetic Resonance. (n.d.). https://doi.org/10.1161/CIRCIMAGING.111.971218"
                 }
             ]
         },
@@ -4336,95 +4707,367 @@
 
     // todo: More strain reference range
     // todo: torsion and recoil rate
-    "CMR Strain": [
+    "Strain-SA": [
+        // Strain
         {
-            "name": "Circumferential Strain (Feature Tracking)",
-            "full_name": "Circumferential Strain measured using feature tracking",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": -20.9,
-                    "sd": 3.2,
-                    "n": 295,
-                    "target": "men (2D)",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
-                },
-                {
-                    "mean": -22.7,
-                    "sd": 3.3,
-                    "n": 301,
-                    "target": "women (2D)",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
-                },
-                {
-                    "mean": -17.6,
-                    "sd": 2.6,
-                    "n": 100,
-                    "target": "all (3D)",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table67"
-                }
-            ]
-        },
-        {
-            "name": "Longitudinal Strain (Feature Tracking)",
-            "full_name": "Longitudinal Strain measured using feature tracking",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": -19.4,
-                    "sd": 3.3,
-                    "n": 295,
-                    "target": "men (2D)",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
-                },
-                {
-                    "mean": -21.4,
-                    "sd": 3.6,
-                    "n": 301,
-                    "target": "women (2D)",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
-                },
-                {
-                    "mean": -14.6,
-                    "sd": 2.7,
-                    "n": 100,
-                    "target": "all (3D)",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table67"
-                }
-            ]
-        },
-        {
-            "name": "Radial Strain (Feature Tracking)",
-            "full_name": "Radial Strain measured using feature tracking",
+            "name": "Circumferential strain (Global)",
+            "full_name": "Circumferential strain (Global)",
             "note": "",
             "reference_range": [
                 
             ]
         },
         {
-            "name": "Circumferential Strain (Tagged MRI)",
-            "full_name": "Circumferential Strain measured using Tagged MRI",
+            "name": "Radial strain (Global)",
+            "full_name": "Radial strain (Global)",
             "note": "",
             "reference_range": [
-                {
-                    "lower": -26,
-                    "upper": -14.2,
-                    "n": 204,
-                    "target": "all",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table65"
-                }
+
+            ]
+        },
+
+        // Strain Rate
+        {
+            "name": "Peak Systolic Circumferential Strain Rate",
+            "full_name": "Peak Systolic Circumferential Strain Rate",
+            "note": "",
+            "reference_range": [
+                
             ]
         },
         {
-            "name": "Longitudinal Strain (Tagged MRI)",
-            "full_name": "Longitudinal Strain measured using Tagged MRI",
+            "name": "Early Diastolic Circumferential Strain Rate",
+            "full_name": "Early Diastolic Circumferential Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Late Diastolic Circumferential Strain Rate",
+            "full_name": "Late Diastolic Circumferential Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Peak Systolic Radial Strain Rate",
+            "full_name": "Peak Systolic Radial Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Early Diastolic Radial Strain Rate",
+            "full_name": "Early Diastolic Radial Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Late Diastolic Radial Strain Rate",
+            "full_name": "Late Diastolic Radial Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // Strain at certain time points
+        {
+            "name": "End Systolic Circumferential Strain",
+            "full_name": "End Systolic Circumferential Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Post Systolic Circumferential Strain",
+            "full_name": "Post Systolic Circumferential Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "End Systolic Circumferential Strain",
+            "full_name": "End Systolic Circumferential Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "End Systolic Radial Strain",
+            "full_name": "End Systolic Radial Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Post Systolic Radial Strain",
+            "full_name": "Post Systolic Radial Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Peak Systolic Radial Strain",
+            "full_name": "Peak Systolic Radial Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // Time to peak
+        {
+            "name": "Time to Peak Circumferential Strain",
+            "full_name": "Time to Peak Circumferential Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Radial Strain",
+            "full_name": "Time to Peak Radial Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Circumferential Strain Index",
+            "full_name": "Time to Peak Circumferential Strain Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Radial Strain Index",
+            "full_name": "Time to Peak Radial Strain Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // SI-DI
+        {
+            "name": "Circumferential Strain Imaging Diastolic Index",
+            "full_name": "Circumferential Strain Imaging Diastolic Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Radial Strain Imaging Diastolic Index",
+            "full_name": "Radial Strain Imaging Diastolic Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // Tosion and recoil rate
+        {
+            "name": "Endocardial Torsion",
+            "full_name": "Endocardial Torsion",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Epicardial Torsion",
+            "full_name": "Epicardial Torsion",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Global Torsion",
+            "full_name": "Global Torsion",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Endocardial Torsion",
+            "full_name": "Time to Peak Endocardial Torsion",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Epicardial Torsion",
+            "full_name": "Time to Peak Epicardial Torsion",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Global Torsion",
+            "full_name": "Time to Peak Global Torsion",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Endocardial Recoil Rate",
+            "full_name": "Endocardial Recoil Rate",
+            "note": "Endocardial Recoil Rate",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Epicardial Recoil Rate",
+            "full_name": "Epicardial Recoil Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Global Recoil Rate",
+            "full_name": "Global Recoil Rate",
             "note": "",
             "reference_range": [
                 
             ]
         }
     ],
-    "Tagged Strain": [
+    "Strain-LA": [
+        // Strain
+        {
+            "name": "Longitudinal Strain (Global)",
+            "full_name": "Longitudinal Strain (Global)",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // Strain Rate
+        {
+            "name": "Peak Systolic Longitudinal Strain Rate",
+            "full_name": "Peak Systolic Longitudinal Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Early Diastolic Longitudinal Strain Rate",
+            "full_name": "Early Diastolic Longitudinal Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Late Diastolic Longitudinal Strain Rate",
+            "full_name": "Late Diastolic Longitudinal Strain Rate",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // Strain at certain time points
+        {
+            "name": "End Systolic Longitudinal Strain",
+            "full_name": "End Systolic Longitudinal Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Post Systolic Longitudinal Strain",
+            "full_name": "Post Systolic Longitudinal Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Peak Systolic Longitudinal Strain",
+            "full_name": "End Systolic Longitudinal Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Longitudinal Strain",
+            "full_name": "Time to Peak Longitudinal Strain",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Time to Peak Longitudinal Strain Index",
+            "full_name": "Time to Peak Longitudinal Strain Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // Longitudinal strain specific features
+        {
+            "name": "Longitudinal Strain Post Systolic Index",
+            "full_name": "Longitudinal Strain Post Systolic Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Longitudinal Strain Mechanical Dispersion Index",
+            "full_name": "Longitudinal Strain Mechanical Dispersion Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+        {
+            "name": "Longitudinal Strain Systolic Stretch",
+            "full_name": "Longitudinal Strain Systolic Stretch",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        },
+
+        // SI-DI
+        {
+            "name": "Longitudinal Strain Imaging Diastolic Index",
+            "full_name": "Longitudinal Strain Imaging Diastolic Index",
+            "note": "",
+            "reference_range": [
+                
+            ]
+        }
+    ],
+    "Strain-Tagged": [
 
     ],
     

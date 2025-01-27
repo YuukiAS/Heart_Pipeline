@@ -6,7 +6,6 @@ from scipy.ndimage import find_objects
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from mpl_toolkits.mplot3d import Axes3D
 import argparse
 from tqdm import tqdm
 import sys
@@ -19,7 +18,7 @@ import config
 
 from utils.log_utils import setup_logging
 from utils.cardiac_utils import evaluate_velocity_flow
-from utils.analyze_utils import plot_time_series_double_x, analyze_time_series_root
+from utils.analyze_utils import plot_time_series_double_x, plot_time_series_double_x_list, analyze_time_series_root
 
 warnings.filterwarnings("ignore", category=cm.cbook.MatplotlibDeprecationWarning)
 
@@ -105,7 +104,6 @@ if __name__ == "__main__":
         }
 
         # * Feature1: Aortic area (not aortic valve area)
-        # Ref A Simplified Continuity Equation Approach to the Quantification of Stenotic Bicuspid Aortic Valves https://doi.org/10.1080/10976640701693717
         aortic_area = np.array(aortic_area)
         feature_dict.update(
             {
@@ -129,7 +127,7 @@ if __name__ == "__main__":
         # * Feature2: Aortic flow velocity, gradient, flow
 
         logger.info(f"{subject}: Obtaining aortic velocity, gradient and flow information")
-        velocity, gradient, flow, velocity_center, velocity_map = evaluate_velocity_flow(
+        velocity, gradient, flow, flow_positive, flow_negative, velocity_center, velocity_map = evaluate_velocity_flow(
             seg_morphology[:, :, 0, :],
             img_phase[:, :, 0, :],
             VENC,
@@ -237,7 +235,7 @@ if __name__ == "__main__":
             ax.set_yticks([])
             ax.set_zticks([])
             ax.axis("off")
-            ax.set_title(f"Frame {t + 1}", fontsize=8)
+            ax.set_title(f"Frame {t + 1}: Peak Velocity: {velocity[t]:.2f} cm/s", fontsize=8)
 
         # add a supertitle
         plt.suptitle(f"Aortic Valve Velocity (VENC is set to {VENC} cm/s)", fontsize=16, y=0.98)
@@ -255,7 +253,7 @@ if __name__ == "__main__":
         feature_dict.update(
             {
                 "Aortic Flow: Peak Velocity [cm/s]": peak_velocity,
-                "Aortic Flow: Mean Gradient [mmHg]": np.mean(gradient[: T_ES + 1]),
+                "Aortic Flow: Mean Gradient [mmHg]": np.mean(gradient[: T_ES]),
             }
         )
 
@@ -281,7 +279,7 @@ if __name__ == "__main__":
             fontsize=6,
             color="black",
         )
-        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.axvline(x=T_peak_systole, color="pink", linestyle="--", alpha=0.7)
         ax1.text(
             T_peak_systole,
             ax1.get_ylim()[1],
@@ -294,16 +292,13 @@ if __name__ == "__main__":
         fig.savefig(f"{sub_dir}/timeseries/aortic_velocity.png")
         plt.close(fig)
 
-        # * Determining regurgitation
+        # * Determining forward flow and backward from the flow curve, which can be used to calculate regurgitation fraction
         logger.info(f"{subject}: Determining flow features and level of aortic regurgitation")
 
-        flow_positive = np.where(flow > 0, flow, 0)
-        flow_negative = np.where(flow < 0, flow, 0)
+        forward_flow = np.trapz(np.where(flow > 0, flow, 0), dx=temporal_resolution / 1000)  # unit: mL
+        backward_flow = abs(np.trapz(np.where(flow < 0, flow, 0)[T_ES + 1 :], dx=temporal_resolution / 1000))
 
-        forward_flow = np.trapz(flow_positive, dx=temporal_resolution) / 1000  # unit: mL
-        backward_flow = np.trapz(flow_negative, dx=temporal_resolution) / 1000
-
-        regurgitant_fraction = abs(backward_flow) / forward_flow * 100
+        regurgitant_fraction = backward_flow / forward_flow * 100
         if regurgitant_fraction > 100:
             logger.error(f"{subject}: Regurgitant fraction should be less than 100%")
             continue
@@ -311,25 +306,30 @@ if __name__ == "__main__":
         feature_dict.update(
             {
                 "Aortic Flow: Forward Flow [mL]": forward_flow,
-                "Aortic Flow: Backward Flow [mL]": abs(backward_flow),
+                "Aortic Flow: Backward Flow [mL]": backward_flow,
                 "Aortic Flow: Regurgitant Fraction [%]": regurgitant_fraction,
             }
         )
 
-        fig, ax1, ax2 = plot_time_series_double_x(
+        # * Levels of aortic stenosis and regurgitation can be determined from the following reference:
+        # Ref 2014 AHA/ACC Guideline for the Management of Patients With Valvular Heart Disease. https://doi.org/10.1016/j.jacc.2014.02.536
+
+        fig, ax1, ax2 = plot_time_series_double_x_list(
             time_grid_point,
             time_grid_real,
-            flow,
+            [flow, flow_positive, flow_negative],
+            ["Net Flow", "Forward Flow", "Backward Flow"],
             "Time [frame]",
             "Time [ms]",
             "Flow [mL/s]",
             lambda x: x * temporal_resolution,
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Flow",
+            colors=["red", "yellow", "blue"]
         )
         fig.text(
-            0.8,
-            0.8,
+            0.73,
+            0.65,
             f"Forward Flow: {forward_flow:.2f} mL\nBackward Flow: {backward_flow:.2f} mL",
             fontsize=10,
             verticalalignment="top",
@@ -345,7 +345,7 @@ if __name__ == "__main__":
             fontsize=6,
             color="black",
         )
-        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.axvline(x=T_peak_systole, color="pink", linestyle="--", alpha=0.7)
         ax1.text(
             T_peak_systole,
             ax1.get_ylim()[1],
@@ -358,14 +358,17 @@ if __name__ == "__main__":
         fig.savefig(f"{sub_dir}/timeseries/aortic_flow.png")
         plt.close(fig)
 
-        # * Feature3: Aortic valve area (AVA)
+        # * Feature3: Velocity-Time Integral (VTI) and Aortic valve area (AVA)
 
-        VTI = np.trapz(velocity, dx=temporal_resolution)  # define velocity-time-integral
-        # ref Yap, etal. (2007). https://doi.org/10.1080/10976640701693717
-        AVA = forward_flow / VTI  # unit: cm^2
+        # Ref A Simplified Continuity Equation Approach to the Quantification of Stenotic Bicuspid Aortic Valves https://doi.org/10.1080/10976640701693717
+        # Ref Practical Value of Cardiac Magnetic Resonance Imaging for Clinical Quantification of Aortic Valve Stenosis https://doi.org/10.1161/01.CIR.0000095268.47282.A1
+
+        VTI = np.trapz(velocity[: T_ES + 1], dx=temporal_resolution / 1000)  # unit: cm. Add 1 to complete the integral
+        AVA = forward_flow / VTI
 
         feature_dict.update(
             {
+                "Aortic Flow: Velocity Time Integral [cm]": VTI,
                 "Aortic Flow: Aortic Valve Area [cm^2]": AVA,
             }
         )
@@ -409,11 +412,11 @@ if __name__ == "__main__":
                 s=3,
                 label="Center of lumen",
             )
-            plt.annotate(
-                "",
-                xy=(velocity_center[t][0], velocity_center[t][1]),
-                xytext=(lumen_center[t][0], lumen_center[t][1]),
-                arrowprops=dict(arrowstyle="->", color="green", lw=1.5),
+            plt.plot(
+                [velocity_center[t][0], lumen_center[t][0]],
+                [velocity_center[t][1], lumen_center[t][1]],
+                color="black",
+                linewidth=1
             )
             plt.legend(loc="lower right")
             plt.title(f"Frame {t}: Flow Displacement is {flow_displacement[t]:.2f}%")
@@ -449,7 +452,7 @@ if __name__ == "__main__":
             fontsize=6,
             color="black",
         )
-        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.axvline(x=T_peak_systole, color="pink", linestyle="--", alpha=0.7)
         ax1.text(
             T_peak_systole,
             ax1.get_ylim()[1],
@@ -463,9 +466,9 @@ if __name__ == "__main__":
         plt.close(fig)
 
         # Ref Automated Quantification of Simple and Complex Aortic Flow Using 2D Phase Contrast MRI https://doi.org/10.3390/medicina60101618
-        FDs = np.mean(flow_displacement[: T_ES + 1])  # flow displacement systolic average
-        FDls = np.mean(flow_displacement[T_peak_systole : T_ES + 1])  # flow displacement late systolic average
-        FDd = np.mean(flow_displacement[T_ES + 1 :])  # flow displacement diastolic average
+        FDs = np.mean(flow_displacement[: T_ES])  # flow displacement systolic average
+        FDls = np.mean(flow_displacement[T_peak_systole : T_ES])  # flow displacement late systolic average
+        FDd = np.mean(flow_displacement[T_ES :])  # flow displacement diastolic average
 
         feature_dict.update(
             {
@@ -475,30 +478,7 @@ if __name__ == "__main__":
             }
         )
 
-        # * Determing level of aortic stenosis and regurgitation
-
-        # Ref Nishimura et al. 2014 AHA/ACC guideline for the management of patients with valvular heart disease
-        # Ref Nishimura et al. 2017 AHA/ACC Focused Update of the 2014 AHA/ACC Guideline for the Management of Patients
-        # if peak_velocity / 100 < 3:
-        #     stenosis = "None or mild"
-        # elif peak_velocity / 100 < 4:
-        #     stenosis = "Moderate"
-        # elif peak_velocity / 100 < 5:
-        #     stenosis = "Severe"
-        # else:
-        #     stenosis = "Very severe"
-        # feature_dict.update({"Aortic Flow: Level of Stenosis": stenosis})
-
-        # if regurgitant_fraction < 30:
-        #     regurgitation = "None or mild"
-        # elif regurgitant_fraction < 50:
-        #     regurgitation = "Moderate"
-        # else:
-        #     regurgitation = "Severe"
-
-        # feature_dict.update({"Aortic Flow: Level of Regurgitation": regurgitation})
-
-        # * Feature5: Rotation angle (RA), ΔRA
+        # * Feature5: Rotation angle (RA)
 
         logger.info(f"{subject}: Determining aortic flow rotation angle")
         # Ref Aortic flow is associated with aging and exercise capacity https://doi.org/10.1093/ehjopen/oead079
@@ -517,10 +497,6 @@ if __name__ == "__main__":
                 )
                 angle = (360 - angle) % 360  # make sure mapping to (0, 360°)
             rotation_angle.append(angle)
-
-        # todo ΔRA
-
-        # We also need to determine the time where the rotation angle stablize before ES
 
         fig, ax1, ax2 = plot_time_series_double_x(
             time_grid_point,
@@ -543,7 +519,7 @@ if __name__ == "__main__":
             fontsize=6,
             color="black",
         )
-        ax1.axvline(x=T_peak_systole, color="red", linestyle="--", alpha=0.7)
+        ax1.axvline(x=T_peak_systole, color="pink", linestyle="--", alpha=0.7)
         ax1.text(
             T_peak_systole,
             ax1.get_ylim()[1],
@@ -556,18 +532,25 @@ if __name__ == "__main__":
         fig.savefig(f"{sub_dir}/timeseries/aortic_flow_rotation_angle.png")
         plt.close(fig)
 
+        # todo: ΔRA, RA at ES - RA when flow angle stablized after peak systole can be determined from the curve
+
         # * Feature6: Systolic flow reversal ratio (SFR)
 
         # This is very similar to regurgitant fraction, but we only consider the systolic phase
-        systolic_forward_flow = np.trapz(flow_positive[: T_ES + 1], dx=temporal_resolution) / 1000
-        systolic_backward_flow = np.trapz(flow_negative[: T_ES + 1], dx=temporal_resolution) / 1000
-        SFR = abs(systolic_backward_flow) / systolic_forward_flow * 100
+        systolic_forward_flow = np.trapz(flow_positive[: T_ES], dx=temporal_resolution / 1000)
+        systolic_backward_flow = abs(np.trapz(flow_negative[: T_ES], dx=temporal_resolution / 1000))
 
-        feature_dict.update({
-            "Aortic Flow: Systolic Forward Flow [mL]": systolic_forward_flow,
-            "Aortic Flow: Systolic Reverse Flow [mL]": abs(systolic_backward_flow),  # a bit different name
-            "Aortic Flow: Systolic Flow Reversal Ratio [%]": SFR,
-        })
+        feature_dict.update(
+            {
+                "Aortic Flow: Systolic Forward Flow [mL]": systolic_forward_flow,
+                "Aortic Flow: Systolic Reverse Flow [mL]": systolic_backward_flow  # a bit different name
+            }
+        )
+        SFR = systolic_backward_flow / systolic_forward_flow * 100
+        if SFR > 80:
+            logger.warning(f"{subject}: Systolic flow reversal ratio is extremely high, skipped.")
+        else:
+            feature_dict.update({"Aortic Flow: Systolic Flow Reversal Ratio [%]": SFR})
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
