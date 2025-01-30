@@ -23,15 +23,11 @@ import pydicom as dicom
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-import config
 from utils.biobank_utils import process_manifest, Biobank_Dataset
 from utils.os_utils import check_existing_file
-import utils.parse_cvi42_xml as parse_cvi42_xml
 from utils.log_utils import setup_logging
 
 logger = setup_logging("prepare_data")
-
-contour_gt_dir = config.contour_gt_dir
 
 argparser = argparse.ArgumentParser("Prepare data for the pipeline")
 argparser.add_argument("--out_dir", required=True, type=str, help="Directory to store the data")
@@ -61,16 +57,12 @@ args = argparser.parse_args()
 logger.info(f"Subject ID: {args.sub_id}")
 
 dicom_dir = os.path.join(args.out_dir, "dicom", args.sub_id)  # temporary directory to store DICOM files
-cvi42_contours_dir = os.path.join(args.out_dir, "contour", args.sub_id)  # temporary directory to CVI42 store files
 nii_dir = os.path.join(args.out_dir, "nii", args.sub_id)
 
-if os.path.exists(cvi42_contours_dir):
-    os.system("rm -rf {0}".format(cvi42_contours_dir))
 if args.overwrite and os.path.exists(nii_dir):
     os.system("rm -rf {0}".format(nii_dir))
 
 os.makedirs(dicom_dir, exist_ok=True)
-os.makedirs(cvi42_contours_dir, exist_ok=True)
 os.makedirs(nii_dir, exist_ok=True)
 
 zip_files = []
@@ -80,9 +72,7 @@ if args.aortic_scout:
         logger.error(f"No aortic scout zip found for subject {args.sub_id}")
         # sys.exit(1)
     elif check_existing_file(["aortic_aortic_scout.nii.gz"], nii_dir):
-        logger.warning(
-            f"All aortic scout files in {nii_dir} already exists. Use --overwrite to overwrite existing files"
-        )
+        logger.warning(f"All aortic scout files in {nii_dir} already exists. Use --overwrite to overwrite existing files")
     else:
         zip_files = zip_files + glob.glob(args.aortic_scout + args.sub_id + "_*.zip")
 
@@ -138,9 +128,7 @@ if args.aortic_blood_flow:
         logger.error(f"No aortic blood flow zip found for subject {args.sub_id}")
         # sys.exit(1)
     elif check_existing_file(["aortic_flow.nii.gz", "aortic_flow_mag.nii.gz", "aortic_flow_pha.nii.gz"], nii_dir):
-        logger.warning(
-            f"All aortic blood flow files in {nii_dir} already exists. Use --overwrite to overwrite existing files"
-        )
+        logger.warning(f"All aortic blood flow files in {nii_dir} already exists. Use --overwrite to overwrite existing files")
     else:
         zip_files = zip_files + glob.glob(args.aortic_blood_flow + args.sub_id + "_*.zip")
 
@@ -178,10 +166,6 @@ for file_i in np.arange(len(zip_files)):
         series_files = [os.path.join(dicom_dir, x) for x in series_df["filename"]]
         os.system("mv {0} {1}".format(" ".join(series_files), series_dir))
 
-cvi42_contours_file = os.path.join(contour_gt_dir, f"{args.sub_id}.cvi42wsx")
-if os.path.exists(cvi42_contours_file):
-    print(f"Found cvi42 contours for subject {args.sub_id}")
-    parse_cvi42_xml.parseFile(cvi42_contours_file, cvi42_contours_dir)
 
 # * Before converting DICOM to Nifti, scout data should be arranged so that it can be recognized as multi-slice file
 # Ref Beeche, Cameron et al. “Thoracic Aortic 3-Dimensional Geometry: Effects of Aging and Genetic Determinants.”
@@ -209,7 +193,7 @@ if args.aortic_scout:
 
 
 # * It will automatically determines the modality according to unzipped manifest.csv
-dataset = Biobank_Dataset(dicom_dir, cvi42_contours_dir)
+dataset = Biobank_Dataset(dicom_dir)
 dataset.read_dicom_images()
 dataset.convert_dicom_to_nifti(nii_dir)
 
@@ -224,6 +208,5 @@ if not args.keepdicom:
         else:
             # f is a file
             os.remove(os.path.join(dicom_dir, f))
-shutil.rmtree(cvi42_contours_dir)
 
 logger.info(f"{args.sub_id}: Generated Nifti files has been stored in {nii_dir}")

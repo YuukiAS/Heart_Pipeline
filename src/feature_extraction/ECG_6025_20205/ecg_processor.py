@@ -29,7 +29,7 @@ class ECG_Processor:
         if self.check_data_rest():
             self.voltages_rest = self._load_data_rest()
         if self.check_data_exercise():
-            # define Consist of four stages: pretest, exercise(constant), exercise(rampling) and rest
+            # define Four stages: pretest, exercise(constant), exercise(rampling) and rest
             self.voltages_exercise = self._load_data_exercise()
 
     def check_data_rest(self):
@@ -119,17 +119,17 @@ class ECG_Processor:
         t_pre_a_total = []
 
         for lead in self.voltages_rest:
-            # Ref https://link.springer.com/10.1007/978-3-319-22141-0_9
+            # Ref Principles of ECG Gating for CMR https://link.springer.com/10.1007/978-3-319-22141-0_9
             # define t_pre_a is the peak of P wave
             # define t_max is the end of T wave
-            # * We will only make use of certain precordial leads as indicated by fig9.2
+            # We will only make use of certain pre-cordial leads as indicated by fig9.2
             if lead in ["V3", "V4", "V5"]:
                 ecg_signal = self.voltages_rest[lead]
 
                 t_max_lead = []
                 t_pre_a_lead = []
 
-                # Ref https://neuropsychology.github.io/NeuroKit/functions/ecg.html
+                # Ref NeuroKit https://neuropsychology.github.io/NeuroKit/functions/ecg.html
                 for method in methods:
                     try:
                         _, info = nk.ecg_process(ecg_signal, sampling_rate=self.sampling_rate, method=method)

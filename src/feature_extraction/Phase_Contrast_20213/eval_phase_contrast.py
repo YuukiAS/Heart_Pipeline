@@ -253,7 +253,7 @@ if __name__ == "__main__":
         feature_dict.update(
             {
                 "Aortic Flow: Peak Velocity [cm/s]": peak_velocity,
-                "Aortic Flow: Mean Gradient [mmHg]": np.mean(gradient[: T_ES]),
+                "Aortic Flow: Mean Gradient [mmHg]": np.mean(gradient[:T_ES]),
             }
         )
 
@@ -325,7 +325,7 @@ if __name__ == "__main__":
             lambda x: x * temporal_resolution,
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Flow",
-            colors=["red", "yellow", "blue"]
+            colors=["red", "yellow", "blue"],
         )
         fig.text(
             0.73,
@@ -416,7 +416,7 @@ if __name__ == "__main__":
                 [velocity_center[t][0], lumen_center[t][0]],
                 [velocity_center[t][1], lumen_center[t][1]],
                 color="black",
-                linewidth=1
+                linewidth=1,
             )
             plt.legend(loc="lower right")
             plt.title(f"Frame {t}: Flow Displacement is {flow_displacement[t]:.2f}%")
@@ -466,9 +466,9 @@ if __name__ == "__main__":
         plt.close(fig)
 
         # Ref Automated Quantification of Simple and Complex Aortic Flow Using 2D Phase Contrast MRI https://doi.org/10.3390/medicina60101618
-        FDs = np.mean(flow_displacement[: T_ES])  # flow displacement systolic average
-        FDls = np.mean(flow_displacement[T_peak_systole : T_ES])  # flow displacement late systolic average
-        FDd = np.mean(flow_displacement[T_ES :])  # flow displacement diastolic average
+        FDs = np.mean(flow_displacement[:T_ES])  # flow displacement systolic average
+        FDls = np.mean(flow_displacement[T_peak_systole:T_ES])  # flow displacement late systolic average
+        FDd = np.mean(flow_displacement[T_ES:])  # flow displacement diastolic average
 
         feature_dict.update(
             {
@@ -537,13 +537,13 @@ if __name__ == "__main__":
         # * Feature6: Systolic flow reversal ratio (SFR)
 
         # This is very similar to regurgitant fraction, but we only consider the systolic phase
-        systolic_forward_flow = np.trapz(flow_positive[: T_ES], dx=temporal_resolution / 1000)
-        systolic_backward_flow = abs(np.trapz(flow_negative[: T_ES], dx=temporal_resolution / 1000))
+        systolic_forward_flow = np.trapz(flow_positive[:T_ES], dx=temporal_resolution / 1000)
+        systolic_backward_flow = abs(np.trapz(flow_negative[:T_ES], dx=temporal_resolution / 1000))
 
         feature_dict.update(
             {
                 "Aortic Flow: Systolic Forward Flow [mL]": systolic_forward_flow,
-                "Aortic Flow: Systolic Reverse Flow [mL]": systolic_backward_flow  # a bit different name
+                "Aortic Flow: Systolic Reverse Flow [mL]": systolic_backward_flow,  # a bit different name
             }
         )
         SFR = systolic_backward_flow / systolic_forward_flow * 100

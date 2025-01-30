@@ -15,7 +15,9 @@ def aggregate_csv(csv_dir, target_dir, prefix):
     Aggregate csv files with the same prefix in the csv_dir. `eid` column must be present in each csv files.
     """
     csv_files = glob.glob(os.path.join(csv_dir, f"{prefix}*.csv"))
-    logger.info(f"Used CSV files: {csv_files}")
+    logger.info("Used CSV files:")
+    for i, csv_file in enumerate(csv_files):
+        logger.info(f"{i + 1}/{len(csv_files)}: {csv_file}")
     if len(csv_files) == 0:
         logger.error(f"No available csv files found with prefix {prefix} in {csv_dir}")
         raise ValueError(f"No available csv files found with prefix {prefix} in {csv_dir}")
@@ -31,7 +33,7 @@ def aggregate_csv(csv_dir, target_dir, prefix):
     comprehensive_df = comprehensive_df.sort_values("eid")
     os.makedirs(target_dir, exist_ok=True)
     comprehensive_df.to_csv(os.path.join(target_dir, f"{prefix}.csv"), index=False)
-    print(f"Aggregated csv file saved to {os.path.join(target_dir, f'{prefix}.csv')}")
+    logger.info(f"Aggregated csv file saved to {os.path.join(target_dir, f'{prefix}.csv')}")
 
 
 parser = argparse.ArgumentParser()

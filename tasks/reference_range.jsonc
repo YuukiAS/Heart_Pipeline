@@ -828,35 +828,6 @@
                     "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
                 }              
             ]
-        },
-
-        {
-            "name": "AVPD",
-            "full_name": "Atrioventricular plane displacement",
-            "note": "We use the lateral AVPD here, refer to cardiac_utils.py",
-            "reference_range": [
-                {
-                    "mean": 1.8,
-                    "sd": 0.4,
-                    "n": 60,
-                    "target": "men",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
-                },
-                {
-                    "mean": 1.7,
-                    "sd": 0.3,
-                    "n": 60,
-                    "target": "women",
-                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
-                },
-                {
-                    "mean": 1.4,
-                    "sd": 0.3,
-                    "n": 24,
-                    "target": "healthy control",
-                    "cite": "Seemann, F., Pahlm, U., Steding-Ehrenborg, K., Ostenfeld, E., Erlinge, D., Dubois-Rande, J.-L., Jensen, S. E., Atar, D., Arheden, H., Carlsson, M., & Heiberg, E. (2017). Time-resolved tracking of the atrioventricular plane displacement in Cardiovascular Magnetic Resonance (CMR) images. BMC Medical Imaging, 17(1), 19. https://doi.org/10.1186/s12880-017-0189-5"
-                }
-            ]
         }
     ],
     "RV": [
@@ -1288,6 +1259,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.9,
+                    "sd": 1.9,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 9.6,
+                    "sd": 1.7,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 8.4,
+                    "sd": 1.5,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1323,6 +1315,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 9.6,
+                    "sd": 2.5,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 9.1,
+                    "sd": 2.2,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 8.1,
+                    "sd": 1.7,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1358,6 +1371,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 8.7,
+                    "sd": 2.0,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 8.5,
+                    "sd": 1.6,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 7.6,
+                    "sd": 1.3,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1393,6 +1427,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.7,
+                    "sd": 1.7,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 7.6,
+                    "sd": 1.1,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 7.0,
+                    "sd": 1.2,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1428,6 +1483,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.0,
+                    "sd": 1.6,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 7.0,
+                    "sd": 1.4,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 6.4,
+                    "sd": 1.1,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1463,6 +1539,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.0,
+                    "sd": 1.4,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 7.2,
+                    "sd": 1.7,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 6.5,
+                    "sd": 1.1,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1498,6 +1595,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.6,
+                    "sd": 1.5,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 6.9,
+                    "sd": 1.6,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 5.9,
+                    "sd": 0.9,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },        
@@ -1533,6 +1651,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.9,
+                    "sd": 1.6,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 7.5,
+                    "sd": 1.5,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 5.8,
+                    "sd": 1.3,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1568,7 +1707,28 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
-                }             
+                },
+                {
+                    "mean": 8.1,
+                    "sd": 1.5,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 7.6,
+                    "sd": 1.6,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 6.5,
+                    "sd": 1.3,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }
             ]
         },
         {
@@ -1603,6 +1763,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.1,
+                    "sd": 1.4,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 8.4,
+                    "sd": 1.8,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 7.2,
+                    "sd": 1.2,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1638,6 +1819,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.3,
+                    "sd": 1.4,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 7.1,
+                    "sd": 1.6,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.0,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1673,6 +1875,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.3,
+                    "sd": 1.4,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 7.1,
+                    "sd": 1.6,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 6.2,
+                    "sd": 1.1,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1708,6 +1931,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.3,
+                    "sd": 1.4,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 5.8,
+                    "sd": 1.3,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 4.9,
+                    "sd": 0.8,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1743,6 +1987,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 7.3,
+                    "sd": 1.7,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.4,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 4.6,
+                    "sd": 1.1,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1778,6 +2043,27 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.4,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.4,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 5.0,
+                    "sd": 0.9,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
             ]
         },
@@ -1813,7 +2099,478 @@
                     "n": 131,
                     "target": "men",
                     "cite": "Kawel, N., Turkbey, E. B., Carr, J. J., Eng, J., Gomes, A. S., Hundley, W. G., Johnson, C., Masri, S. C., Prince, M. R., van der Geest, R. J., Lima, J. A. C., & Bluemke, D. A. (2012). Normal left ventricular myocardial thickness for middle aged and older subjects with SSFP cardiac MR: The Multi-Ethnic Study of Atherosclerosis. Circulation. Cardiovascular Imaging, 5(4), 500–508. https://doi.org/10.1161/CIRCIMAGING.112.973560"
+                },
+                {
+                    "mean": 6.1,
+                    "sd": 1.3,
+                    "n": 120,
+                    "target": "normal",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 5.8,
+                    "sd": 1.5,
+                    "n": 52,
+                    "target": "male",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                },
+                {
+                    "mean": 5.0,
+                    "sd": 1.0,
+                    "n": 51,
+                    "target": "female",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
                 }
+            ]
+        },
+
+
+        {
+            "name": "Thickening (AHA_1)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 72,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 85,
+                    "sd": 32,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 63.8,
+                    "sd": 30.2,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }
+            ]
+        },
+        {
+            "name": "Thickening (AHA_2)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 49,
+                    "sd": 12,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 66,
+                    "sd": 25,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 67.6,
+                    "sd": 49.6,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }            
+            ]
+        },
+        {
+            "name": "Thickening (AHA_3)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 34,
+                    "sd": 12,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 44,
+                    "sd": 15,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 48.8,
+                    "sd": 25.6,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }  
+            ]
+        },
+        {
+            "name": "Thickening (AHA_4)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 71,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                }     ,
+                {
+                    "mean": 75,
+                    "sd": 28,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 75.6,
+                    "sd": 30.7,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }          
+            ]
+        },
+        {
+            "name": "Thickening (AHA_5)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 83,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 86,
+                    "sd": 31,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 97.0,
+                    "sd": 41.2,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                       
+            ]
+        },
+        {
+            "name": "Thickening (AHA_6)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 77,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 81,
+                    "sd": 27,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 98.9,
+                    "sd": 48.5,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                      
+            ]
+        },
+        {
+            "name": "Thickening (AHA_7)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 75,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 81,
+                    "sd": 32,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 67.5,
+                    "sd": 38.0,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                       
+            ]
+        },
+        {
+            "name": "Thickening (AHA_8)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 65,
+                    "sd": 12,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 77,
+                    "sd": 22,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 90.1,
+                    "sd": 37.7,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                       
+            ]
+        },
+        {
+            "name": "Thickening (AHA_9)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 60,
+                    "sd": 12,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 77,
+                    "sd": 21,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 80.0,
+                    "sd": 31.7,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                        
+            ]
+        },
+        {
+            "name": "Thickening (AHA_10)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 74,
+                    "sd": 12,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 75,
+                    "sd": 25,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 66.3,
+                    "sd": 31.3,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                        
+            ]
+        },
+        {
+            "name": "Thickening (AHA_11)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 87,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 79,
+                    "sd": 25,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 66.2,
+                    "sd": 32.9,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                        
+            ]
+        },
+        {
+            "name": "Thickening (AHA_12)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 83,
+                    "sd": 14,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 85,
+                    "sd": 31,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 57.1,
+                    "sd": 34.5,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                        
+            ]
+        },
+        {
+            "name": "Thickening (AHA_13)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 87,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 68,
+                    "sd": 31,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 74.9,
+                    "sd": 44.2,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                        
+            ]
+        },
+        {
+            "name": "Thickening (AHA_14)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 76,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 64,
+                    "sd": 26,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 92.0,
+                    "sd": 46.6,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                        
+            ]
+        },
+        {
+            "name": "Thickening (AHA_15)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 85,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 59,
+                    "sd": 25,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 78.8,
+                    "sd": 36.6,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                        
+            ]
+        },
+        {
+            "name": "Thickening (AHA_16)",
+            "full_name": "",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 85,
+                    "sd": 13,
+                    "n": 120,
+                    "target": "healthy",
+                    "cite": "Dawson, D. K., Maceira, A. M., Raj, V. J., Graham, C., Pennell, D. J., & Kilner, P. J. (2011). Regional Thicknesses and Thickening of Compacted and Trabeculated Myocardial Layers of the Normal Left Ventricle Studied by Cardiovascular Magnetic Resonance. Circulation. Cardiovascular Imaging, 4(2), 139–146. https://doi.org/10.1161/CIRCIMAGING.110.960229"
+                },
+                {
+                    "mean": 66,
+                    "sd": 35,
+                    "n": 50,
+                    "target": "healthy",
+                    "cite": "Ubachs, J., Heiberg, E., Steding, K., & Arheden, H. (2009). Normal values for wall thickening by magnetic resonance imaging. Journal of Cardiovascular Magnetic Resonance, 11(1), P61. https://doi.org/10.1186/1532-429X-11-S1-P61"
+                },
+                {
+                    "mean": 69.8,
+                    "sd": 45.0,
+                    "n": 106,
+                    "target": "healthy",
+                    "cite": "Cho, Y. H., Kang, J.-W., Choi, S. H., Yang, D. H., Anh, T. T. X., Shin, E.-S., & Kim, Y.-H. (2019). Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT: Global and regional assessment. Clinical Imaging, 56, 81–87. https://doi.org/10.1016/j.clinimag.2019.04.002"
+                }                      
             ]
         },
 
@@ -2308,6 +3065,28 @@
         },
 
         {
+            "name": "Sphericity_Index",
+            "full_name": "Sphericity index",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 0.79,
+                    "sd": 0.11,
+                    "n": 139,
+                    "target": "Baseline",
+                    "cite": "Nakamori, S., Ngo, L. H., Tugal, D., Manning, W. J., & Nezafat, R. (2018). Incremental Value of Left Atrial Geometric Remodeling in Predicting Late Atrial Fibrillation Recurrence After Pulmonary Vein Isolation: A Cardiovascular Magnetic Resonance Study. Journal of the American Heart Association, 7(19), e009793. https://doi.org/10.1161/JAHA.118.009793"
+                },
+                {
+                    "mean": 0.76,
+                    "sd": 0.10,
+                    "n": 139,
+                    "target": "Followup",
+                    "cite": "Nakamori, S., Ngo, L. H., Tugal, D., Manning, W. J., & Nezafat, R. (2018). Incremental Value of Left Atrial Geometric Remodeling in Predicting Late Atrial Fibrillation Recurrence After Pulmonary Vein Isolation: A Cardiovascular Magnetic Resonance Study. Journal of the American Heart Association, 7(19), e009793. https://doi.org/10.1161/JAHA.118.009793"
+                }
+            ]
+        },
+
+        {
             "name": "PER-E",
             "full_name": "Early Atrial Peak Emptying Rate",
             "note": "",
@@ -2466,105 +3245,6 @@
                     "n": 50,
                     "target": "controls",
                     "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
-                }
-            ]
-        },
-
-        {
-            "name": "IPVT",
-            "full_name": "Isovolumetric Pulmonary Vein Transit Volume",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 36,
-                    "sd": 15,
-                    "n": 25,
-                    "target": "healthy control",
-                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance"
-                }
-            ]
-        },
-        {
-            "name": "IPVT Ratio",
-            "full_name": "Isovolumetric Pulmonary Vein Transit Volume Ratio",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 1.2,
-                    "sd": 0.6,
-                    "n": 25,
-                    "target": "healthy control",
-                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance"
-                }
-            ]
-        },
-        {
-            "name": "% AC to LVSV",
-            "full_name": "Percent Atrial Contribution to LVSV",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 21.7,
-                    "sd": 21.4,
-                    "n": 10,
-                    "target": "control",
-                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
-                },
-                {
-                    "lower": 10,
-                    "upper": 54,
-                    "n": 304,
-                    "target": "men, 45-54",
-                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
-                },
-                {
-                    "lower": 18,
-                    "upper": 50,
-                    "n": 384,
-                    "target": "men, 55-64",
-                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
-                },
-                {
-                    "lower": 6,
-                    "upper": 50,
-                    "n": 241,
-                    "target": "men, 65-74",
-                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
-                },
-                {
-                    "lower": 13,
-                    "upper": 44,
-                    "n": 297,
-                    "target": "women, 45-54",
-                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
-                },
-                {
-                    "lower": 17,
-                    "upper": 50,
-                    "n": 322,
-                    "target": "women, 55-64",
-                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
-                },
-                {
-                    "lower": 20,
-                    "upper": 51,
-                    "n": 213,
-                    "target": "women, 65-74",
-                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
-                }
-            ]
-        },
-        {
-            "name": "% AC to LVEDV",
-            "full_name": "Percent Atrial Contribution to LVEDV",
-            "note": "",
-            "reference_range": [
-                {
-                    "mean": 11.9,
-                    "sd": 9.4,
-                    "n": 10,
-                    "target": "control",
-                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
                 }
             ]
         }
@@ -4705,16 +5385,169 @@
         }
     ],
 
-    // todo: More strain reference range
-    // todo: torsion and recoil rate
-    "Strain-SA": [
+    "Strain-SAX": [
         // Strain
         {
             "name": "Circumferential strain (Global)",
             "full_name": "Circumferential strain (Global)",
             "note": "",
             "reference_range": [
+                {
+                    "mean": -32.2,
+                    "sd": 4.4,
+                    "n": 322,
+                    "target": "Sugimoto, female",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -31.4,
+                    "sd": 4.6,
+                    "n": 227,
+                    "target": "Sugimoto, male",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -22.8,
+                    "sd": 2.9,
+                    "n": 333,
+                    "target": "Takigiku, GE",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -22.2,
+                    "sd": 3.2,
+                    "n": 330,
+                    "target": "Takigiku, Philips",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -30.5,
+                    "sd": 3.8,
+                    "n": 337,
+                    "target": "Takigiku, Toshiba",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -21.3,
+                    "sd": 3.4,
+                    "n": 38,
+                    "target": "Mora, female",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -21.9,
+                    "sd": 4.3,
+                    "n": 52,
+                    "target": "Mora, male",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "lower": -24.6,
+                    "upper": -22.1,
+                    "n": 2597,
+                    "target": "Yingchoncharoen",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -20.9,
+                    "sd": 3.2,
+                    "n": 295,
+                    "target": "male",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
+                },
+                {
+                    "mean": -22.7,
+                    "sd": 3.3,
+                    "n": 301,
+                    "target": "female",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
+                },
+                {
+                    "mean": -17.6,
+                    "sd": 2.6,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table7"
+                },
                 
+                {
+                    "lower": -26,
+                    "upper": -14,
+                    "n": 304,
+                    "target": "men, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -26,
+                    "upper": -14,
+                    "n": 384,
+                    "target": "men, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -25,
+                    "upper": -15,
+                    "n": 241,
+                    "target": "men, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -26,
+                    "upper": -14,
+                    "n": 297,
+                    "target": "women, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -26,
+                    "upper": -14,
+                    "n": 322,
+                    "target": "women, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -26,
+                    "upper": -14,
+                    "n": 213,
+                    "target": "women, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+
+                {
+                    "lower": -23,
+                    "upper": -13,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": -18.3,
+                    "sd": 2.4,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -18.5,
+                    "sd": 2.9,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -15.7,
+                    "sd": 2.6,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": -16.5,
+                    "sd": 3.7,
+                    "n": 137,
+                    "target": "no stenosis",
+                    "cite": "Kimura, K., Takenaka, K., Pan, X., Ebihara, A., Uno, K., Fukuda, N., Kohro, T., Morita, H., Yatomi, Y., & Nagai, R. (2011). Prediction of coronary artery stenosis using strain imaging diastolic index at rest in patients with preserved ejection fraction. Journal of Cardiology, 57(3), 311–315. https://doi.org/10.1016/j.jjcc.2011.01.008"
+                }
             ]
         },
         {
@@ -4722,7 +5555,141 @@
             "full_name": "Radial strain (Global)",
             "note": "",
             "reference_range": [
+                {
+                    "mean": 38.2,
+                    "sd": 8.5,
+                    "n": 322,
+                    "target": "Sugimoto, female",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": 36.3,
+                    "sd": 8.0,
+                    "n": 227,
+                    "target": "Sugimoto, male",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": 54.6,
+                    "sd": 12.6,
+                    "n": 333,
+                    "target": "Takigiku, GE",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": 36.3,
+                    "sd": 8.2,
+                    "n": 330,
+                    "target": "Takigiku, Philips",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": 51.4,
+                    "sd": 8.0,
+                    "n": 337,
+                    "target": "Takigiku, Toshiba",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": 32.8,
+                    "sd": 10.7,
+                    "n": 38,
+                    "target": "Mora, female",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": 34.0,
+                    "sd": 9.9,
+                    "n": 52,
+                    "target": "Mora, male",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "lower": 43.6,
+                    "upper": 51.0,
+                    "n": 2597,
+                    "target": "Yingchoncharoen",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
 
+                {
+                    "lower": 27,
+                    "upper": 68,
+                    "n": 304,
+                    "target": "men, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 30,
+                    "upper": 66,
+                    "n": 384,
+                    "target": "men, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 28,
+                    "upper": 70,
+                    "n": 241,
+                    "target": "men, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 24,
+                    "upper": 68,
+                    "n": 297,
+                    "target": "women, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 28,
+                    "upper": 69,
+                    "n": 322,
+                    "target": "women, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 27,
+                    "upper": 68,
+                    "n": 213,
+                    "target": "women, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+
+                {
+                    "lower": 22,
+                    "upper": 73,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": 39.8,
+                    "sd": 11.6,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 40.1,
+                    "sd": 16.7,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 36.6,
+                    "sd": 11.0,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": 56.3,
+                    "sd": 22.6,
+                    "n": 137,
+                    "target": "no stenosis",
+                    "cite": "Kimura, K., Takenaka, K., Pan, X., Ebihara, A., Uno, K., Fukuda, N., Kohro, T., Morita, H., Yatomi, Y., & Nagai, R. (2011). Prediction of coronary artery stenosis using strain imaging diastolic index at rest in patients with preserved ejection fraction. Journal of Cardiology, 57(3), 311–315. https://doi.org/10.1016/j.jjcc.2011.01.008"
+                }
             ]
         },
 
@@ -4732,7 +5699,34 @@
             "full_name": "Peak Systolic Circumferential Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": -1.31,
+                    "upper": -0.53,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": -1.24,
+                    "sd": 0.27,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -1.23,
+                    "sd": 0.21,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -0.7,
+                    "sd": 0.13,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }
             ]
         },
         {
@@ -4740,7 +5734,34 @@
             "full_name": "Early Diastolic Circumferential Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": 0.47,
+                    "upper": 1.45,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": 1.74,
+                    "sd": 0.34,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 1.71,
+                    "sd": 0.41,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 0.84,
+                    "sd": 0.30,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }              
             ]
         },
         {
@@ -4748,15 +5769,70 @@
             "full_name": "Late Diastolic Circumferential Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": 0.17,
+                    "upper": 0.79,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": 0.38,
+                    "sd": 0.15,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 0.38,
+                    "sd": 0.18,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "lower": 0.28,
+                    "upper": 0.53,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }                   
             ]
         },
+
         {
             "name": "Peak Systolic Radial Strain Rate",
             "full_name": "Peak Systolic Radial Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": 0.77,
+                    "upper": 5.1,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": 1.85,
+                    "sd": 0.33,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 1.92,
+                    "sd": 0.49,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 1.69,
+                    "sd": 0.54,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }            
             ]
         },
         {
@@ -4764,7 +5840,34 @@
             "full_name": "Early Diastolic Radial Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": -5.1,
+                    "upper": -1.0,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": -1.98,
+                    "sd": 0.53,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -1.80,
+                    "sd": 0.39,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "lower": -3.06,
+                    "upper": -1.42,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }                 
             ]
         },
         {
@@ -4772,7 +5875,34 @@
             "full_name": "Late Diastolic Radial Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": -1.2,
+                    "upper": -0.17,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": -0.94,
+                    "sd": 0.38,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -0.92,
+                    "sd": 0.34,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "lower": -1.44,
+                    "upper": -0.62,
+                    "n": 521,
+                    "target": "all",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }                    
             ]
         },
 
@@ -4832,7 +5962,62 @@
             "full_name": "Time to Peak Circumferential Strain",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": 280,
+                    "upper": 423,
+                    "n": 304,
+                    "target": "men, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 279,
+                    "upper": 420,
+                    "n": 384,
+                    "target": "men, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 291,
+                    "upper": 408,
+                    "n": 241,
+                    "target": "men, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 278,
+                    "upper": 413,
+                    "n": 297,
+                    "target": "women, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 279,
+                    "upper": 416,
+                    "n": 322,
+                    "target": "women, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 277,
+                    "upper": 417,
+                    "n": 213,
+                    "target": "women, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "mean": 380,
+                    "sd": 50,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 370,
+                    "sd": 50,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                }             
             ]
         },
         {
@@ -4840,7 +6025,62 @@
             "full_name": "Time to Peak Radial Strain",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": 276,
+                    "upper": 413,
+                    "n": 304,
+                    "target": "men, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 276,
+                    "upper": 403,
+                    "n": 384,
+                    "target": "men, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 286,
+                    "upper": 403,
+                    "n": 241,
+                    "target": "men, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 275,
+                    "upper": 401,
+                    "n": 297,
+                    "target": "women, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 275,
+                    "upper": 407,
+                    "n": 322,
+                    "target": "women, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 271,
+                    "upper": 408,
+                    "n": 213,
+                    "target": "women, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "mean": 420,
+                    "sd": 50,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 400,
+                    "sd": 50,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                }                  
             ]
         },
         {
@@ -4874,7 +6114,13 @@
             "full_name": "Radial Strain Imaging Diastolic Index",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 64.9,
+                    "sd": 17.9,
+                    "n": 137,
+                    "target": "no stenosis",
+                    "cite": "Kimura, K., Takenaka, K., Pan, X., Ebihara, A., Uno, K., Fukuda, N., Kohro, T., Morita, H., Yatomi, Y., & Nagai, R. (2011). Prediction of coronary artery stenosis using strain imaging diastolic index at rest in patients with preserved ejection fraction. Journal of Cardiology, 57(3), 311–315. https://doi.org/10.1016/j.jjcc.2011.01.008"
+                } 
             ]
         },
 
@@ -4900,7 +6146,20 @@
             "full_name": "Global Torsion",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 15.3,
+                    "sd": 6.1,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 15.5,
+                    "sd": 6.7,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                }  
             ]
         },
         {
@@ -4924,7 +6183,20 @@
             "full_name": "Time to Peak Global Torsion",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 330,
+                    "sd": 30,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 330,
+                    "sd": 30,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                }         
             ]
         },
         {
@@ -4952,14 +6224,268 @@
             ]
         }
     ],
-    "Strain-LA": [
+    "Strain-LAX": [
         // Strain
         {
             "name": "Longitudinal Strain (Global)",
             "full_name": "Longitudinal Strain (Global)",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": -23.0,
+                    "sd": 2.7,
+                    "n": 322,
+                    "target": "Sugimoto, female",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -21.7,
+                    "sd": 2.5,
+                    "n": 227,
+                    "target": "Sugimoto, male",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -21.3,
+                    "sd": 2.1,
+                    "n": 333,
+                    "target": "Takigiku, GE",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -18.9,
+                    "sd": 2.5,
+                    "n": 330,
+                    "target": "Takigiku, Philips",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -19.9,
+                    "sd": 2.4,
+                    "n": 337,
+                    "target": "Takigiku, Toshiba",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -21.7,
+                    "sd": 2.1,
+                    "n": 38,
+                    "target": "Mora, female",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -20.7,
+                    "sd": 2.0,
+                    "n": 52,
+                    "target": "Mora, male",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -21.2,
+                    "sd": 2.2,
+                    "n": 265,
+                    "target": "Park, female",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -19.5,
+                    "sd": 1.9,
+                    "n": 236,
+                    "target": "Park, male",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "lower": -20.4,
+                    "upper": -18.9,
+                    "n": 2597,
+                    "target": "Yingchoncharoen",
+                    "cite": "Park, J.-H. (2019). Two-dimensional Echocardiographic Assessment of Myocardial Strain: Important Echocardiographic Parameter Readily Useful in Clinical Field. Korean Circulation Journal, 49(10), 908–931. https://doi.org/10.4070/kcj.2019.0200"
+                },
+                {
+                    "mean": -19.4,
+                    "sd": 3.3,
+                    "n": 295,
+                    "target": "male",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
+                },
+                {
+                    "mean": -21.4,
+                    "sd": 3.6,
+                    "n": 301,
+                    "target": "female",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table66"
+                },
+                {
+                    "mean": -14.6,
+                    "sd": 2.7,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table67"
+                },
+
+                {
+                    "lower": -22,
+                    "upper": -11,
+                    "n": 304,
+                    "target": "men, 45-54, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -22,
+                    "upper": -11,
+                    "n": 384,
+                    "target": "men, 55-64, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -23,
+                    "upper": -11,
+                    "n": 241,
+                    "target": "men, 65-74, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -22,
+                    "upper": -11,
+                    "n": 297,
+                    "target": "women, 45-54, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -22,
+                    "upper": -10,
+                    "n": 322,
+                    "target": "women, 55-64, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -21,
+                    "upper": -11,
+                    "n": 213,
+                    "target": "women, 65-74, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+
+                {
+                    "lower": -21,
+                    "upper": -10,
+                    "n": 304,
+                    "target": "men, 45-54, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -22,
+                    "upper": -9,
+                    "n": 384,
+                    "target": "men, 55-64, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -22,
+                    "upper": -10,
+                    "n": 241,
+                    "target": "men, 65-74, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -21,
+                    "upper": -9,
+                    "n": 297,
+                    "target": "women, 45-54, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -21,
+                    "upper": -10,
+                    "n": 322,
+                    "target": "women, 55-64, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": -21,
+                    "upper": -10,
+                    "n": 213,
+                    "target": "women, 65-74, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+
+                {
+                    "lower": -20,
+                    "upper": -9,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": -17.6,
+                    "sd": 2.0,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -17.4,
+                    "sd": 2.1,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -15.9,
+                    "sd": 2.2,
+                    "n": 509,
+                    "target": "all, 4ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": -16.6,
+                    "sd": 2.3,
+                    "n": 391,
+                    "target": "all, 2ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": -16.4,
+                    "sd": 2.0,
+                    "n": 382,
+                    "target": "all, combined",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": -21.0,
+                    "sd": 1.4,
+                    "n": 16,
+                    "target": "control",
+                    "cite": "Saijo, Y., Wang, T. K. M., Chan, N., Sperry, B. W., Phelan, D., Desai, M. Y., Griffin, B., Grimm, R. A., & Popović, Z. B. (2022). Post-systolic shortening index by echocardiography evaluation of dyssynchrony in the non-dilated and hypertrophied left ventricle. PLOS ONE, 17(8), e0273419. https://doi.org/10.1371/journal.pone.0273419"
+                },
+                {
+                    "mean": -16.5,
+                    "sd": 3.7,
+                    "n": 137,
+                    "target": "no stenosis",
+                    "cite": "Kimura, K., Takenaka, K., Pan, X., Ebihara, A., Uno, K., Fukuda, N., Kohro, T., Morita, H., Yatomi, Y., & Nagai, R. (2011). Prediction of coronary artery stenosis using strain imaging diastolic index at rest in patients with preserved ejection fraction. Journal of Cardiology, 57(3), 311–315. https://doi.org/10.1016/j.jjcc.2011.01.008"
+                },
+                {
+                    "mean": -21.1,
+                    "sd": 3.2,
+                    "n": 150,
+                    "target": "healthy",
+                    "cite": "Bogunovic, N., Farr, M., Pirl, L., Piper, C., Rudolph, V., & Roder, F. (2022). Multi-parametric speckle tracking analyses to characterize cardiac amyloidosis: A comparative study of systolic left ventricular longitudinal myocardial mechanics. Heart and Vessels, 37(9), 1526–1540. https://doi.org/10.1007/s00380-022-02047-6"
+                },
+                {
+                    "mean": -21,
+                    "sd": 1.4,
+                    "n": 16,
+                    "target": "control",
+                    "cite": "Saijo, Y., Wang, T. K. M., Chan, N., Sperry, B. W., Phelan, D., Desai, M. Y., Griffin, B., Grimm, R. A., & Popović, Z. B. (2022). Post-systolic shortening index by echocardiography evaluation of dyssynchrony in the non-dilated and hypertrophied left ventricle. PLOS ONE, 17(8), e0273419. https://doi.org/10.1371/journal.pone.0273419"
+                },
+                {
+                    "mean": -21.6,
+                    "sd": 2.8,
+                    "n": 23,
+                    "target": "healthy",
+                    "cite": "Haugaa, K. H., Smedsrud, M. K., Steen, T., Kongsgaard, E., Loennechen, J. P., Skjaerpe, T., Voigt, J.-U., Willems, R., Smith, G., Smiseth, O. A., Amlie, J. P., & Edvardsen, T. (2010). Mechanical Dispersion Assessed by Myocardial Strain in Patients After Myocardial Infarction for Risk Prediction of Ventricular Arrhythmia. JACC: Cardiovascular Imaging, 3(3), 247–256. https://doi.org/10.1016/j.jcmg.2009.11.012"
+                }
             ]
         },
 
@@ -4969,7 +6495,55 @@
             "full_name": "Peak Systolic Longitudinal Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": -1.09,
+                    "upper": -0.43,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": -0.88,
+                    "sd": 0.22,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": -0.90,
+                    "sd": 0.14,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                } ,
+                {
+                    "mean": -0.68,
+                    "sd": 0.10,
+                    "n": 509,
+                    "target": "all, 4ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": -0.70,
+                    "sd": 0.11,
+                    "n": 391,
+                    "target": "all, 2ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": -0.69,
+                    "sd": 0.10,
+                    "n": 382,
+                    "target": "all, combined",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": -1.23,
+                    "sd": 0.31,
+                    "n": 150,
+                    "target": "healthy",
+                    "cite": "Bogunovic, N., Farr, M., Pirl, L., Piper, C., Rudolph, V., & Roder, F. (2022). Multi-parametric speckle tracking analyses to characterize cardiac amyloidosis: A comparative study of systolic left ventricular longitudinal myocardial mechanics. Heart and Vessels, 37(9), 1526–1540. https://doi.org/10.1007/s00380-022-02047-6"
+                }
             ]
         },
         {
@@ -4977,7 +6551,48 @@
             "full_name": "Early Diastolic Longitudinal Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": 0.36,
+                    "upper": 1.30,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": 1.16,
+                    "sd": 0.32,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 1.12,
+                    "sd": 0.25,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 0.88,
+                    "sd": 0.23,
+                    "n": 509,
+                    "target": "all, 4ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": 0.99,
+                    "sd": 0.26,
+                    "n": 391,
+                    "target": "all, 2ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "mean": 0.93,
+                    "sd": 0.21,
+                    "n": 382,
+                    "target": "all, combined",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }  
             ]
         },
         {
@@ -4985,7 +6600,48 @@
             "full_name": "Late Diastolic Longitudinal Strain Rate",
             "note": "",
             "reference_range": [
-                
+                {
+                    "lower": 0.18,
+                    "upper": 0.68,
+                    "n": 100,
+                    "target": "all",
+                    "cite": "Liu, B., Dardeer, A. M., Moody, W. E., Hayer, M. K., Baig, S., Price, A. M., Leyva, F., Edwards, N. C., & Steeds, R. P. (2017). Reference ranges for three-dimensional feature tracking cardiac magnetic resonance: Comparison with two-dimensional methodology and relevance of age and gender. The International Journal of Cardiovascular Imaging. https://doi.org/10.1007/s10554-017-1277-x"
+                },
+                {
+                    "mean": 0.54,
+                    "sd": 0.09,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 0.54,
+                    "sd": 0.09,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "lower": 0.40,
+                    "upper": 0.63,
+                    "n": 509,
+                    "target": "all, 4ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "lower": 0.39,
+                    "upper": 0.60,
+                    "n": 391,
+                    "target": "all, 2ch",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                },
+                {
+                    "lower": 0.42,
+                    "upper": 0.64,
+                    "n": 382,
+                    "target": "all, combined",
+                    "cite": "Moreira, H. T., Nwabuo, C. C., Armstrong, A. C., Kishi, S., Gjesdal, O., Reis, J. P., Schreiner, P. J., Liu, K., Lewis, C. E., Sidney, S., Gidding, S. S., Lima, J. A. C., & Ambale-Venkatesh, B. (2017). Reference Ranges and Regional Patterns of Left Ventricular Strain and Strain Rate Using Two-Dimensional Speckle-Tracking Echocardiography in a Healthy Middle-Aged Black and White Population: The CARDIA Study. Journal of the American Society of Echocardiography, 30(7), 647-658.e2. https://doi.org/10.1016/j.echo.2017.03.010"
+                }    
             ]
         },
 
@@ -5014,12 +6670,120 @@
                 
             ]
         },
+
+
+        // Time to peak
         {
             "name": "Time to Peak Longitudinal Strain",
             "full_name": "Time to Peak Longitudinal Strain",
             "note": "",
             "reference_range": [
+                {
+                    "lower": 288,
+                    "upper": 451,
+                    "n": 304,
+                    "target": "men, 45-54, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 283,
+                    "upper": 452,
+                    "n": 384,
+                    "target": "men, 55-64, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 300,
+                    "upper": 446,
+                    "n": 241,
+                    "target": "men, 65-74, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 277,
+                    "upper": 451,
+                    "n": 297,
+                    "target": "women, 45-54, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 281,
+                    "upper": 451,
+                    "n": 322,
+                    "target": "women, 55-64, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 277,
+                    "upper": 458,
+                    "n": 213,
+                    "target": "women, 65-74, 2ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
                 
+                {
+                    "lower": 288,
+                    "upper": 455,
+                    "n": 304,
+                    "target": "men, 45-54, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 281,
+                    "upper": 450,
+                    "n": 384,
+                    "target": "men, 55-64, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 282,
+                    "upper": 445,
+                    "n": 241,
+                    "target": "men, 65-74, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 274,
+                    "upper": 451,
+                    "n": 297,
+                    "target": "women, 45-54, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 278,
+                    "upper": 453,
+                    "n": 322,
+                    "target": "women, 55-64, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 284,
+                    "upper": 453,
+                    "n": 213,
+                    "target": "women, 65-74, 4ch",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "mean": 390,
+                    "sd": 40,
+                    "n": 20,
+                    "target": "scan 1",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 400,
+                    "sd": 50,
+                    "n": 20,
+                    "target": "scan 2",
+                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
+                },
+                {
+                    "mean": 371,
+                    "sd": 42,
+                    "n": 150,
+                    "target": "healthy",
+                    "cite": "Bogunovic, N., Farr, M., Pirl, L., Piper, C., Rudolph, V., & Roder, F. (2022). Multi-parametric speckle tracking analyses to characterize cardiac amyloidosis: A comparative study of systolic left ventricular longitudinal myocardial mechanics. Heart and Vessels, 37(9), 1526–1540. https://doi.org/10.1007/s00380-022-02047-6"
+                }   
             ]
         },
         {
@@ -5033,27 +6797,80 @@
 
         // Longitudinal strain specific features
         {
-            "name": "Longitudinal Strain Post Systolic Index",
-            "full_name": "Longitudinal Strain Post Systolic Index",
+            "name": "Longitudinal Strain Post Systolic Strain Index",
+            "full_name": "Longitudinal Strain Post Systolic Strain Index",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 2.5,
+                    "sd": 3.1,
+                    "n": 150,
+                    "target": "healthy",
+                    "cite": "Bogunovic, N., Farr, M., Pirl, L., Piper, C., Rudolph, V., & Roder, F. (2022). Multi-parametric speckle tracking analyses to characterize cardiac amyloidosis: A comparative study of systolic left ventricular longitudinal myocardial mechanics. Heart and Vessels, 37(9), 1526–1540. https://doi.org/10.1007/s00380-022-02047-6"
+                },
+                {
+                    "mean": 2.1,
+                    "sd": 0.6,
+                    "n": 16,
+                    "target": "control",
+                    "cite": "Saijo, Y., Wang, T. K. M., Chan, N., Sperry, B. W., Phelan, D., Desai, M. Y., Griffin, B., Grimm, R. A., & Popović, Z. B. (2022). Post-systolic shortening index by echocardiography evaluation of dyssynchrony in the non-dilated and hypertrophied left ventricle. PLOS ONE, 17(8), e0273419. https://doi.org/10.1371/journal.pone.0273419"
+                },
+                {
+                    "mean": 3,
+                    "sd": 2,
+                    "n": 75,
+                    "target": "no walls with PSS",
+                    "cite": "Brainin, P., Grundtvig Skaarup, K., Zeeberg Iversen, A., Godsk Jørgensen, P., Platz, E., Jensen, J. S., & Biering-Sørensen, T. (2019). Post-systolic Shortening Predicts Heart Failure Following Acute Coronary Syndrome. International Journal of Cardiology, 276, 191–197. https://doi.org/10.1016/j.ijcard.2018.11.106"
+                },
+                {
+                    "mean": 1.2,
+                    "sd": 3.0,
+                    "n": 843,
+                    "target": "no PSS",
+                    "cite": "Brainin, P., Biering‐Sørensen, S. R., Møgelvang, R., Søgaard, P., Jensen, J. S., & Biering‐Sørensen, T. (2018). Postsystolic Shortening by Speckle Tracking Echocardiography Is an Independent Predictor of Cardiovascular Events and Mortality in the General Population. Journal of the American Heart Association, 7(6), e008367. https://doi.org/10.1161/JAHA.117.008367"
+                }              
             ]
         },
         {
-            "name": "Longitudinal Strain Mechanical Dispersion Index",
-            "full_name": "Longitudinal Strain Mechanical Dispersion Index",
+            "name": "Longitudinal Strain Mechanical Dispersion",
+            "full_name": "Longitudinal Strain Mechanical Dispersion",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 38,
+                    "sd": 7,
+                    "n": 16,
+                    "target": "control",
+                    "cite": "Saijo, Y., Wang, T. K. M., Chan, N., Sperry, B. W., Phelan, D., Desai, M. Y., Griffin, B., Grimm, R. A., & Popović, Z. B. (2022). Post-systolic shortening index by echocardiography evaluation of dyssynchrony in the non-dilated and hypertrophied left ventricle. PLOS ONE, 17(8), e0273419. https://doi.org/10.1371/journal.pone.0273419"
+                },
+                {
+                    "mean": 32,
+                    "sd": 8,
+                    "n": 150,
+                    "target": "healthy",
+                    "cite": "Bogunovic, N., Farr, M., Pirl, L., Piper, C., Rudolph, V., & Roder, F. (2022). Multi-parametric speckle tracking analyses to characterize cardiac amyloidosis: A comparative study of systolic left ventricular longitudinal myocardial mechanics. Heart and Vessels, 37(9), 1526–1540. https://doi.org/10.1007/s00380-022-02047-6"
+                },
+                {
+                    "mean": 22,
+                    "sd": 10,
+                    "n": 23,
+                    "target": "healthy",
+                    "cite": "Haugaa, K. H., Smedsrud, M. K., Steen, T., Kongsgaard, E., Loennechen, J. P., Skjaerpe, T., Voigt, J.-U., Willems, R., Smith, G., Smiseth, O. A., Amlie, J. P., & Edvardsen, T. (2010). Mechanical Dispersion Assessed by Myocardial Strain in Patients After Myocardial Infarction for Risk Prediction of Ventricular Arrhythmia. JACC: Cardiovascular Imaging, 3(3), 247–256. https://doi.org/10.1016/j.jcmg.2009.11.012"
+                }                 
             ]
         },
         {
-            "name": "Longitudinal Strain Systolic Stretch",
-            "full_name": "Longitudinal Strain Systolic Stretch",
+            "name": "Longitudinal Strain Pre Systolic Stretch",
+            "full_name": "Longitudinal Strain Pre Systolic Stretch",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 1.3,
+                    "sd": 2.8,
+                    "n": 150,
+                    "target": "healthy",
+                    "cite": "Bogunovic, N., Farr, M., Pirl, L., Piper, C., Rudolph, V., & Roder, F. (2022). Multi-parametric speckle tracking analyses to characterize cardiac amyloidosis: A comparative study of systolic left ventricular longitudinal myocardial mechanics. Heart and Vessels, 37(9), 1526–1540. https://doi.org/10.1007/s00380-022-02047-6"
+                }                
             ]
         },
 
@@ -5063,7 +6880,13 @@
             "full_name": "Longitudinal Strain Imaging Diastolic Index",
             "note": "",
             "reference_range": [
-                
+                {
+                    "mean": 49.4,
+                    "sd": 20.5,
+                    "n": 137,
+                    "target": "no stenosis",
+                    "cite": "Kimura, K., Takenaka, K., Pan, X., Ebihara, A., Uno, K., Fukuda, N., Kohro, T., Morita, H., Yatomi, Y., & Nagai, R. (2011). Prediction of coronary artery stenosis using strain imaging diastolic index at rest in patients with preserved ejection fraction. Journal of Cardiology, 57(3), 311–315. https://doi.org/10.1016/j.jjcc.2011.01.008"
+                }                
             ]
         }
     ],
@@ -5071,6 +6894,136 @@
 
     ],
     
+    // Interaction between ventricle and atrium
+    "LVLA": [
+        {
+            "name": "IPVT",
+            "full_name": "Isovolumetric Pulmonary Vein Transit Volume",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 36,
+                    "sd": 15,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance"
+                }
+                // There are not a lot of references for IPVT and IPVT ratio presented.
+            ]
+        },
+        {
+            "name": "IPVT Ratio",
+            "full_name": "Isovolumetric Pulmonary Vein Transit Volume Ratio",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 1.2,
+                    "sd": 0.6,
+                    "n": 25,
+                    "target": "healthy control",
+                    "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance"
+                }
+            ]
+        },
+        {
+            "name": "% AC to LVSV",
+            "full_name": "Percent Atrial Contribution to LVSV",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 21.7,
+                    "sd": 21.4,
+                    "n": 10,
+                    "target": "control",
+                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
+                },
+                {
+                    "lower": 10,
+                    "upper": 54,
+                    "n": 304,
+                    "target": "men, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 18,
+                    "upper": 50,
+                    "n": 384,
+                    "target": "men, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 6,
+                    "upper": 50,
+                    "n": 241,
+                    "target": "men, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 13,
+                    "upper": 44,
+                    "n": 297,
+                    "target": "women, 45-54",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 17,
+                    "upper": 50,
+                    "n": 322,
+                    "target": "women, 55-64",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "lower": 20,
+                    "upper": 51,
+                    "n": 213,
+                    "target": "women, 65-74",
+                    "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                }
+            ]
+        },
+        {
+            "name": "% AC to LVEDV",
+            "full_name": "Percent Atrial Contribution to LVEDV",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 11.9,
+                    "sd": 9.4,
+                    "n": 10,
+                    "target": "control",
+                    "cite": "RAHlMTOOLA, S. H. (n.d.). Left Atrial Transport Function in Myocardial Infarction."
+                }
+            ]
+        },
+        {
+            "name": "AVPD",
+            "full_name": "Atrioventricular plane displacement",
+            "note": "We use the lateral AVPD here, refer to cardiac_utils.py",
+            "reference_range": [
+                {
+                    "mean": 1.8,
+                    "sd": 0.4,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 1.7,
+                    "sd": 0.3,
+                    "n": 60,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table6"
+                },
+                {
+                    "mean": 1.4,
+                    "sd": 0.3,
+                    "n": 24,
+                    "target": "healthy control",
+                    "cite": "Seemann, F., Pahlm, U., Steding-Ehrenborg, K., Ostenfeld, E., Erlinge, D., Dubois-Rande, J.-L., Jensen, S. E., Atar, D., Arheden, H., Carlsson, M., & Heiberg, E. (2017). Time-resolved tracking of the atrioventricular plane displacement in Cardiovascular Magnetic Resonance (CMR) images. BMC Medical Imaging, 17(1), 19. https://doi.org/10.1186/s12880-017-0189-5"
+                }
+            ]
+        }
+    ],
     "Valve": [
         {
             "name": "Tricuspid Diameter",
