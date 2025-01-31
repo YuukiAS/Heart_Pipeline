@@ -6,6 +6,7 @@ from scipy.ndimage import find_objects
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+from matplotlib.patches import FancyArrowPatch
 import argparse
 from tqdm import tqdm
 import sys
@@ -153,7 +154,7 @@ if __name__ == "__main__":
                 root = analyze_time_series_root(time_grid_point, flow, n_root)
             T_ES = analyze_time_series_root(time_grid_point, flow, n_root, method="round")
             T_ES_real = T_ES * temporal_resolution
-            T_peak_systole = np.argmax(velocity)
+            T_peak_systole = np.argmax(flow)
         except ValueError:
             logger.error(f"{subject}: Unable to determine end-systole point from the flow curve")
             continue
@@ -269,7 +270,23 @@ if __name__ == "__main__":
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Velocity",
         )
-        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        box_text = (
+            "Velocity and Gradient\n"
+            f"Peak Velocity: {peak_velocity:.2f} cm/s\n"
+            f"Mean Gradient: {np.mean(gradient[:T_ES]):.2f} mmHg"
+        )
+        box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+        ax1.text(
+            0.98,
+            0.95,
+            box_text,
+            transform=ax1.transAxes,
+            fontsize=8,
+            verticalalignment="top",
+            horizontalalignment="right",
+            bbox=box_props
+        )
+        ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
         ax1.text(
             T_ES,
             ax1.get_ylim()[1],
@@ -289,6 +306,63 @@ if __name__ == "__main__":
             fontsize=6,
             color="black",
         )
+        arrow_systole = FancyArrowPatch(
+            (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_systole)
+        ax1.text(
+            T_ES / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Systole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )
+        arrow_late_systole = FancyArrowPatch(
+            (T_peak_systole, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 6),
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 6),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_late_systole)
+        ax1.text(
+            (T_peak_systole + T_ES) / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 8,
+            "Late Systole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )  
+        arrow_diastole = FancyArrowPatch(
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_diastole)
+        ax1.text(
+            (T_ES + ax1.get_xlim()[1]) / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Diastole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )        
         fig.savefig(f"{sub_dir}/timeseries/aortic_velocity.png")
         plt.close(fig)
 
@@ -327,15 +401,23 @@ if __name__ == "__main__":
             title=f"Subject {subject}: Aortic Flow",
             colors=["red", "yellow", "blue"],
         )
-        fig.text(
-            0.73,
-            0.65,
-            f"Forward Flow: {forward_flow:.2f} mL\nBackward Flow: {backward_flow:.2f} mL",
-            fontsize=10,
-            verticalalignment="top",
-            bbox=dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.5),
+        box_text = (
+            "Aortic Flow\n"
+            f"Forward Flow: {forward_flow:.2f} mL\n"
+            f"Backward Flow: {backward_flow:.2f} mL"
         )
-        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+        ax1.text(
+            0.98,
+            0.80,
+            box_text,
+            transform=ax1.transAxes,
+            fontsize=8,
+            verticalalignment="top",
+            horizontalalignment="right",
+            bbox=box_props
+        )
+        ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
         ax1.text(
             T_ES,
             ax1.get_ylim()[1],
@@ -355,6 +437,63 @@ if __name__ == "__main__":
             fontsize=6,
             color="black",
         )
+        arrow_systole = FancyArrowPatch(
+            (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_systole)
+        ax1.text(
+            T_ES / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Systole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )
+        arrow_late_systole = FancyArrowPatch(
+            (T_peak_systole, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 6),
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 6),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_late_systole)
+        ax1.text(
+            (T_peak_systole + T_ES) / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 8,
+            "Late Systole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )  
+        arrow_diastole = FancyArrowPatch(
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_diastole)
+        ax1.text(
+            (T_ES + ax1.get_xlim()[1]) / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Diastole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )       
         fig.savefig(f"{sub_dir}/timeseries/aortic_flow.png")
         plt.close(fig)
 
@@ -431,6 +570,18 @@ if __name__ == "__main__":
 
         flow_displacement = np.array(flow_displacement)
 
+        # Ref Automated Quantification of Simple and Complex Aortic Flow Using 2D Phase Contrast MRI https://doi.org/10.3390/medicina60101618
+        FDs = np.mean(flow_displacement[:T_ES])  # flow displacement systolic average
+        FDls = np.mean(flow_displacement[T_peak_systole:T_ES])  # flow displacement late systolic average
+        FDd = np.mean(flow_displacement[T_ES:])  # flow displacement diastolic average
+
+        feature_dict.update(
+            {
+                "Aortic Flow: Flow Displacement Systolic Average [%]": FDs,
+                "Aortic Flow: Flow Displacement Late Systolic Average [%]": FDls,
+                "Aortic Flow: Flow Displacement Diastolic Average [%]": FDd,
+            }
+        )
         fig, ax1, ax2 = plot_time_series_double_x(
             time_grid_point,
             time_grid_real,
@@ -442,7 +593,24 @@ if __name__ == "__main__":
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Flow Displacement",
         )
-        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        box_text = (
+            "Aortic Flow Displacement\n"
+            f"Systolic Average: {FDs:.2f} %\n"
+            f"Late Systolic Average: {FDls:.2f}%\n"
+            f"Diastolic Average: {FDd:.2f} %"
+        )
+        box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+        ax1.text(
+            0.98,
+            0.95,
+            box_text,
+            transform=ax1.transAxes,
+            fontsize=8,
+            verticalalignment="top",
+            horizontalalignment="right",
+            bbox=box_props
+        )
+        ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
         ax1.text(
             T_ES,
             ax1.get_ylim()[1],
@@ -462,21 +630,65 @@ if __name__ == "__main__":
             fontsize=6,
             color="black",
         )
+        arrow_systole = FancyArrowPatch(
+            (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_systole)
+        ax1.text(
+            T_ES / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Systole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )
+        arrow_late_systole = FancyArrowPatch(
+            (T_peak_systole, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 6),
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 6),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_late_systole)
+        ax1.text(
+            (T_peak_systole + T_ES) / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 8,
+            "Late Systole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )  
+        arrow_diastole = FancyArrowPatch(
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_diastole)
+        ax1.text(
+            (T_ES + ax1.get_xlim()[1]) / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Diastole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )       
         fig.savefig(f"{sub_dir}/timeseries/aortic_flow_displacement.png")
         plt.close(fig)
-
-        # Ref Automated Quantification of Simple and Complex Aortic Flow Using 2D Phase Contrast MRI https://doi.org/10.3390/medicina60101618
-        FDs = np.mean(flow_displacement[:T_ES])  # flow displacement systolic average
-        FDls = np.mean(flow_displacement[T_peak_systole:T_ES])  # flow displacement late systolic average
-        FDd = np.mean(flow_displacement[T_ES:])  # flow displacement diastolic average
-
-        feature_dict.update(
-            {
-                "Aortic Flow: Flow Displacement Systolic Average [%]": FDs,
-                "Aortic Flow: Flow Displacement Late Systolic Average [%]": FDls,
-                "Aortic Flow: Flow Displacement Diastolic Average [%]": FDd,
-            }
-        )
 
         # * Feature5: Rotation angle (RA)
 
@@ -509,7 +721,7 @@ if __name__ == "__main__":
             lambda x: x / temporal_resolution,
             title=f"Subject {subject}: Aortic Flow Displacement Rotation Angle",
         )
-        ax1.axvline(x=T_ES, color="green", linestyle="--", alpha=0.7)
+        ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
         ax1.text(
             T_ES,
             ax1.get_ylim()[1],
