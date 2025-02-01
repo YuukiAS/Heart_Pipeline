@@ -19,7 +19,7 @@ import config
 
 from utils.log_utils import setup_logging
 from utils.cardiac_utils import evaluate_velocity_flow
-from utils.analyze_utils import plot_time_series_double_x, plot_time_series_double_x_list, analyze_time_series_root
+from utils.analyze_utils import plot_time_series_dual_axes, plot_time_series_dual_axes_multiple_y, analyze_time_series_root
 
 warnings.filterwarnings("ignore", category=cm.cbook.MatplotlibDeprecationWarning)
 
@@ -259,9 +259,8 @@ if __name__ == "__main__":
         )
 
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
-        fig, ax1, ax2 = plot_time_series_double_x(
+        fig, ax1, ax2 = plot_time_series_dual_axes(
             time_grid_point,
-            time_grid_real,
             velocity,
             "Time [frame]",
             "Time [ms]",
@@ -284,7 +283,7 @@ if __name__ == "__main__":
             fontsize=8,
             verticalalignment="top",
             horizontalalignment="right",
-            bbox=box_props
+            bbox=box_props,
         )
         ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
         ax1.text(
@@ -343,7 +342,7 @@ if __name__ == "__main__":
             color="black",
             horizontalalignment="center",
             verticalalignment="center",
-        )  
+        )
         arrow_diastole = FancyArrowPatch(
             (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
             (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
@@ -362,7 +361,7 @@ if __name__ == "__main__":
             color="black",
             horizontalalignment="center",
             verticalalignment="center",
-        )        
+        )
         fig.savefig(f"{sub_dir}/timeseries/aortic_velocity.png")
         plt.close(fig)
 
@@ -388,9 +387,8 @@ if __name__ == "__main__":
         # * Levels of aortic stenosis and regurgitation can be determined from the following reference:
         # Ref 2014 AHA/ACC Guideline for the Management of Patients With Valvular Heart Disease. https://doi.org/10.1016/j.jacc.2014.02.536
 
-        fig, ax1, ax2 = plot_time_series_double_x_list(
+        fig, ax1, ax2 = plot_time_series_dual_axes_multiple_y(
             time_grid_point,
-            time_grid_real,
             [flow, flow_positive, flow_negative],
             ["Net Flow", "Forward Flow", "Backward Flow"],
             "Time [frame]",
@@ -401,11 +399,7 @@ if __name__ == "__main__":
             title=f"Subject {subject}: Aortic Flow",
             colors=["red", "yellow", "blue"],
         )
-        box_text = (
-            "Aortic Flow\n"
-            f"Forward Flow: {forward_flow:.2f} mL\n"
-            f"Backward Flow: {backward_flow:.2f} mL"
-        )
+        box_text = "Aortic Flow\n" f"Forward Flow: {forward_flow:.2f} mL\n" f"Backward Flow: {backward_flow:.2f} mL"
         box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
         ax1.text(
             0.98,
@@ -415,7 +409,7 @@ if __name__ == "__main__":
             fontsize=8,
             verticalalignment="top",
             horizontalalignment="right",
-            bbox=box_props
+            bbox=box_props,
         )
         ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
         ax1.text(
@@ -474,7 +468,7 @@ if __name__ == "__main__":
             color="black",
             horizontalalignment="center",
             verticalalignment="center",
-        )  
+        )
         arrow_diastole = FancyArrowPatch(
             (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
             (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
@@ -493,7 +487,7 @@ if __name__ == "__main__":
             color="black",
             horizontalalignment="center",
             verticalalignment="center",
-        )       
+        )
         fig.savefig(f"{sub_dir}/timeseries/aortic_flow.png")
         plt.close(fig)
 
@@ -582,9 +576,8 @@ if __name__ == "__main__":
                 "Aortic Flow: Flow Displacement Diastolic Average [%]": FDd,
             }
         )
-        fig, ax1, ax2 = plot_time_series_double_x(
+        fig, ax1, ax2 = plot_time_series_dual_axes(
             time_grid_point,
-            time_grid_real,
             flow_displacement,
             "Time [frame]",
             "Time [ms]",
@@ -608,7 +601,7 @@ if __name__ == "__main__":
             fontsize=8,
             verticalalignment="top",
             horizontalalignment="right",
-            bbox=box_props
+            bbox=box_props,
         )
         ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
         ax1.text(
@@ -667,7 +660,7 @@ if __name__ == "__main__":
             color="black",
             horizontalalignment="center",
             verticalalignment="center",
-        )  
+        )
         arrow_diastole = FancyArrowPatch(
             (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
             (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
@@ -686,7 +679,7 @@ if __name__ == "__main__":
             color="black",
             horizontalalignment="center",
             verticalalignment="center",
-        )       
+        )
         fig.savefig(f"{sub_dir}/timeseries/aortic_flow_displacement.png")
         plt.close(fig)
 
@@ -710,9 +703,8 @@ if __name__ == "__main__":
                 angle = (360 - angle) % 360  # make sure mapping to (0, 360°)
             rotation_angle.append(angle)
 
-        fig, ax1, ax2 = plot_time_series_double_x(
+        fig, ax1, ax2 = plot_time_series_dual_axes(
             time_grid_point,
-            time_grid_real,
             rotation_angle,
             "Time [frame]",
             "Time [ms]",

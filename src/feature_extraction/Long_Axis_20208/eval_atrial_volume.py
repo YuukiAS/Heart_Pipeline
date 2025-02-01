@@ -16,6 +16,7 @@ import os
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch
 import pandas as pd
 import nibabel as nib
 import vtk
@@ -36,7 +37,8 @@ import config
 from utils.log_utils import setup_logging
 from utils.quality_control_utils import atrium_pass_quality_control
 from utils.cardiac_utils import evaluate_atrial_area_length
-from utils.analyze_utils import plot_time_series_double_x, plot_time_series_double_x_y, analyze_time_series_derivative
+from utils.analyze_utils import plot_time_series_dual_axes, plot_time_series_dual_axes_double_y, analyze_time_series_derivative
+from utils.biobank_utils import query_BSA
 
 logger = setup_logging("eval_atrial_volume")
 
@@ -100,8 +102,7 @@ if __name__ == "__main__":
         seg_la_2ch_nan = np.where(seg_la_2ch == 0, np.nan, seg_la_2ch)
         seg_la_4ch = nib.load(seg_la_4ch_name).get_fdata()
         seg_la_4ch_nan = np.where(seg_la_4ch == 0, np.nan, seg_la_4ch)
-        # Refer to biobank_utils.py for more information, used to determine top and bottom of atrium
-        long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])
+        long_axis = nim_sa.affine[:3, 2] / np.linalg.norm(nim_sa.affine[:3, 2])  # used to determine top and bottom of atrium
         if long_axis[2] < 0:
             long_axis *= -1  # make sure distance is positive
 
@@ -190,8 +191,7 @@ if __name__ == "__main__":
                 L_T["LA_4ch"][t] = length[1]
                 V["LA_4ch"][t] = 8 / (3 * math.pi) * area[0] * area[0] / length[0]
 
-                # We only report the LA volume calculated using the biplane area-length formula (using both modality)
-                # Ref https://doi.org/10.1038/s41591-020-1009-y
+                # * We only report the LA volume calculated using the biplane area-length formula (using both modality)
                 V["LA_bip"][t] = 8 / (3 * math.pi) * area[0] * A["LA_2ch"][t] / (0.5 * (length[0] + L_L["LA_2ch"][t]))
 
                 A["RA_4ch"][t] = area[1]
@@ -238,26 +238,38 @@ if __name__ == "__main__":
                 # LA are determined using both 2ch and 4ch view
                 "LA: D_longitudinal (2ch) [cm]": np.max(L_L["LA_2ch"]),
                 "LA: D_longitudinal (4ch) [cm]": np.max(L_L["LA_4ch"]),
-                "LA: A_max (2ch) [mm^2]": np.max(A["LA_2ch"]),
-                "LA: A_min (2ch) [mm^2]": np.min(A["LA_2ch"]),
-                "LA: A_max (4ch) [mm^2]": np.max(A["LA_4ch"]),
-                "LA: A_min (4ch) [mm^2]": np.min(A["LA_4ch"]),
+                "LA: A_max (2ch) [cm^2]": np.max(A["LA_2ch"]),
+                "LA: A_min (2ch) [cm^2]": np.min(A["LA_2ch"]),
+                "LA: A_max (4ch) [cm^2]": np.max(A["LA_4ch"]),
+                "LA: A_min (4ch) [cm^2]": np.min(A["LA_4ch"]),
                 "LA: V_max (bip) [mL]": LAV_max,
                 "LA: V_min (bip) [mL]": LAV_min,
                 "LA: Total SV (bip) [mL]": LAV_max - LAV_min,
                 "LA: EF_total [%]": (LAV_max - LAV_min) / LAV_max * 100,
-                "LA: EI [%]": (LAV_max - LAV_min) / LAV_min * 100,  # expansion index
+                # "LA: EI [%]": (LAV_max - LAV_min) / LAV_min * 100,  # expansion index
                 # All RA are only determined using 4ch view
                 "RA: D_longitudinal [cm]": np.max(L_L["RA_4ch"]),
-                "RA: A_max [mm^2]": np.max(A["RA_4ch"]),
-                "RA: A_min [mm^2]": np.min(A["RA_4ch"]),
+                "RA: A_max [cm^2]": np.max(A["RA_4ch"]),
+                "RA: A_min [cm^2]": np.min(A["RA_4ch"]),
                 "RA: V_max [mL]": np.max(V["RA_4ch"]),
                 "RA: V_min [mL]": np.min(V["RA_4ch"]),
-                "RA: Total SV [mL]": np.max(V["RA_4ch"]) - np.min(V["RA_4ch"]),
+                # "RA: Total SV [mL]": np.max(V["RA_4ch"]) - np.min(V["RA_4ch"]),
                 "RA: EF_total [%]": (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.max(V["RA_4ch"]) * 100,
-                "RA: EI [%]": (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.min(V["RA_4ch"]) * 100,
+                # "RA: EI [%]": (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.min(V["RA_4ch"]) * 100,
             }
         )
+
+        LA_EI = (LAV_max - LAV_min) / LAV_min * 100
+        RA_EI = (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.min(V["RA_4ch"]) * 100
+
+        if LA_EI < 500:
+            feature_dict.update({"LA: EI [%]": LA_EI})
+        else:
+            logger.warning(f"{subject}: Extremely high LA EI detected, skipped.")
+        if RA_EI < 500:
+            feature_dict.update({"RA: EI [%]": RA_EI})
+        else:
+            logger.warning(f"{subject}: Extremely high RA EI detected, skipped.")
 
         # Save time series of volume and display the time series of atrial volume
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
@@ -293,16 +305,15 @@ if __name__ == "__main__":
         time_grid_point = np.arange(T)
         time_grid_real = time_grid_point * temporal_resolution  # unit: ms
 
-        fig, ax1, ax2 = plot_time_series_double_x(
+        fig, ax1, ax2 = plot_time_series_dual_axes(
             time_grid_point,
-            time_grid_real,
             V["LA_bip"],
             "Time [frame]",
             "Time [ms]",
             "Volume [mL]",
             lambda x: x * temporal_resolution,
             lambda x: x / temporal_resolution,
-            title=f"Subject {subject}: Atrial Volume Time Series (Raw)",
+            title=f"Subject {subject}: Atrial Volume Time Series",
         )
         fig.savefig(f"{sub_dir}/timeseries/atrium_volume_raw.png")
         plt.close(fig)
@@ -312,11 +323,10 @@ if __name__ == "__main__":
         # * Feature1: Indexed volume
         logger.info(f"{subject}: Implement indexed volume features")
         try:
-            BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
-            BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
+            BSA_subject = query_BSA(subject)
         except (FileNotFoundError, IndexError):
+            # As BSA is a crucial feature for subsequent features, we skip the subject if BSA is not found
             logger.error(f"{subject}: BSA information not found, skipped.")
-            # As BSA is a crucial feature, we skip the subject if BSA is not found
             continue
         feature_dict.update(
             {
@@ -337,8 +347,7 @@ if __name__ == "__main__":
         )
 
         # * Feature2: Transverse diameter
-        # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
-        # Ref https://www.sciencedirect.com/science/article/pii/S1097664723013455
+        # Ref Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance https://www.sciencedirect.com/science/article/pii/S1097664723013455
         logger.info(f"{subject}: Implement transverse diameter features")
         feature_dict.update(
             {
@@ -353,7 +362,7 @@ if __name__ == "__main__":
 
         # * Feature3: LA Spherical Index
         logger.info(f"{subject}: Implement LA spherical index features")
-        # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6404907/pdf/JAH3-7-e009793.pdf
+        # Ref Incremental Value of Left Atrial Geometric Remodeling in Predicting Late Atrial Fibrillation Recurrence https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6404907/pdf/JAH3-7-e009793.pdf
         # define The maximum LA length is chosen among 2 chamber and 4 chamber view
         LAD_L_max = max(np.max(L_L["LA_2ch"]), np.max(L_L["LA_4ch"]))
         LAD_T_max = max(np.max(L_T["LA_2ch"]), np.max(L_T["LA_4ch"]))
@@ -362,27 +371,32 @@ if __name__ == "__main__":
         V_sphere_max = 4 / 3 * math.pi * (LAD_max / 2) ** 3
 
         LA_spherical_index = LAV_max / V_sphere_max
-
-        feature_dict.update({"LA: Spherical Index": LA_spherical_index})
+        if LA_spherical_index > 10:
+            logger.warning(f"{subject}: Extremely high LA spherical index detected, skipped.")
+        else:
+            feature_dict.update({"LA: Sphericity_Index": LA_spherical_index})
 
         # * Feature4: Early/Late Peak Emptying Rate
-        # Ref https://pubmed.ncbi.nlm.nih.gov/30128617/
+        # Ref Diastolic dysfunction evaluated by cardiac magnetic resonance https://pubmed.ncbi.nlm.nih.gov/30128617/
         V_LA = V["LA_bip"]
 
         fANCOVA = importr("fANCOVA")
         x_r = FloatVector(time_grid_real)
         y_r = FloatVector(V_LA)
-        # * We use the loess provided by R that has Generalized Cross Validation as its criterion
+        # We use the loess provided by R that has Generalized Cross Validation as its criterion
         loess_fit = fANCOVA.loess_as(x_r, y_r, degree=2, criterion="gcv")
         V_LA_loess_x = np.array(loess_fit.rx2("x")).reshape(
             T,
         )
         V_LA_loess_y = np.array(loess_fit.rx2("fitted"))
 
-        V_LA_diff_y = np.diff(V_LA_loess_y) / np.diff(V_LA_loess_x) * 1000  # unit: mL/s
-        V_LA_diff_x = (V_LA_loess_x[:-1] + V_LA_loess_x[1:]) / 2
+        # * Instead of using np.diff, we use np.gradient to ensure the same length
+        V_LA_diff_y = np.gradient(V_LA_loess_y, V_LA_loess_x) * 1000  # unit: mL/s
 
         try:
+            # These time points are used for quality control of ECG timepoint and visualization, not for calculation of PER
+            # Generally, it should be positive peak -> negative peak -> positive peak -> negative peak
+
             L1 = T_max
             T_peak_pos_1 = find_peaks(V_LA_diff_y[:T_max], distance=math.ceil(L1 / 3))[0]
             T_peak_pos_1 = T_peak_pos_1[np.argmax(V_LA_diff_y[T_peak_pos_1])]
@@ -397,6 +411,7 @@ if __name__ == "__main__":
             T_peak_neg_1 = [peak + T_max for peak in T_peak_neg_1]
             T_peak_neg_1 = T_peak_neg_1[np.argmax(-V_LA_diff_y[T_peak_neg_1])]
 
+            # No need to find peaks for the last segment of cardiac cycle
             L4 = len(V_LA_diff_y) - T_peak_pos_2
             T_peak_neg_2 = np.argmax(-V_LA_diff_y[T_peak_pos_2:])
             T_peak_neg_2 = T_peak_neg_2 + T_peak_pos_2
@@ -404,52 +419,35 @@ if __name__ == "__main__":
             logger.error(f"{subject}: Error {e} in determining PER, skipped.")
             continue
 
-        colors = ["blue"] * len(V_LA_diff_x)
-        colors[T_max] = "red"
-        colors[T_peak_pos_1] = "orange"
-        colors[T_peak_pos_2] = "orange"
-        colors[T_peak_neg_1] = "yellow"
-        colors[T_peak_neg_2] = "yellow"
-
-        plt.figure(figsize=(12, 6))
-        plt.suptitle(f"Subject {subject}: Atrial Volume Time Series and its Derivative")
-        plt.subplot(1, 2, 1)
-        plt.plot(V_LA_loess_x, V_LA_loess_y, color="blue")
-        plt.scatter(time_grid_real, V_LA, color="blue")
-        plt.xlabel("Time [ms]")
-        plt.ylabel("Volume [mL]")
-        plt.subplot(1, 2, 2)
-        plt.plot(V_LA_diff_x, V_LA_diff_y, color="blue")
-        plt.scatter(V_LA_diff_x, V_LA_diff_y, color=colors)
-        plt.xlabel("Time [ms]")
-        plt.ylabel("dV/dt [mL/s]")
-        plt.savefig(f"{sub_dir}/timeseries/atrium_volume_diff.png")
-        plt.close()
-
-        # * Instead of using derivative of loess, we use moving average instead as former tend to yield large values
+        # * We calculate these rates through the slope of smoothed volumes of a few adjacent frames to avoid overestimation
         try:
             _, T_PER, _, PER = analyze_time_series_derivative(time_grid_real, V_LA, n_pos=0, n_neg=2)
             logger.info(f"{subject}: Implementing peak emptying rate features")
             # define PER_E: Early atrial peak emptying rate, PER_A: Late atrial peak emptying rate
-            PER_E = PER[np.argmin(T_PER)]
-            PER_A = PER[np.argmax(T_PER)]
+            PER_E = PER[np.argmin(T_PER)] * 1000  # unit: mL/s
+            PER_A = PER[np.argmax(T_PER)] * 1000  # unit: mL/s
             if PER_E >= 0:
                 raise ValueError("PER_E should not be positive.")
             if PER_A >= 0:
                 raise ValueError("PER_A should not be positive.")
-            if abs(PER_E) * 1000 < 10 or abs(PER_A) * 1000 < 10:
+            if abs(PER_E) < 10 or abs(PER_A) < 10:
                 raise ValueError("Extremely small PER values detected, skipped.")
             feature_dict.update(
                 {
-                    "LA: PER-E [mL/s]": abs(PER_E) * 1000,  # positive value should be reported; convert ms to s
-                    "LA: PER-A [mL/s]": abs(PER_A) * 1000,
-                    "LA: PER-E/BSA [mL/s/m^2]": abs(PER_E) * 1000 / BSA_subject,
-                    "LA: PER-A/BSA [mL/s/m^2]": abs(PER_A) * 1000 / BSA_subject,
-                    "LA: PER-E/PER-A": abs(PER_E / PER_A),
+                    "LA: PER-E [mL/s]": abs(PER_E),  # positive value should be reported; convert ms to s
+                    "LA: PER-A [mL/s]": abs(PER_A),
+                    "LA: PER-E/BSA [mL/s/m^2]": abs(PER_E) / BSA_subject,
+                    "LA: PER-A/BSA [mL/s/m^2]": abs(PER_A) / BSA_subject,
                 }
             )
+            if abs(PER_E / PER_A) > 10:
+                logger.warning(f"{subject}: Extremely high PER-E/PER-A detected, skipped.")
+            else:
+                feature_dict.update({"LA: PER-E/PER-A": abs(PER_E / PER_A)})
         except (IndexError, ValueError) as e:
             logger.warning(f"{subject}: PER calculation failed: {e}")
+
+        # We will postpone the visualization to the end, after the time point of atrial contribution is determined.
 
         # * Feature5: Volume before atrial contraction and emptying fraction
         logger.info(f"{subject}: Implement volume before atrial contraction features")
@@ -462,13 +460,14 @@ if __name__ == "__main__":
             logger.info(f"{subject}: ECG rest data exists, extracting pre-contraction volume.")
 
             try:
+                # The atrial contraction time point is determined using 12-lead rest ECG
                 time_points_dict = ecg_processor.determine_timepoint_LA()
                 t_max_ecg = time_points_dict["t_max"]
                 T_max_ecg = round(t_max_ecg / temporal_resolution)
                 t_pre_a_ecg = time_points_dict["t_pre_a"]
                 T_pre_a_ecg = round(t_pre_a_ecg / temporal_resolution)
             except ValueError as e:
-                logger.error(f"{subject}: Error {e} in determining time points using ECG, skipped.")
+                logger.error(f"{subject}: Error {e} in determining atrial contraction time point using ECG, skipped.")
                 continue
 
             if T_pre_a_ecg >= T:
@@ -478,17 +477,16 @@ if __name__ == "__main__":
                 # The pre-contraction time frame should be in the middle of the
                 # second positive and the second negative peak
                 logger.warning(
-                    f"{subject}: Quality control for pre-contratcion time fails, " "no relevant feature will be extracted."
+                    f"{subject}: Quality control for pre-contraction time fails, no relevant feature will be extracted."
                 )
             else:
+                LAV_pre_a = V["LA_bip"][T_pre_a_ecg]
+
                 colors = ["blue"] * len(V["LA_bip"])
                 colors[T_max] = "red"
-                colors[T_max_ecg] = "orange"
-                colors[T_pre_a_ecg] = "yellow"
-
-                fig, ax1, ax2 = plot_time_series_double_x_y(
+                colors[T_pre_a_ecg] = "orange"
+                fig, ax1, ax2 = plot_time_series_dual_axes_double_y(
                     time_grid_point,
-                    time_grid_real,
                     V_LA_loess_y,
                     V["LA_bip"],
                     "Time [frame]",
@@ -496,21 +494,115 @@ if __name__ == "__main__":
                     "Volume [mL]",
                     lambda x: x * temporal_resolution,
                     lambda x: x / temporal_resolution,
-                    title=f"Subject {subject}: Atrial Volume Time Series",
+                    title=f"Subject {subject}: Atrial Volume Time Series (Smoothed)",
                     colors=colors,
+                )
+                ax1.axvline(x=T_max, color="red", linestyle="--", alpha=0.7)
+                ax1.text(
+                    T_max,
+                    ax1.get_ylim()[1],
+                    "Maximum LA Volume",
+                    verticalalignment="bottom",
+                    horizontalalignment="center",
+                    fontsize=6,
+                    color="black",
+                )
+                ax1.axvline(x=T_pre_a_ecg, color="orange", linestyle="--", alpha=0.7)
+                (
+                    ax1.text(
+                        T_pre_a_ecg,
+                        ax1.get_ylim()[1],
+                        "Atrial Contraction",
+                        verticalalignment="bottom",
+                        horizontalalignment="center",
+                        fontsize=6,
+                        color="black",
+                    ),
+                )
+                box_text = (
+                    "LA Volume\n"
+                    f"Maximum: {LAV_max:.2f} mL\n"
+                    f"Minimum: {LAV_min:.2f} mL\n"
+                    f"Prior to Atrial Contraction: {LAV_pre_a:.2f} mL"
+                )
+                box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+                ax1.text(
+                    0.98,
+                    0.95,
+                    box_text,
+                    transform=ax1.transAxes,
+                    fontsize=8,
+                    verticalalignment="top",
+                    horizontalalignment="right",
+                    bbox=box_props,
+                )
+                # Explicitly annotate three phases
+                arrow_reservoir = FancyArrowPatch(
+                    (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (T_max, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_reservoir)
+                ax1.text(
+                    T_max / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Reservoir",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                )
+                arrow_conduit = FancyArrowPatch(
+                    (T_max, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (T_pre_a_ecg, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_conduit)
+                ax1.text(
+                    (T_max + T_pre_a_ecg) / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Conduit",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                )
+                arrow_booster = FancyArrowPatch(
+                    (T_pre_a_ecg, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_booster)
+                ax1.text(
+                    (T_pre_a_ecg + ax1.get_xlim()[1]) / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Booster",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
                 )
                 fig.savefig(f"{sub_dir}/timeseries/atrium_volume.png")
                 plt.close(fig)
-
-                LAV_pre_a = V["LA_bip"][T_pre_a_ecg]
 
                 # update npz
                 data_time.update({"LA: T_pre_a": T_pre_a_ecg})
                 np.savez(f"{sub_dir}/timeseries/atrium.npz", **data_time)
                 logger.info(f"{subject}: Pre-contraction volume extracted successfully.")
 
-                # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4508385/pdf/BMRI2015-765921.pdf
-                # Ref https://pubmed.ncbi.nlm.nih.gov/24291276/
+                # Ref Left Atrial Size and Function: role in prognosis https://pubmed.ncbi.nlm.nih.gov/24291276/
                 feature_dict.update(
                     {
                         "LA: V_pre_a [mL]": LAV_pre_a,
@@ -520,6 +612,301 @@ if __name__ == "__main__":
                     }
                 )
 
+            # * We now visualize the curve of derivative of volume
+            # * As PER are derived using multiple adjacenet frames, the PER will be slower than the values in figure.
+            if "LA: PER-E [mL/s]" in feature_dict:
+                colors = ["blue"] * len(V_LA_diff_y)
+                colors[T_max] = "red"
+                colors[T_pre_a_ecg] = "orange"
+                colors[T_peak_neg_1] = "aqua"
+                colors[T_peak_neg_2] = "lime"
+                fig, ax1, ax2 = plot_time_series_dual_axes(
+                    time_grid_point,
+                    V_LA_diff_y,
+                    "Time [frame]",
+                    "Time [ms]",
+                    "dV/dt [mL/s]",
+                    lambda x: x * temporal_resolution,
+                    lambda x: x / temporal_resolution,
+                    title=f"Subject {subject}: Derivative of Atrial Volume Time Series",
+                    colors=colors,
+                )
+                ax1.axvline(x=T_max, color="red", linestyle="--", alpha=0.7)
+                ax1.text(
+                    T_max,
+                    ax1.get_ylim()[1],
+                    "Maximum LA Volume",
+                    verticalalignment="bottom",
+                    horizontalalignment="center",
+                    fontsize=6,
+                    color="black",
+                )
+                ax1.axvline(x=T_pre_a_ecg, color="orange", linestyle="--", alpha=0.7)
+                (
+                    ax1.text(
+                        T_pre_a_ecg,
+                        ax1.get_ylim()[1],
+                        "Atrial Contraction",
+                        verticalalignment="bottom",
+                        horizontalalignment="center",
+                        fontsize=6,
+                        color="black",
+                    ),
+                )
+                ax1.axvline(x=T_peak_neg_1, color="aqua", linestyle="--", alpha=0.7)
+                ax1.text(
+                    T_peak_neg_1,
+                    ax1.get_ylim()[0],
+                    "PER-E",
+                    verticalalignment="bottom",
+                    horizontalalignment="center",
+                    fontsize=6,
+                    color="black",
+                )
+                ax1.axvline(x=T_peak_neg_2, color="lime", linestyle="--", alpha=0.7)
+                (
+                    ax1.text(
+                        T_peak_neg_2,
+                        ax1.get_ylim()[0],
+                        "PER-A",
+                        verticalalignment="bottom",
+                        horizontalalignment="center",
+                        fontsize=6,
+                        color="black",
+                    ),
+                )
+                box_text = (
+                    "Peak Emptying Rate\n"
+                    "(Obtained through multiple frames)\n"
+                    f"PER-E: {abs(PER_E):.2f} mL/s\n"
+                    f"PER-A: {abs(PER_A):.2f} mL/s"
+                )
+                box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+                ax1.text(
+                    0.98,
+                    0.95,
+                    box_text,
+                    transform=ax1.transAxes,
+                    fontsize=8,
+                    verticalalignment="top",
+                    horizontalalignment="right",
+                    bbox=box_props,
+                )
+                arrow_reservoir = FancyArrowPatch(
+                    (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (T_max, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_reservoir)
+                ax1.text(
+                    T_max / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Reservoir",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                )
+                arrow_conduit = FancyArrowPatch(
+                    (T_max, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (T_pre_a_ecg, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_conduit)
+                ax1.text(
+                    (T_max + T_pre_a_ecg) / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Conduit",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                )
+                arrow_booster = FancyArrowPatch(
+                    (T_pre_a_ecg, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_booster)
+                ax1.text(
+                    (T_pre_a_ecg + ax1.get_xlim()[1]) / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Booster",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                )
+                fig.savefig(f"{sub_dir}/timeseries/atrium_volume_rate.png")
+                plt.close(fig)
+
+        # * Plot volume curve together with ECG
+
+        if config.useECG and ecg_processor.check_data_rest():
+            # Ref Expanding application of the Wiggers diagram to teach cardiovascular physiology. https://doi.org/10.1152/advan.00123.2013
+            # Note we don't have any pressure features
+            logger.info(f"{subject}: Create Wiggers diagram that combines ECG and ventricular volume")
+
+            ecg_info = ecg_processor.visualize_ecg_info()
+            time = ecg_info["time"]
+            signal = ecg_info["signal"]
+            P_index = ecg_info["P_index"]
+            Q_index = ecg_info["Q_index"]
+            R_index = ecg_info["R_index"]
+            S_index = ecg_info["S_index"]
+            T_index = ecg_info["T_index"]
+
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+            ax1.plot(time_grid_real, V["LA_bip"], color="r")
+            ax1.set_xlabel("Time [ms]")
+            ax1.set_ylabel("Volume [mL]")
+            ax2.plot(time, signal, color="b")
+            ax2.set_ylabel("ECG Signal")
+            ax2.set_yticks([])
+
+            # Similar annotations as before
+            ax1.axvline(x=T_max * temporal_resolution, color="red", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_max * temporal_resolution,
+                ax1.get_ylim()[1],
+                "Maximum LA Volume",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+            ax1.axvline(x=T_pre_a_ecg * temporal_resolution, color="orange", linestyle="--", alpha=0.7)
+            (
+                ax1.text(
+                    T_pre_a_ecg * temporal_resolution,
+                    ax1.get_ylim()[1],
+                    "Atrial Contraction",
+                    verticalalignment="bottom",
+                    horizontalalignment="center",
+                    fontsize=6,
+                    color="black",
+                ),
+            )
+            arrow_reservoir = FancyArrowPatch(
+                (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                (T_max * temporal_resolution, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                arrowstyle="<->",
+                linestyle="--",
+                color="black",
+                alpha=0.7,
+                mutation_scale=15,
+            )
+            ax1.add_patch(arrow_reservoir)
+            ax1.text(
+                T_max * temporal_resolution / 2,
+                ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                "Reservoir",
+                fontsize=6,
+                color="black",
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
+            arrow_conduit = FancyArrowPatch(
+                (T_max * temporal_resolution, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                (T_pre_a_ecg * temporal_resolution, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                arrowstyle="<->",
+                linestyle="--",
+                color="black",
+                alpha=0.7,
+                mutation_scale=15,
+            )
+            ax1.add_patch(arrow_conduit)
+            ax1.text(
+                (T_max + T_pre_a_ecg) * temporal_resolution / 2,
+                ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                "Conduit",
+                fontsize=6,
+                color="black",
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
+            arrow_booster = FancyArrowPatch(
+                (T_pre_a_ecg * temporal_resolution, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                arrowstyle="<->",
+                linestyle="--",
+                color="black",
+                alpha=0.7,
+                mutation_scale=15,
+            )
+            ax1.add_patch(arrow_booster)
+            ax1.text(
+                (T_pre_a_ecg * temporal_resolution + ax1.get_xlim()[1]) / 2,
+                ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                "Booster",
+                fontsize=6,
+                color="black",
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
+
+            # Annotate ECG timepoints
+            ax2.annotate(
+                "R",
+                xy=(time[R_index], signal[R_index]),
+                xytext=(time[R_index], signal[R_index] - 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "Q",
+                xy=(time[Q_index], signal[Q_index]),
+                xytext=(time[Q_index], signal[Q_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "S",
+                xy=(time[S_index], signal[S_index]),
+                xytext=(time[S_index], signal[S_index] - 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "P",
+                xy=(time[P_index], signal[P_index]),
+                xytext=(time[P_index], signal[P_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "T",
+                xy=(time[T_index], signal[T_index]),
+                xytext=(time[T_index], signal[T_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            plt.suptitle(f"Subject {subject}: Atrial Volume Time Series and ECG Signal")
+            plt.tight_layout()
+            fig.savefig(f"{sub_dir}/timeseries/atrium_volume_ecg.png")
+
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
 
@@ -528,4 +915,4 @@ if __name__ == "__main__":
     target_dir = os.path.join(target_dir, "atrium")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
-    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"))
+    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), index=False)

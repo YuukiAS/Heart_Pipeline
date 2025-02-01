@@ -17,14 +17,20 @@ import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch
 import nibabel as nib
 import vtk
 import math
 from tqdm import tqdm
+from scipy.signal import find_peaks
+from rpy2.robjects.packages import importr
+from rpy2.robjects.vectors import FloatVector
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
 
 import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from ECG_6025_20205.ecg_processor import ECG_Processor
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
@@ -32,8 +38,10 @@ import config
 from utils.log_utils import setup_logging
 from utils.quality_control_utils import sa_pass_quality_control
 from utils.cardiac_utils import evaluate_ventricular_length_sax, evaluate_ventricular_length_lax
-from utils.analyze_utils import plot_time_series_double_x, analyze_time_series_derivative
+from utils.analyze_utils import plot_time_series_dual_axes, plot_time_series_dual_axes_double_y, analyze_time_series_derivative
+from utils.biobank_utils import query_BSA
 
+warnings.filterwarnings("ignore", category=UserWarning)
 logger = setup_logging("eval_ventricular_volume")
 
 parser = argparse.ArgumentParser()
@@ -147,14 +155,20 @@ if __name__ == "__main__":
             "eid": subject,
         }
 
+        LVEDV = np.sum(seg_sa[:, :, :, T_ED] == 1) * volume_per_pix
+        RVEDV = np.sum(seg_sa[:, :, :, T_ED] == 3) * volume_per_pix
+        LVESV = np.sum(seg_sa[:, :, :, T_ES] == 1) * volume_per_pix
+        RVESV = np.sum(seg_sa[:, :, :, T_ES] == 3) * volume_per_pix
+        Myo_EDV = np.sum(seg_sa[:, :, :, T_ED] == 2) * volume_per_pix
+        Myo_ESV = np.sum(seg_sa[:, :, :, T_ES] == 2) * volume_per_pix
         feature_dict.update(
             {
-                "LV: V_ED [mL]": np.sum(seg_sa[:, :, :, T_ED] == 1) * volume_per_pix,
-                "Myo: Mass_ED [g]": np.sum(seg_sa[:, :, :, T_ED] == 2) * volume_per_pix * density,
-                "RV: V_ED [mL]": np.sum(seg_sa[:, :, :, T_ED] == 3) * volume_per_pix,
-                "LV: V_ES [mL]": np.sum(seg_sa[:, :, :, T_ES] == 1) * volume_per_pix,
-                "Myo: Mass_ES [g]": np.sum(seg_sa[:, :, :, T_ES] == 2) * volume_per_pix * density,
-                "RV: V_ES [mL]": np.sum(seg_sa[:, :, :, T_ES] == 3) * volume_per_pix,
+                "LV: V_ED [mL]": LVEDV,
+                "RV: V_ED [mL]": RVEDV,
+                "LV: V_ES [mL]": LVESV,
+                "RV: V_ES [mL]": RVESV,
+                # Since mass should be insensitive to temporal order, we take the average here.
+                "Myo: Mass [g]": (Myo_EDV + Myo_ESV) / 2 * density,
             }
         )
 
@@ -174,28 +188,42 @@ if __name__ == "__main__":
             }
         )
 
+        time_grid_point = np.arange(T)
+        time_grid_real = time_grid_point * temporal_resolution  # unit: ms
+
+        fig, ax1, ax2 = plot_time_series_dual_axes(
+            time_grid_point,
+            V["LV"],
+            "Time [frame]",
+            "Time [ms]",
+            "Volume [mL]",
+            lambda x: x * temporal_resolution,
+            lambda x: x / temporal_resolution,
+            title=f"Subject {subject}: Ventricular Volume Time Series",
+        )
+        fig.savefig(f"{sub_dir}/timeseries/ventricle_volume_raw.png")
+        plt.close(fig)
+
         # * Implement more advanced features -----------------------------------
 
         # * Feature1: Indexed volume
         logger.info(f"{subject}: Implement indexed volume features")
         try:
-            BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
-            BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
+            BSA_subject = query_BSA(subject)
         except (FileNotFoundError, IndexError):
+            # As BSA is a crucial feature for subsequent features, we skip the subject if BSA is not found
             logger.error(f"{subject}: BSA information not found, skipped.")
-            # As BSA is a crucial feature, we skip the subject if BSA is not found
             continue
 
         feature_dict.update(
             {
                 "LV: V_ED/BSA [mL/m^2]": feature_dict["LV: V_ED [mL]"] / BSA_subject,
-                "Myo: Mass_ED/BSA [g/m^2]": feature_dict["Myo: Mass_ED [g]"] / BSA_subject,
+                "Myo: Mass/BSA [g/m^2]": feature_dict["Myo: Mass [g]"] / BSA_subject,
                 "RV: V_ED/BSA [mL/m^2]": feature_dict["RV: V_ED [mL]"] / BSA_subject,
                 "LV: V_ES/BSA [mL/m^2]": feature_dict["LV: V_ES [mL]"] / BSA_subject,
-                "Myo: Mass_ES/BSA [g/m^2]": feature_dict["Myo: Mass_ES [g]"] / BSA_subject,
                 "RV: V_ES/BSA [mL/m^2]": feature_dict["RV: V_ES [mL]"] / BSA_subject,
                 # define Cardiac Index
-                # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4830061/pdf/12968_2016_Article_236.pdf
+                # Ref Cardiovascular magnetic resonance reference ranges for the heart and aorta in Chinese at 3T https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4830061/pdf/12968_2016_Article_236.pdf
                 "LV: CI [L/min/m^2]": feature_dict["LV: CO [L/min]"] / BSA_subject,
                 "RV: CI [L/min/m^2]": feature_dict["RV: CO [L/min]"] / BSA_subject,
             }
@@ -252,11 +280,17 @@ if __name__ == "__main__":
             feature_dict.update(
                 {
                     "LV: D_transverse_ED (sax) [cm]": L_sax["ED"],
+                    # define: The distance between the LV apex and interventricular septum
+                    # Therefore, it should be slightly smaller than that the distance between LV apex to mitral valve
                     "LV: D_longitudinal_ED (4ch) [cm]": L_4ch_long["ED"],
+                    # define The distance between basal septum and lateral wall
                     "LV: D_transverse_ED (4ch) [cm]": L_4ch_trans["ED"],
-                    "LV: Sphericity_Index_ED": feature_dict["LV: V_ED [mL]"] / V_sphere_ED,
                 }
             )
+            if feature_dict["LV: V_ED [mL]"] / V_sphere_ED > 10:
+                logger.warning(f"{subject}: Extremely high sphericity index at ED detected, skipped.")
+            else:
+                feature_dict.update({"LV: Sphericity_Index_ED": feature_dict["LV: V_ED [mL]"] / V_sphere_ED})
 
             plt.imshow(sa[:, :, slice_ED, 0], cmap="gray")
             x_coords = [p[1] for p in lm_sax["ED"]]
@@ -329,9 +363,12 @@ if __name__ == "__main__":
                     "LV: D_transverse_ES (sax) [cm]": L_sax["ES"],
                     "LV: D_longitudinal_ES (4ch) [cm]": L_4ch_long["ES"],
                     "LV: D_transverse_ES (4ch) [cm]": L_4ch_trans["ES"],
-                    "LV: Sphericity_Index_ES": feature_dict["LV: V_ES [mL]"] / V_sphere_ES,
                 }
             )
+            if feature_dict["LV: V_ES [mL]"] / V_sphere_ES > 10:
+                logger.warning(f"{subject}: Extremely high sphericity index at ES detected, skipped.")
+            else:
+                feature_dict.update({"LV: Sphericity_Index_ES": feature_dict["LV: V_ES [mL]"] / V_sphere_ES})
 
             plt.imshow(sa[:, :, slice_ES, T_ES], cmap="gray")
             x_coords = [p[1] for p in lm_sax["ES"]]
@@ -357,24 +394,125 @@ if __name__ == "__main__":
             logger.warning(f"{subject}: Failed to determine the diameter of left ventricle at ES")
 
         # * Feature3: Early/Late Peak Filling Rate
-        # Ref https://pubmed.ncbi.nlm.nih.gov/30128617/
+        # Ref Diastolic dysfunction evaluated by cardiac magnetic resonance https://pubmed.ncbi.nlm.nih.gov/30128617/
+        V_LV = V["LV"]
 
-        time_grid_point = np.arange(T)
-        time_grid_real = time_grid_point * temporal_resolution  # unit: ms
+        fANCOVA = importr("fANCOVA")
+        x_r = FloatVector(time_grid_real)
+        y_r = FloatVector(V_LV)
+        # We use the loess provided by R that has Generalized Cross Validation as its criterion
+        loess_fit = fANCOVA.loess_as(x_r, y_r, degree=2, criterion="gcv")
+        V_LV_loess_x = np.array(loess_fit.rx2("x")).reshape(
+            T,
+        )
+        V_LV_loess_y = np.array(loess_fit.rx2("fitted"))
 
-        fig, ax1, ax2 = plot_time_series_double_x(
+        colors = ["blue"] * len(V["LV"])
+        colors[T_ES] = "purple"
+        fig, ax1, ax2 = plot_time_series_dual_axes_double_y(
             time_grid_point,
-            time_grid_real,
+            V_LV_loess_y,
             V["LV"],
             "Time [frame]",
             "Time [ms]",
             "Volume [mL]",
             lambda x: x * temporal_resolution,
             lambda x: x / temporal_resolution,
-            title=f"Subject {subject}: Ventricular Volume Time Series (Raw)",
+            title=f"Subject {subject}: Ventricular Volume Time Series (Smoothed)",
+            colors=colors,
         )
-        fig.savefig(f"{sub_dir}/timeseries/ventricle_volume_raw.png")
+        ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_ES,
+            ax1.get_ylim()[1],
+            "End Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        # Explicitly annotate two phases
+        arrow_systole = FancyArrowPatch(
+            (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_systole)
+        ax1.text(
+            T_ES / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Systole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )
+        arrow_diastole = FancyArrowPatch(
+            (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+            arrowstyle="<->",
+            linestyle="--",
+            color="black",
+            alpha=0.7,
+            mutation_scale=15,
+        )
+        ax1.add_patch(arrow_diastole)
+        ax1.text(
+            (T_ES + ax1.get_xlim()[1]) / 2,
+            ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+            "Diastole",
+            fontsize=6,
+            color="black",
+            horizontalalignment="center",
+            verticalalignment="center",
+        )
+        box_text = "LV Volume\n" f"End-Diastolic Volume: {LVEDV:.2f} mL\n" f"End-Systolic Volume: {LVESV:.2f} mL"
+        box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+        ax1.text(
+            0.98,
+            0.95,
+            box_text,
+            transform=ax1.transAxes,
+            fontsize=8,
+            verticalalignment="top",
+            horizontalalignment="right",
+            bbox=box_props,
+        )
+        fig.savefig(f"{sub_dir}/timeseries/ventricle_volume.png")
         plt.close(fig)
+
+        # * Instead of using np.diff, we use np.gradient to ensure the same length
+        V_LV_diff_y = np.gradient(V_LV_loess_y, V_LV_loess_x) * 1000  # unit: mL/s
+
+        try:
+            # These time points are purely used for visualization, not for calculation of PFR
+            # Generally, it should be negative peak -> positive peak -> negative peak / 0 -> positive peak
+
+            L1 = T_ES
+            T_peak_neg_1 = find_peaks(-V_LV_diff_y[:T_ES], distance=math.ceil(L1 / 3))[0]
+            T_peak_neg_1 = T_peak_neg_1[np.argmax(-V_LV_diff_y[T_peak_neg_1])]
+
+            L2 = len(V_LV_diff_y) - T_ES
+            T_peak_neg_2 = find_peaks(-V_LV_diff_y[T_ES:], distance=math.ceil(L2 / 3))[0]  # this may not lead to negative value
+            T_peak_neg_2 = [peak + T_ES for peak in T_peak_neg_2]
+            T_peak_neg_2 = T_peak_neg_2[np.argmax(-V_LV_diff_y[T_peak_neg_2])]
+
+            L3 = T_peak_neg_2 - T_ES
+            T_peak_pos_1 = find_peaks(V_LV_diff_y[T_ES:T_peak_neg_2], distance=math.ceil(L3 / 3))[0]
+            T_peak_pos_1 = [peak + T_ES for peak in T_peak_pos_1]
+            T_peak_pos_1 = T_peak_pos_1[np.argmax(V_LV_diff_y[T_peak_pos_1])]
+
+            # No need to find peaks for the last segment of cardiac cycle
+            L4 = len(V_LV_diff_y) - T_peak_neg_2
+            T_peak_pos_2 = np.argmax(V_LV_diff_y[T_peak_neg_2:])
+            T_peak_pos_2 = T_peak_pos_2 + T_peak_neg_2
+        except Exception as e:
+            logger.error(f"{subject}: Error {e} in determining PFR, skipped.")
+            continue
 
         try:
             T_PFR, _, PFR, _ = analyze_time_series_derivative(time_grid_real / 1000, V["LV"], n_pos=2, n_neg=0)  # unit: ml/s
@@ -390,15 +528,248 @@ if __name__ == "__main__":
                 raise ValueError("Extremely small PFR values detected, skipped.")
             feature_dict.update(
                 {
-                    "LV: PFR-E [mL/s]": PFR_E,  # convert ms to s
+                    "LV: PFR-E [mL/s]": PFR_E,
                     "LV: PFR-A [mL/s]": PFR_A,
                     "LV: PFR-E/BSA [mL/s/m^2]": PFR_E / BSA_subject,
                     "LV: PFR-A/BSA [mL/s/m^2]": PFR_A / BSA_subject,
-                    "LV: PFR-E/PFR-A": PFR_E / PFR_A,
                 }
             )
+            if PFR_E / PFR_A > 10:
+                logger.warning(f"{subject}: Extremely high PFR-E/PFR-A detected, skipped.")
+            else:
+                feature_dict.update({"LV: PFR-E/PFR-A": PFR_E / PFR_A})
+
+                colors = ["blue"] * len(V_LV_diff_y)
+                colors[T_ES] = "purple"
+                colors[T_peak_pos_1] = "aqua"
+                colors[T_peak_pos_2] = "lime"
+                fig, ax1, ax2 = plot_time_series_dual_axes(
+                    time_grid_point,
+                    V_LV_diff_y,
+                    "Time [frame]",
+                    "Time [ms]",
+                    "dV/dt [mL/s]",
+                    lambda x: x * temporal_resolution,
+                    lambda x: x / temporal_resolution,
+                    title=f"Subject {subject}: Derivative of Ventricular Volume Time Series",
+                    colors=colors,
+                )
+                ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
+                ax1.text(
+                    T_ES,
+                    ax1.get_ylim()[1],
+                    "End Systole",
+                    verticalalignment="bottom",
+                    horizontalalignment="center",
+                    fontsize=6,
+                    color="black",
+                )
+                ax1.axvline(x=T_peak_pos_1, color="aqua", linestyle="--", alpha=0.7)
+                ax1.text(
+                    T_peak_pos_1,
+                    ax1.get_ylim()[0],
+                    "PFR-E",
+                    verticalalignment="bottom",
+                    horizontalalignment="center",
+                    fontsize=6,
+                    color="black",
+                )
+                ax1.axvline(x=T_peak_pos_2, color="lime", linestyle="--", alpha=0.7)
+                (
+                    ax1.text(
+                        T_peak_neg_2,
+                        ax1.get_ylim()[0],
+                        "PFR-A",
+                        verticalalignment="bottom",
+                        horizontalalignment="center",
+                        fontsize=6,
+                        color="black",
+                    ),
+                )
+                box_text = (
+                    "Peak Filling Rate\n"
+                    "(Obtained through multiple frames)\n"
+                    f"PFR-E: {abs(PFR_E):.2f} mL/s\n"
+                    f"PFR-A: {abs(PFR_A):.2f} mL/s"
+                )
+                box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+                ax1.text(
+                    0.98,
+                    0.95,
+                    box_text,
+                    transform=ax1.transAxes,
+                    fontsize=8,
+                    verticalalignment="top",
+                    horizontalalignment="right",
+                    bbox=box_props,
+                )
+                arrow_systole = FancyArrowPatch(
+                    (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_systole)
+                ax1.text(
+                    T_ES / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Systole",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                )
+                arrow_diastole = FancyArrowPatch(
+                    (T_ES, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                    arrowstyle="<->",
+                    linestyle="--",
+                    color="black",
+                    alpha=0.7,
+                    mutation_scale=15,
+                )
+                ax1.add_patch(arrow_diastole)
+                ax1.text(
+                    (T_ES + ax1.get_xlim()[1]) / 2,
+                    ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                    "Diastole",
+                    fontsize=6,
+                    color="black",
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                )
+                fig.savefig(f"{sub_dir}/timeseries/ventricle_volume_rate.png")
+                plt.close(fig)
         except (IndexError, ValueError) as e:
             logger.warning(f"{subject}: PFR calculation failed: {e}")
+
+        # * Plot volume curve together with ECG
+
+        ecg_processor = ECG_Processor(subject, args.retest)
+        if config.useECG and ecg_processor.check_data_rest():
+            # Ref Expanding application of the Wiggers diagram to teach cardiovascular physiology. https://doi.org/10.1152/advan.00123.2013
+            # Note we don't have any pressure features
+            logger.info(f"{subject}: Create Wiggers diagram that combines ECG and ventricular volume")
+
+            ecg_info = ecg_processor.visualize_ecg_info()
+            time = ecg_info["time"]
+            signal = ecg_info["signal"]
+            P_index = ecg_info["P_index"]
+            Q_index = ecg_info["Q_index"]
+            R_index = ecg_info["R_index"]
+            S_index = ecg_info["S_index"]
+            T_index = ecg_info["T_index"]
+
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+            ax1.plot(time_grid_real, V["LV"], color="r")
+            ax1.set_xlabel("Time [ms]")
+            ax1.set_ylabel("Volume [mL]")
+            ax2.plot(time, signal, color="b")
+            ax2.set_ylabel("ECG Signal")
+            ax2.set_yticks([])
+
+            # Similar annotations as before
+            ax1.axvline(x=T_ES * temporal_resolution, color="purple", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_ES * temporal_resolution,
+                ax1.get_ylim()[1],
+                "End Systole",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+            arrow_systole = FancyArrowPatch(
+                (0, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                (T_ES * temporal_resolution, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                arrowstyle="<->",
+                linestyle="--",
+                color="black",
+                alpha=0.7,
+                mutation_scale=15,
+            )
+            ax1.add_patch(arrow_systole)
+            ax1.text(
+                T_ES * temporal_resolution / 2,
+                ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                "Systole",
+                fontsize=6,
+                color="black",
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
+            arrow_diastole = FancyArrowPatch(
+                (T_ES * temporal_resolution, ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                (ax1.get_xlim()[1], ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 10),
+                arrowstyle="<->",
+                linestyle="--",
+                color="black",
+                alpha=0.7,
+                mutation_scale=15,
+            )
+            ax1.add_patch(arrow_diastole)
+            ax1.text(
+                (T_ES * temporal_resolution + ax1.get_xlim()[1]) / 2,
+                ax1.get_ylim()[0] + (ax1.get_ylim()[1] - ax1.get_ylim()[0]) / 12,
+                "Diastole",
+                fontsize=6,
+                color="black",
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
+
+            # Annotate ECG timepoints
+            ax2.annotate(
+                "R",
+                xy=(time[R_index], signal[R_index]),
+                xytext=(time[R_index], signal[R_index] - 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "Q",
+                xy=(time[Q_index], signal[Q_index]),
+                xytext=(time[Q_index], signal[Q_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "S",
+                xy=(time[S_index], signal[S_index]),
+                xytext=(time[S_index], signal[S_index] - 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "P",
+                xy=(time[P_index], signal[P_index]),
+                xytext=(time[P_index], signal[P_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "T",
+                xy=(time[T_index], signal[T_index]),
+                xytext=(time[T_index], signal[T_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            plt.suptitle(f"Subject {subject}: Ventricular Volume Time Series and ECG Signal")
+            plt.tight_layout()
+            fig.savefig(f"{sub_dir}/timeseries/ventricle_ecg.png")
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
@@ -407,4 +778,4 @@ if __name__ == "__main__":
     target_dir = os.path.join(target_dir, "ventricle")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
-    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"))
+    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), index=False)
