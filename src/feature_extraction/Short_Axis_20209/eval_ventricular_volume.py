@@ -137,7 +137,7 @@ if __name__ == "__main__":
             ax.set_title(f"ED: Slice {s + 1}")
             ax.axis("off")
         plt.tight_layout()
-        plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ED.png")
+        plt.savefig(f"{sub_dir}/visualization/ventricle/seg_sa_ED.png")
         plt.close(fig_ED)
 
         fig_ES, ax_ES = plt.subplots(2, N_slice // 2, figsize=(20, 10))
@@ -147,7 +147,7 @@ if __name__ == "__main__":
             ax.set_title(f"ES: Slice {s + 1}")
             ax.axis("off")
         plt.tight_layout()
-        plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ES.png")
+        plt.savefig(f"{sub_dir}/visualization/ventricle/seg_sa_ES.png")
         plt.close(fig_ES)
 
         logger.info(f"{subject}: Record basic features")
@@ -222,7 +222,7 @@ if __name__ == "__main__":
                 "RV: V_ED/BSA [mL/m^2]": feature_dict["RV: V_ED [mL]"] / BSA_subject,
                 "LV: V_ES/BSA [mL/m^2]": feature_dict["LV: V_ES [mL]"] / BSA_subject,
                 "RV: V_ES/BSA [mL/m^2]": feature_dict["RV: V_ES [mL]"] / BSA_subject,
-                # define Cardiac Index
+                # define Cardiac Index is the cardiac output normalized to body surface area
                 # Ref Cardiovascular magnetic resonance reference ranges for the heart and aorta in Chinese at 3T https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4830061/pdf/12968_2016_Article_236.pdf
                 "LV: CI [L/min/m^2]": feature_dict["LV: CO [L/min]"] / BSA_subject,
                 "RV: CI [L/min/m^2]": feature_dict["RV: CO [L/min]"] / BSA_subject,
@@ -287,16 +287,26 @@ if __name__ == "__main__":
                     "LV: D_transverse_ED (4ch) [cm]": L_4ch_trans["ED"],
                 }
             )
-            if feature_dict["LV: V_ED [mL]"] / V_sphere_ED > 10:
+            if feature_dict["LV: V_ED [mL]"] / V_sphere_ED > 5:
                 logger.warning(f"{subject}: Extremely high sphericity index at ED detected, skipped.")
             else:
                 feature_dict.update({"LV: Sphericity_Index_ED": feature_dict["LV: V_ED [mL]"] / V_sphere_ED})
 
+            # Visualize the landmarks for longitudinal and transverse diameters at ED
             plt.imshow(sa[:, :, slice_ED, 0], cmap="gray")
             x_coords = [p[1] for p in lm_sax["ED"]]
             y_coords = [p[0] for p in lm_sax["ED"]]
             plt.scatter(x_coords, y_coords, c="r", label="Transverse", s=8)
+            plt.plot(x_coords, y_coords, c="r", linestyle='--')
             plt.title(f"ED: Transverse Diameter (sax-slice{slice_ED + 1})")
+            plt.text(
+                0.5,
+                -0.1,
+                f"Transverse Diameter is {feature_dict['LV: D_transverse_ED (sax) [cm]']:.2f} cm",
+                ha="center",
+                va="center",
+                transform=plt.gca().transAxes,
+            )
             plt.legend(loc="lower right")
             plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ED_diameter.png")
             plt.close()
@@ -305,10 +315,21 @@ if __name__ == "__main__":
             x_coords = [p[1] for p in lm_4ch_long["ED"]]
             y_coords = [p[0] for p in lm_4ch_long["ED"]]
             plt.scatter(x_coords, y_coords, c="r", label="Longitudinal", s=8)
+            plt.plot(x_coords, y_coords, c="r", linestyle='--')
             x_coords = [p[1] for p in lm_4ch_trans["ED"]]
             y_coords = [p[0] for p in lm_4ch_trans["ED"]]
             plt.scatter(x_coords, y_coords, c="b", label="Transverse", s=8)
+            plt.plot(x_coords, y_coords, c="b", linestyle='--')
             plt.title("ED: Longitudinal and Transverse Diameter (4ch)")
+            plt.text(
+                0.5,
+                -0.1,
+                f"Longitudinal Diameter is {feature_dict['LV: D_longitudinal_ED (4ch) [cm]']:.2f} cm\n"
+                f"Transverse Diameter is {feature_dict['LV: D_transverse_ED (4ch) [cm]']:.2f} cm",
+                ha="center",
+                va="center",
+                transform=plt.gca().transAxes,
+            )
             plt.legend(loc="lower right")
             plt.savefig(f"{sub_dir}/visualization/ventricle/la_ED_diameter.png")
             plt.close()
@@ -365,16 +386,26 @@ if __name__ == "__main__":
                     "LV: D_transverse_ES (4ch) [cm]": L_4ch_trans["ES"],
                 }
             )
-            if feature_dict["LV: V_ES [mL]"] / V_sphere_ES > 10:
+            if feature_dict["LV: V_ES [mL]"] / V_sphere_ES > 5:
                 logger.warning(f"{subject}: Extremely high sphericity index at ES detected, skipped.")
             else:
                 feature_dict.update({"LV: Sphericity_Index_ES": feature_dict["LV: V_ES [mL]"] / V_sphere_ES})
 
+            # Visualize the landmarks for longitudinal and transverse diameters at ES
             plt.imshow(sa[:, :, slice_ES, T_ES], cmap="gray")
             x_coords = [p[1] for p in lm_sax["ES"]]
             y_coords = [p[0] for p in lm_sax["ES"]]
             plt.scatter(x_coords, y_coords, c="r", label="Transverse", s=8)
+            plt.plot(x_coords, y_coords, c="r", linestyle='--')
             plt.title(f"ES: Transverse Diameter (sax-slice{slice_ES + 1})")
+            plt.text(
+                0.5,
+                -0.1,
+                f"Transverse Diameter is {feature_dict['LV: D_transverse_ES (sax) [cm]']:.2f} cm",
+                ha="center",
+                va="center",
+                transform=plt.gca().transAxes,
+            )
             plt.legend(loc="lower right")
             plt.savefig(f"{sub_dir}/visualization/ventricle/sa_ES_diameter.png")
             plt.close()
@@ -383,10 +414,21 @@ if __name__ == "__main__":
             x_coords = [p[1] for p in lm_4ch_long["ES"]]
             y_coords = [p[0] for p in lm_4ch_long["ES"]]
             plt.scatter(x_coords, y_coords, c="r", label="Longitudinal", s=8)
+            plt.plot(x_coords, y_coords, c="r", linestyle='--')
             x_coords = [p[1] for p in lm_4ch_trans["ES"]]
             y_coords = [p[0] for p in lm_4ch_trans["ES"]]
             plt.scatter(x_coords, y_coords, c="b", label="Transverse", s=8)
+            plt.plot(x_coords, y_coords, c="b", linestyle='--')
             plt.title("ES: Longitudinal and Transverse Diameter (4ch)")
+            plt.text(
+                0.5,
+                -0.1,
+                f"Longitudinal Diameter is {feature_dict['LV: D_longitudinal_ES (4ch) [cm]']:.2f} cm\n"
+                f"Transverse Diameter is {feature_dict['LV: D_transverse_ES (4ch) [cm]']:.2f} cm",
+                ha="center",
+                va="center",
+                transform=plt.gca().transAxes,
+            )
             plt.legend(loc="lower right")
             plt.savefig(f"{sub_dir}/visualization/ventricle/la_ES_diameter.png")
             plt.close()
@@ -526,18 +568,18 @@ if __name__ == "__main__":
                 raise ValueError("PFR_A should be positive")
             if PFR_E < 10 or PFR_A < 10:
                 raise ValueError("Extremely small PFR values detected, skipped.")
-            feature_dict.update(
-                {
-                    "LV: PFR-E [mL/s]": PFR_E,
-                    "LV: PFR-A [mL/s]": PFR_A,
-                    "LV: PFR-E/BSA [mL/s/m^2]": PFR_E / BSA_subject,
-                    "LV: PFR-A/BSA [mL/s/m^2]": PFR_A / BSA_subject,
-                }
-            )
-            if PFR_E / PFR_A > 10:
+            if PFR_E / PFR_A > 5:
                 logger.warning(f"{subject}: Extremely high PFR-E/PFR-A detected, skipped.")
             else:
-                feature_dict.update({"LV: PFR-E/PFR-A": PFR_E / PFR_A})
+                feature_dict.update(
+                    {
+                        "LV: PFR-E [mL/s]": PFR_E,
+                        "LV: PFR-A [mL/s]": PFR_A,
+                        "LV: PFR-E/BSA [mL/s/m^2]": PFR_E / BSA_subject,
+                        "LV: PFR-A/BSA [mL/s/m^2]": PFR_A / BSA_subject,
+                        "LV: PFR-E/PFR-A": PFR_E / PFR_A,
+                    }
+                )
 
                 colors = ["blue"] * len(V_LV_diff_y)
                 colors[T_ES] = "purple"
@@ -769,7 +811,7 @@ if __name__ == "__main__":
             )
             plt.suptitle(f"Subject {subject}: Ventricular Volume Time Series and ECG Signal")
             plt.tight_layout()
-            fig.savefig(f"{sub_dir}/timeseries/ventricle_ecg.png")
+            fig.savefig(f"{sub_dir}/timeseries/ventricle_volume_ecg.png")
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)

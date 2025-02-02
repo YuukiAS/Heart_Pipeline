@@ -224,10 +224,6 @@ if __name__ == "__main__":
             "eid": subject,
         }
 
-        # if 0 in A["LA_2ch"] or 0 in A["LA_4ch"] or 0 in A["RA_4ch"]:
-        #     logger.error(f"{subject}: Zero area for atrium is detected, subject is skipped.")
-        #     continue
-
         LAV_max = np.max(V["LA_bip"])
         LAV_min = np.min(V["LA_bip"])
         T_max = np.argmax(V["LA_bip"])
@@ -236,6 +232,7 @@ if __name__ == "__main__":
         feature_dict.update(
             {
                 # LA are determined using both 2ch and 4ch view
+                # define The distance between the posterior wall of atrium and center of valve plane
                 "LA: D_longitudinal (2ch) [cm]": np.max(L_L["LA_2ch"]),
                 "LA: D_longitudinal (4ch) [cm]": np.max(L_L["LA_4ch"]),
                 "LA: A_max (2ch) [cm^2]": np.max(A["LA_2ch"]),
@@ -246,7 +243,6 @@ if __name__ == "__main__":
                 "LA: V_min (bip) [mL]": LAV_min,
                 "LA: Total SV (bip) [mL]": LAV_max - LAV_min,
                 "LA: EF_total [%]": (LAV_max - LAV_min) / LAV_max * 100,
-                # "LA: EI [%]": (LAV_max - LAV_min) / LAV_min * 100,  # expansion index
                 # All RA are only determined using 4ch view
                 "RA: D_longitudinal [cm]": np.max(L_L["RA_4ch"]),
                 "RA: A_max [cm^2]": np.max(A["RA_4ch"]),
@@ -262,14 +258,14 @@ if __name__ == "__main__":
         LA_EI = (LAV_max - LAV_min) / LAV_min * 100
         RA_EI = (np.max(V["RA_4ch"]) - np.min(V["RA_4ch"])) / np.min(V["RA_4ch"]) * 100
 
-        if LA_EI < 500:
+        if LA_EI < 300:
             feature_dict.update({"LA: EI [%]": LA_EI})
         else:
-            logger.warning(f"{subject}: Extremely high LA EI detected, skipped.")
-        if RA_EI < 500:
+            logger.warning(f"{subject}: Extremely high LA Expansion Index detected, skipped.")
+        if RA_EI < 300:
             feature_dict.update({"RA: EI [%]": RA_EI})
         else:
-            logger.warning(f"{subject}: Extremely high RA EI detected, skipped.")
+            logger.warning(f"{subject}: Extremely high RA Expansion Index detected, skipped.")
 
         # Save time series of volume and display the time series of atrial volume
         os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
@@ -283,6 +279,7 @@ if __name__ == "__main__":
         }
         np.savez(f"{sub_dir}/timeseries/atrium.npz", **data_time)
 
+        # Visualize the segmentations
         logger.info(f"{subject}: Visualizing atrial segmentation on long-axis images")
         os.makedirs(f"{sub_dir}/visualization/atrium", exist_ok=True)
         fig, ax = plt.subplots(2, 2, figsize=(12, 8))
@@ -299,7 +296,7 @@ if __name__ == "__main__":
         ax[1, 1].imshow(seg_la_4ch_nan[:, :, 0, T_min], cmap="jet", alpha=0.5)
         ax[1, 1].title.set_text("4-chamber view: Minimal Volume")
         plt.tight_layout()
-        plt.savefig(f"{sub_dir}/visualization/atrium/la.png")
+        plt.savefig(f"{sub_dir}/visualization/atrium/seg_la.png")
         plt.close(fig)
 
         time_grid_point = np.arange(T)
@@ -348,9 +345,11 @@ if __name__ == "__main__":
 
         # * Feature2: Transverse diameter
         # Ref Reference left atrial dimensions and volumes by steady state free precession cardiovascular magnetic resonance https://www.sciencedirect.com/science/article/pii/S1097664723013455
+        # Ref Reference right atrial dimensions and volume estimation  https://doi.org/10.1186/1532-429X-15-29
         logger.info(f"{subject}: Implement transverse diameter features")
         feature_dict.update(
             {
+                # define Obtained perpendicular to longitudinal diameter, at the mid-level of the atrium
                 "LA: D_transverse (2ch) [cm]": np.max(L_T["LA_2ch"]),
                 "LA: D_transverse/BSA (2ch) [cm/m^2]": np.max(L_T["LA_2ch"]) / BSA_subject,
                 "LA: D_transverse (4ch) [cm]": np.max(L_T["LA_4ch"]),
@@ -359,6 +358,79 @@ if __name__ == "__main__":
                 "RA: D_transverse/BSA [cm/m^2]": np.max(L_T["RA_4ch"]) / BSA_subject,
             }
         )
+
+        # Visualize the landmarks for longitudinal and transverse diameters
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.imshow(la_2ch[:, :, 0, np.argmax(L_L["LA_2ch"])], cmap="gray")
+        x_coords = [p[1] for p in lm["2ch"][np.argmax(L_L["LA_2ch"])][:2]]
+        y_coords = [p[0] for p in lm["2ch"][np.argmax(L_L["LA_2ch"])][:2]]
+        plt.scatter(x_coords, y_coords, c="r", label="Longitudinal", s=8)
+        plt.plot(x_coords, y_coords, c="r", linestyle='--')
+        plt.title("Maximum LA Longitudinal Diameter (2ch)")
+        plt.text(
+            0.5,
+            -0.1,
+            f"Longitudinal Diameter is {feature_dict['LA: D_longitudinal (2ch) [cm]']:.2f} cm",
+            ha="center",
+            va="center",
+            transform=plt.gca().transAxes,
+        )
+        plt.legend(loc="lower right")
+        plt.subplot(1, 2, 2)
+        plt.imshow(la_2ch[:, :, 0, np.argmax(L_T["LA_2ch"])], cmap="gray")
+        x_coords = [p[1] for p in lm["2ch"][np.argmax(L_T["LA_2ch"])][2:]]
+        y_coords = [p[0] for p in lm["2ch"][np.argmax(L_T["LA_2ch"])][2:]]
+        plt.scatter(x_coords, y_coords, c="b", label="Transverse", s=8)
+        plt.plot(x_coords, y_coords, c="b", linestyle='--')
+        plt.title("Maximum LA Transverse Diameter (2ch)")
+        plt.text(
+            0.5,
+            -0.1,
+            f"Transverse Diameter is {feature_dict['LA: D_transverse (2ch) [cm]']:.2f} cm",
+            ha="center",
+            va="center",
+            transform=plt.gca().transAxes,
+        )
+        plt.legend(loc="lower right")
+        plt.savefig(f"{sub_dir}/visualization/atrium/la_2ch_diameter.png")
+        plt.close()
+
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.imshow(la_4ch[:, :, 0, np.argmax(L_L["LA_4ch"])], cmap="gray")
+        x_coords = [p[1] for p in lm["4ch"][np.argmax(L_L["LA_4ch"])][:2]]
+        y_coords = [p[0] for p in lm["4ch"][np.argmax(L_L["LA_4ch"])][:2]]
+        plt.scatter(x_coords, y_coords, c="r", label="Longitudinal", s=8)
+        plt.plot(x_coords, y_coords, c="r", linestyle='--')
+        plt.title("Maximum LA Longitudinal Diameter (4ch)")
+        plt.text(
+            0.5,
+            -0.1,
+            f"Longitudinal Diameter is {feature_dict['LA: D_longitudinal (4ch) [cm]']:.2f} cm",
+            ha="center",
+            va="center",
+            transform=plt.gca().transAxes,
+        )
+        plt.legend(loc="lower right")
+        plt.subplot(1, 2, 2)
+        plt.imshow(la_4ch[:, :, 0, np.argmax(L_T["LA_4ch"])], cmap="gray")
+        x_coords = [p[1] for p in lm["4ch"][np.argmax(L_T["LA_4ch"])][2:4]]
+        y_coords = [p[0] for p in lm["4ch"][np.argmax(L_T["LA_4ch"])][2:4]]
+        plt.scatter(x_coords, y_coords, c="b", label="Transverse", s=8)
+        plt.plot(x_coords, y_coords, c="b", linestyle='--')
+        plt.title("Maximum LA Transverse Diameter (4ch)")
+        plt.text(
+            0.5,
+            -0.1,
+            f"Transverse Diameter is {feature_dict['LA: D_transverse (4ch) [cm]']:.2f} cm",
+            ha="center",
+            va="center",
+            transform=plt.gca().transAxes,
+        )
+        plt.legend(loc="lower right")
+        plt.savefig(f"{sub_dir}/visualization/atrium/la_4ch_diameter.png")
+        plt.close()
 
         # * Feature3: LA Spherical Index
         logger.info(f"{subject}: Implement LA spherical index features")
@@ -371,7 +443,7 @@ if __name__ == "__main__":
         V_sphere_max = 4 / 3 * math.pi * (LAD_max / 2) ** 3
 
         LA_spherical_index = LAV_max / V_sphere_max
-        if LA_spherical_index > 10:
+        if LA_spherical_index > 5:
             logger.warning(f"{subject}: Extremely high LA spherical index detected, skipped.")
         else:
             feature_dict.update({"LA: Sphericity_Index": LA_spherical_index})
@@ -432,18 +504,18 @@ if __name__ == "__main__":
                 raise ValueError("PER_A should not be positive.")
             if abs(PER_E) < 10 or abs(PER_A) < 10:
                 raise ValueError("Extremely small PER values detected, skipped.")
-            feature_dict.update(
-                {
-                    "LA: PER-E [mL/s]": abs(PER_E),  # positive value should be reported; convert ms to s
-                    "LA: PER-A [mL/s]": abs(PER_A),
-                    "LA: PER-E/BSA [mL/s/m^2]": abs(PER_E) / BSA_subject,
-                    "LA: PER-A/BSA [mL/s/m^2]": abs(PER_A) / BSA_subject,
-                }
-            )
-            if abs(PER_E / PER_A) > 10:
+            if abs(PER_E / PER_A) > 5:
                 logger.warning(f"{subject}: Extremely high PER-E/PER-A detected, skipped.")
             else:
-                feature_dict.update({"LA: PER-E/PER-A": abs(PER_E / PER_A)})
+                feature_dict.update(
+                    {
+                        "LA: PER-E [mL/s]": abs(PER_E),  # positive value should be reported; convert ms to s
+                        "LA: PER-A [mL/s]": abs(PER_A),
+                        "LA: PER-E/BSA [mL/s/m^2]": abs(PER_E) / BSA_subject,
+                        "LA: PER-A/BSA [mL/s/m^2]": abs(PER_A) / BSA_subject,
+                        "LA: PER-E/PER-A": abs(PER_E / PER_A),
+                    }
+                )
         except (IndexError, ValueError) as e:
             logger.warning(f"{subject}: PER calculation failed: {e}")
 

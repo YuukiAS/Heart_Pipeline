@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
         logger.info(f"Make visualization of raw native T1 for subject {subject}")
         os.makedirs(f"{sub_dir}/visualization/ventricle", exist_ok=True)
-        plt.title(f"{subject}: Native T1")
+        plt.title("Native T1")
         plt.imshow(ShMOOLI[:, :, 0, 0], cmap="gray")
         plt.imshow(seg_ShMOLLI_nan[:, :, 0, 0], cmap="jet", alpha=0.5)
         plt.colorbar()
