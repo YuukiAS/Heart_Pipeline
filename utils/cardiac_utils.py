@@ -28,7 +28,10 @@ import porespy as ps
 from scipy import interpolate
 from scipy.stats import linregress
 from scipy.spatial.distance import cdist
-from scipy.ndimage import binary_dilation, binary_erosion
+from scipy.ndimage import binary_dilation, binary_erosion, distance_transform_edt
+from skimage import exposure
+from skimage.filters import threshold_otsu
+from itertools import combinations
 
 # import skimage.measure
 from .image_utils import (
@@ -44,8 +47,10 @@ from .image_utils import (
 from .quality_control_utils import sa_pass_quality_control2
 
 import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 from utils.log_utils import setup_logging
+
 logger = setup_logging("cardiac-utils")
 
 
@@ -98,8 +103,8 @@ def approximate_contour(contour, factor=4, smooth=0.05, periodic=False):
 
 def determine_aha_coordinate_system(seg_sa, affine_sa):
     """
-    Determine the AHA coordinate system using the mid-cavity slice
-    of the short-axis image segmentation.
+    Determine the AHA coordinate system using the mid-cavity slice of the short-axis image segmentation.
+    The returned coordinate system can then be used to dertemine the AHA segment ID.
     """
 
     if seg_sa.ndim != 3:
@@ -126,8 +131,7 @@ def determine_aha_coordinate_system(seg_sa, affine_sa):
     contours, _ = cv2.findContours(cv2.inRange(epi, 1, 1), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     epi_contour = contours[0][:, 0, :]
 
-    # define Septum is the intersection between LV and RV
-    septum = []
+    septum = []  # septum is a wall of tissue that separates the left and right sides of the heart
     dilate_iter = 1
     while len(septum) == 0:
         # Dilate the RV till it intersects with LV epicardium.
@@ -144,19 +148,24 @@ def determine_aha_coordinate_system(seg_sa, affine_sa):
     mx, my = septum[int(round(0.5 * len(septum)))]
     point_septum = np.dot(affine_sa, np.array([mx, my, z, 1]))[:3]
 
-    # Find the centre of the LV cavity
+    # Centre of the LV cavity
     cx, cy = [np.mean(x) for x in np.nonzero(endo)]
     point_cavity = np.dot(affine_sa, np.array([cx, cy, z, 1]))[:3]
 
     # Determine the AHA coordinate system
     axis = {}
-    axis["lv_to_sep"] = point_septum - point_cavity  # distance from the cavity centre to the septum
+
+    # distance from the cavity centre to the septum
+    axis["lv_to_sep"] = point_septum - point_cavity
     axis["lv_to_sep"] /= np.linalg.norm(axis["lv_to_sep"])
-    axis["apex_to_base"] = np.copy(affine_sa[:3, 2])  # distance from the apex to the base
+    # distance from the apex to the base
+    axis["apex_to_base"] = np.copy(affine_sa[:3, 2])
     axis["apex_to_base"] /= np.linalg.norm(axis["apex_to_base"])
     if axis["apex_to_base"][2] < 0:  # make sure z-axis is positive
         axis["apex_to_base"] *= -1
+
     axis["inf_to_ant"] = np.cross(axis["apex_to_base"], axis["lv_to_sep"])  # from inferior wall to anterior wall
+
     return axis
 
 
@@ -228,8 +237,8 @@ def determine_aha_part(seg_sa, affine_sa, three_slices=False):
 
 
 def determine_aha_segment_id(point, lv_centre, aha_axis, part):
-    """Determine the AHA segment ID given a point,
-    the LV cavity center and the coordinate system.
+    """
+    Determine the AHA segment ID given a point, the LV cavity center and the AHA coordinate system.
     """
     d = point - lv_centre
     x = np.dot(d, aha_axis["inf_to_ant"])
@@ -289,7 +298,7 @@ def determine_aha_segment_id(point, lv_centre, aha_axis, part):
     return seg_id
 
 
-def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
+def evaluate_wall_thickness(seg, nim_sa, part=None):
     """Evaluate myocardial wall thickness."""
 
     if seg.ndim != 3:
@@ -318,15 +327,14 @@ def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
     points_aha = vtk.vtkIntArray()
     points_aha.SetName("Segment ID")
     point_id = 0
-    lines = vtk.vtkCellArray()
+    lines_endo = vtk.vtkCellArray()
 
-    # Save epicardial contour for debug and demonstration purposes
-    if save_epi_contour:
-        epi_points = vtk.vtkPoints()
-        points_epi_aha = vtk.vtkIntArray()
-        points_epi_aha.SetName("Segment ID")
-        point_epi_id = 0
-        lines_epi = vtk.vtkCellArray()
+    # Repeat for epicardial contour
+    epi_points = vtk.vtkPoints()
+    points_epi_aha = vtk.vtkIntArray()
+    points_epi_aha.SetName("Segment ID")
+    point_epi_id = 0
+    lines_epi = vtk.vtkCellArray()
 
     # For each slice
     for z in range(Z):
@@ -403,85 +411,64 @@ def evaluate_wall_thickness(seg, nim_sa, part=None, save_epi_contour=False):
 
             # Add the line
             if i == (N - 1):
-                lines.InsertNextCell(2, [point_id, contour_start_id])
+                lines_endo.InsertNextCell(2, [point_id, contour_start_id])
             else:
-                lines.InsertNextCell(2, [point_id, point_id + 1])
+                lines_endo.InsertNextCell(2, [point_id, point_id + 1])
 
             # Increment the point index
             point_id += 1
 
-        if save_epi_contour:
-            # For each point on epicardium
-            N = epi_contour.shape[0]
-            for i in range(N):
-                y, x = epi_contour[i]
+        # For each point on epicardium
+        N = epi_contour.shape[0]
+        for i in range(N):
+            y, x = epi_contour[i]
 
-                # The world coordinate of this point
-                p = np.dot(affine, np.array([x, y, z, 1]))[:3]
-                epi_points.InsertNextPoint(p)
-                seg_id = determine_aha_segment_id(p, lv_centre, aha_axis, part_z[z])
-                points_epi_aha.InsertNextTuple1(seg_id)
+            # The world coordinate of this point
+            p = np.dot(affine, np.array([x, y, z, 1]))[:3]
+            epi_points.InsertNextPoint(p)
+            seg_id = determine_aha_segment_id(p, lv_centre, aha_axis, part_z[z])
+            points_epi_aha.InsertNextTuple1(seg_id)
 
-                # Record the first point of the current contour
-                if i == 0:
-                    contour_start_id = point_epi_id
+            # Record the first point of the current contour
+            if i == 0:
+                contour_start_id = point_epi_id
 
-                # Add the line
-                if i == (N - 1):
-                    lines_epi.InsertNextCell(2, [point_epi_id, contour_start_id])
-                else:
-                    lines_epi.InsertNextCell(2, [point_epi_id, point_epi_id + 1])
+            # Add the line
+            if i == (N - 1):
+                lines_epi.InsertNextCell(2, [point_epi_id, contour_start_id])
+            else:
+                lines_epi.InsertNextCell(2, [point_epi_id, point_epi_id + 1])
 
-                # Increment the point index
-                point_epi_id += 1
+            # Increment the point index
+            point_epi_id += 1
 
     # Save to a vtk file
     endo_poly = vtk.vtkPolyData()
     endo_poly.SetPoints(endo_points)
     endo_poly.GetPointData().AddArray(thickness)
     endo_poly.GetPointData().AddArray(points_aha)
-    endo_poly.SetLines(lines)
+    endo_poly.SetLines(lines_endo)
 
-    # writer = vtk.vtkPolyDataWriter()
-    # output_name = "{0}.vtk".format(output_name_stem)
-    # writer.SetFileName(output_name)
-    # writer.SetInputData(endo_poly)
-    # writer.Write()
-
-    if save_epi_contour:
-        epi_poly = vtk.vtkPolyData()
-        epi_poly.SetPoints(epi_points)
-        epi_poly.GetPointData().AddArray(points_epi_aha)
-        epi_poly.SetLines(lines_epi)
-
-        # writer = vtk.vtkPolyDataWriter()
-        # output_name = "{0}_epi.vtk".format(output_name_stem)
-        # writer.SetFileName(output_name)
-        # writer.SetInputData(epi_poly)
-        # writer.Write()
-    else:
-        epi_poly = None
+    epi_poly = vtk.vtkPolyData()
+    epi_poly.SetPoints(epi_points)
+    epi_poly.GetPointData().AddArray(points_epi_aha)
+    epi_poly.SetLines(lines_epi)
 
     # Evaluate the wall thickness per AHA segment and save to a csv file
     table_thickness = np.zeros(17)
     table_thickness_max = np.zeros(17)
+    table_thickness_min = np.zeros(17)
     np_thickness = numpy_support.vtk_to_numpy(thickness).astype(np.float32)
     np_points_aha = numpy_support.vtk_to_numpy(points_aha).astype(np.int8)
 
     for i in range(16):
         table_thickness[i] = np.mean(np_thickness[np_points_aha == (i + 1)])
         table_thickness_max[i] = np.max(np_thickness[np_points_aha == (i + 1)])
+        table_thickness_min[i] = np.min(np_thickness[np_points_aha == (i + 1)])
     table_thickness[-1] = np.mean(np_thickness)
     table_thickness_max[-1] = np.max(np_thickness)
 
-    index = [str(x) for x in np.arange(1, 17)] + ["Global"]
-    # df = pd.DataFrame(table_thickness, index=index, columns=["Thickness"])
-    # df.to_csv("{0}.csv".format(output_name_stem))
-
-    # df = pd.DataFrame(table_thickness_max, index=index, columns=["Thickness_Max"])
-    # df.to_csv("{0}_max.csv".format(output_name_stem))
-
-    return endo_poly, epi_poly, index, table_thickness, table_thickness_max
+    return endo_poly, epi_poly, table_thickness, table_thickness_max, table_thickness_min
 
 
 def extract_sa_myocardial_contour(seg_name, contour_name_stem1, contour_name_stem2, part=None, three_slices=False):
@@ -857,7 +844,7 @@ def cine_2d_sa_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
         split_sequence(f"{temp_dir}/sa/sa_crop_z{z:02d}.nii.gz", f"{temp_dir}/sa/sa_crop_z{z:02d}_fr")
 
         logger.info(f"Slice {z}: Forward registration")
-        # Ref https://doi.org/10.1038/s41591-020-1009-y
+        # Ref A population-based phenome-wide association study of cardiac and aortic structure and function https://doi.org/10.1038/s41591-020-1009-y
         # * Image registration between successive time frames for forward image registration
         # * Note1: We can use mirtk info to get information about generated .dof.gz file
         # * Note2: For mirtk register <img1> <img2> -dofout <dof>, the transformation is from img2 to img1
@@ -1147,13 +1134,13 @@ def determine_sa_apical_slice(seg_sa: Tuple[float, float, float]):
         return z
 
 
-def determine_axes(label, nim, long_axis, intersect=None):
+def determine_axes(label, nim, long_axis, intersect=None, basal=False):
     """
-    Determine the major axis and minor axis using the binary segmentation of ventricle/atrium and 
-    return the axes as well as lines that represents the major/minor axis that entirely covered by the segmentation.
+    Determine the major axis and minor axis of the ventricle or atrium using the segmentation.
+    The axes as well as lines that represents the major/minor axis that entirely covered by the segmentation will be returned.
 
-    By default, the returned image_line_major and image_line_minor will pass through the center at bottom third.
-    The two lines can be specified to pass through a specific point (image coordinate) by setting the intersect parameter.
+    By default, `image_line_major` will go through the basal center. This can be changed by setting `intersect` to other location.
+    By default, `image_line_major` will be at midventricular level. This can be changed to basal level by setting `basal=True`.
     """
     if label.ndim != 2:
         raise ValueError("The input should be a 2D image.")
@@ -1185,12 +1172,12 @@ def determine_axes(label, nim, long_axis, intersect=None):
 
     image_line_major = np.zeros(label.shape)
     if intersect is None:
-        # * If the intersection point is not specified, then image_line_major will go through center at the top by default
+        # * If the intersection point is not specified, then image_line_major will go through center at the bottom by default
         px = bx + major_axis[0] * 100
         py = by + major_axis[1] * 100
         qx = bx - major_axis[0] * 100
         qy = by - major_axis[1] * 100
-        
+
         cv2.line(image_line_major, (int(qy), int(qx)), (int(py), int(px)), (1, 0, 0))
         image_line_major = label & (image_line_major > 0)
     else:
@@ -1206,13 +1193,18 @@ def determine_axes(label, nim, long_axis, intersect=None):
     minor_axis = np.array([-major_axis[1], major_axis[0]])  # minor_axis is a vector
     minor_axis = minor_axis / np.linalg.norm(minor_axis)  # normalization
 
-    # Mid level, to be used when determining tranverse diameter
-    mx, my, _ = np.mean(points, axis=0)
+    if not basal:
+        mx, my, _ = np.mean(points, axis=0)
 
-    rx = mx + minor_axis[0] * 100
-    ry = my + minor_axis[1] * 100
-    sx = mx - minor_axis[0] * 100
-    sy = my - minor_axis[1] * 100
+        rx = mx + minor_axis[0] * 100
+        ry = my + minor_axis[1] * 100
+        sx = mx - minor_axis[0] * 100
+        sy = my - minor_axis[1] * 100
+    else:
+        rx = bx + minor_axis[0] * 100
+        ry = by + minor_axis[1] * 100
+        sx = bx - minor_axis[0] * 100
+        sy = by - minor_axis[1] * 100
     if np.isnan(rx) or np.isnan(ry) or np.isnan(sx) or np.isnan(sy):
         raise ValueError("Minor axis can not determined.")
 
@@ -1223,16 +1215,73 @@ def determine_axes(label, nim, long_axis, intersect=None):
     return major_axis, minor_axis, image_line_major, image_line_minor
 
 
-def determine_valve_landmark(seg4: Tuple[float, float]):
+def _choose_best_valve_landmark(corner_points, seg_target, n_ref=3, max_ratio=2):
+    """
+    The cv2.approxPolyDP function may not always return the correct corners.
+    Therefore, we allow multiple points to be returned and use this helper function to choose the best candidate.
+
+    Two points within the unique_corners are chosen as the ereference.
+    After theirs distance to the center of target segmentation are determined,
+    We also include any point that has its distance to the center of target within max_dist + (max_dist - min_dist).
+    Finally, the pair within the chosen points that has the largest pairwise distance are returned as eventual landmarks.
+    """
+    dist_transform = distance_transform_edt(seg_target == 0)
+    dist_all = []
+    for point in corner_points:
+        x, y = point
+        dist = dist_transform[y, x]
+        dist_all.append(dist)
+    # print("dist_all: ", dist_all)
+
+    dists = np.sort(dist_all)[:n_ref]
+    dist_min = min(dists)
+    dist_mid = np.median(dists)
+    dist_max = max(dists)
+    # If n_ref > 2, we should exclude the largest distance if it is far too large
+    if n_ref > 2 and dist_max > max_ratio * dist_mid:
+        dist_max = dist_mid
+        # Directly choose the two with smallest distance
+        lm_chosen = []
+        for index in np.argsort(dist_all)[:2]:
+            lm_chosen.append(corner_points[index])
+        lm = lm_chosen
+    else:
+        lm_chosen = [point for i, point in enumerate(corner_points) if dist_all[i] <= dist_max + (dist_max - dist_min)]
+        lm = max(combinations(lm_chosen, 2), key=lambda x: np.sqrt((x[0][0] - x[1][0]) ** 2 + (x[0][1] - x[1][1]) ** 2))
+    # print("dist_min, dist_max: ", dist_min, dist_max)
+
+    # For debugging
+    # print(len(corner_points), " -> ", len(lm_chosen))
+    # plt.imshow(seg_target, cmap="gray")
+    # for point in corner_points:
+    #     if point not in lm and point not in lm_chosen:
+    #         plt.scatter(point[0], point[1], c="r", s=1, label="corner")
+    #     elif point in lm_chosen and point not in lm:
+    #         plt.scatter(point[0], point[1], c="g", s=1, label="chosen")
+    #     else:
+    #         plt.scatter(point[0], point[1], c="b", s=1, label="landmark")
+    # plt.legend()
+    # plt.show()
+    # plt.close()
+
+    return lm
+
+
+def determine_valve_landmark(seg4: Tuple[float, float], n_corners=6, epsilon_init=0.005):
     """
     Determine the landmark for valves, so that valve diameter as well as AVPD can be measured.
+    The function computes landmarks by identifying contour corners and finding the closest points between paired chambers.
 
     Parameters
     ----------
     seg4 : Tuple[float, float]
         The segmentation of all four chambers and myocardium in the long-axis image.
     """
-    seg_LV = seg4 == 1
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3, "LA": 4, "RA": 5}
+
+    # Obtain the contours of the ventricles and atria
+    seg_LV = seg4 == labels["LV"]
+    seg_LV = get_largest_cc(seg_LV)
     seg_LV = seg_LV.astype(np.uint8)
     seg_LV = np.ascontiguousarray(seg_LV)
     seg_LV_contours, _ = cv2.findContours(seg_LV, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -1242,7 +1291,8 @@ def determine_valve_landmark(seg4: Tuple[float, float]):
     seg_LV_coords = np.column_stack(np.where(seg_LV))
     seg_LV_coords = np.column_stack([seg_LV_coords[:, 1], seg_LV_coords[:, 0]])
 
-    seg_RV = seg4 == 3
+    seg_RV = seg4 == labels["RV"]
+    seg_RV = get_largest_cc(seg_RV)
     seg_RV = seg_RV.astype(np.uint8)
     seg_RV = np.ascontiguousarray(seg_RV)
     seg_RV_contours, _ = cv2.findContours(seg_RV, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -1252,7 +1302,8 @@ def determine_valve_landmark(seg4: Tuple[float, float]):
     seg_RV_coords = np.column_stack(np.where(seg_RV))
     seg_RV_coords = np.column_stack([seg_RV_coords[:, 1], seg_RV_coords[:, 0]])
 
-    seg_LA = seg4 == 4
+    seg_LA = seg4 == labels["LA"]
+    seg_LA = get_largest_cc(seg_LA)
     seg_LA = seg_LA.astype(np.uint8)
     seg_LA = np.ascontiguousarray(seg_LA)
     seg_LA_contours, _ = cv2.findContours(seg_LA, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -1262,7 +1313,8 @@ def determine_valve_landmark(seg4: Tuple[float, float]):
     seg_LA_coords = np.column_stack(np.where(seg_LA))
     seg_LA_coords = np.column_stack([seg_LA_coords[:, 1], seg_LA_coords[:, 0]])
 
-    seg_RA = seg4 == 5
+    seg_RA = seg4 == labels["RA"]
+    seg_RA = get_largest_cc(seg_RA)
     seg_RA = seg_RA.astype(np.uint8)
     seg_RA = np.ascontiguousarray(seg_RA)
     seg_RA_contours, _ = cv2.findContours(seg_RA, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -1272,93 +1324,57 @@ def determine_valve_landmark(seg4: Tuple[float, float]):
     seg_RA_coords = np.column_stack(np.where(seg_RA))
     seg_RA_coords = np.column_stack([seg_RA_coords[:, 1], seg_RA_coords[:, 0]])
 
-    # * From cloest point in LA to LV
-    seg_LA_epsilon = 0.01
+    # * The landmarks in LA (cloest point in LA to LV)
+    seg_LA_epsilon = epsilon_init
     seg_LA_corners = cv2.approxPolyDP(seg_LA_contour, seg_LA_epsilon * cv2.arcLength(seg_LA_contour, True), True)
-    while len(seg_LA_corners) > 4:
-        seg_LA_epsilon += 0.01
+    while len(seg_LA_corners) > n_corners:
+        seg_LA_epsilon += epsilon_init
         seg_LA_corners = cv2.approxPolyDP(seg_LA_contour, seg_LA_epsilon * cv2.arcLength(seg_LA_contour, True), True)
-    if seg_LA_epsilon > 0.1:
+    if seg_LA_epsilon > 1:
         raise ValueError("Too many corners for LA detected")
-
     seg_LA_corner_points = [(point[0][0], point[0][1]) for point in seg_LA_corners]
 
-    LA_LV_distances = []
-    for point in seg_LV_coords:
-        x, y = point
-        for corner in seg_LA_corner_points:
-            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
-            LA_LV_distances.append((distance, corner))
-    LA_LV_distances.sort(key=lambda x: x[0])
-    LA_LV_sorted_corners = [corner for _, corner in LA_LV_distances]
-    LA_LV_unique_corners = list(OrderedDict.fromkeys(LA_LV_sorted_corners))
-    LA_lm = LA_LV_unique_corners[:2]
+    LA_lm = _choose_best_valve_landmark(seg_LA_corner_points, seg_LV)
 
-    # * From closest point in LV to LA
-    seg_LV_epsilon = 0.01
+    # * The landmarks in LV (cloest point in LV to LA)
+    seg_LV_epsilon = epsilon_init
     seg_LV_corners = cv2.approxPolyDP(seg_LV_contour, seg_LV_epsilon * cv2.arcLength(seg_LV_contour, True), True)
-    while len(seg_LV_corners) > 4:
-        seg_LV_epsilon += 0.01
+    while len(seg_LV_corners) > n_corners:
+        seg_LV_epsilon += epsilon_init
         seg_LV_corners = cv2.approxPolyDP(seg_LV_contour, seg_LV_epsilon * cv2.arcLength(seg_LV_contour, True), True)
-    if seg_LV_epsilon > 0.1:
+    if seg_LV_epsilon > 1:
         raise ValueError("Too many corners for LV detected")
 
     seg_LV_corner_points = [(point[0][0], point[0][1]) for point in seg_LV_corners]
 
-    LV_LA_distances = []
-    for point in seg_LA_coords:
-        x, y = point
-        for corner in seg_LV_corner_points:
-            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
-            LV_LA_distances.append((distance, corner))
-    LV_LA_distances.sort(key=lambda x: x[0])
-    LV_LA_sorted_corners = [corner for _, corner in LV_LA_distances]
-    LV_LA_unique_corners = list(OrderedDict.fromkeys(LV_LA_sorted_corners))
-    LV_lm = LV_LA_unique_corners[:2]
+    LV_lm = _choose_best_valve_landmark(seg_LV_corner_points, seg_LA)
 
-    # * From closest point in RA to RV
-    seg_RA_epsilon = 0.01
+    # * The landmarks in RA (cloest point in RA to RV)
+    seg_RA_epsilon = epsilon_init
     seg_RA_corners = cv2.approxPolyDP(seg_RA_contour, seg_RA_epsilon * cv2.arcLength(seg_RA_contour, True), True)
-    while len(seg_RA_corners) > 4:
-        seg_RA_epsilon += 0.01
+    while len(seg_RA_corners) > n_corners:
+        seg_RA_epsilon += epsilon_init
         seg_RA_corners = cv2.approxPolyDP(seg_RA_contour, seg_RA_epsilon * cv2.arcLength(seg_RA_contour, True), True)
-    if seg_RA_epsilon > 0.1:
+    if seg_RA_epsilon > 1:
         raise ValueError("Too many corners for RA detected")
 
     seg_RA_corner_points = [(point[0][0], point[0][1]) for point in seg_RA_corners]
 
-    RA_RV_distances = []
-    for point in seg_RV_coords:
-        x, y = point
-        for corner in seg_RA_corner_points:
-            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
-            RA_RV_distances.append((distance, corner))
-    RA_RV_distances.sort(key=lambda x: x[0])
-    RA_RV_sorted_corners = [corner for _, corner in RA_RV_distances]
-    RA_RV_unique_corners = list(OrderedDict.fromkeys(RA_RV_sorted_corners))
-    RA_lm = RA_RV_unique_corners[:2]
+    RA_lm = _choose_best_valve_landmark(seg_RA_corner_points, seg_RV)
 
-    # * From closest point in RV to RA
-    seg_RV_epsilon = 0.01
+    # * The landmarks in RV (cloest point in RV to RA)
+    seg_RV_epsilon = epsilon_init
     seg_RV_corners = cv2.approxPolyDP(seg_RV_contour, seg_RV_epsilon * cv2.arcLength(seg_RV_contour, True), True)
-    while len(seg_RV_corners) > 4:
-        seg_RV_epsilon += 0.01
+    while len(seg_RV_corners) > n_corners:
+        seg_RV_epsilon += epsilon_init
         seg_RV_corners = cv2.approxPolyDP(seg_RV_contour, seg_RV_epsilon * cv2.arcLength(seg_RV_contour, True), True)
-    if seg_RV_epsilon > 0.1:
+    if seg_RV_epsilon > 1:
         raise ValueError("Too many corners for RV detected")
 
     seg_RV_corner_points = [(point[0][0], point[0][1]) for point in seg_RV_corners]
 
-    RV_RA_distances = []
-    for point in seg_RA_coords:
-        x, y = point
-        for corner in seg_RV_corner_points:
-            distance = np.sqrt((x - corner[0]) ** 2 + (y - corner[1]) ** 2)
-            RV_RA_distances.append((distance, corner))
-    RV_RA_distances.sort(key=lambda x: x[0])
-    RV_RA_sorted_corners = [corner for _, corner in RV_RA_distances]
-    RV_RA_unique_corners = list(OrderedDict.fromkeys(RV_RA_sorted_corners))
-    RV_lm = RV_RA_unique_corners[:2]
+    # Adjust max ratio for landmarks in RV so that we will not select a landmark far from RA
+    RV_lm = _choose_best_valve_landmark(seg_RV_corner_points, seg_RA, max_ratio=1.2)
 
     return LV_lm, LA_lm, RV_lm, RA_lm
 
@@ -1928,87 +1944,9 @@ def cine_2d_la_motion_and_strain_analysis(data_dir, par_config_name, temp_dir, r
     return
 
 
-def plot_bulls_eye(data, vmin, vmax, cmap="Reds", color_line="black"):
-    """
-    Plot the bull's eye plot.
-    For an example of Bull's eye plot, refer to https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4862218/pdf/40001_2016_Article_216.pdf.
-    data: values for 16 segments
-    """
-    if len(data) != 16:
-        logger.error("Error: len(data) != 16!")
-        exit(1)
-
-    # The cartesian coordinate and the polar coordinate
-    x = np.linspace(-1, 1, 201)
-    y = np.linspace(-1, 1, 201)
-    xx, yy = np.meshgrid(x, y)
-    r = np.sqrt(xx * xx + yy * yy)
-    theta = np.degrees(np.arctan2(yy, xx))
-
-    # The radius and degree for each segment
-    R1, R2, R3, R4 = 1, 0.65, 0.3, 0.0
-    rad_deg = {
-        1: (R1, R2, 60, 120),
-        2: (R1, R2, 120, 180),
-        3: (R1, R2, -180, -120),
-        4: (R1, R2, -120, -60),
-        5: (R1, R2, -60, 0),
-        6: (R1, R2, 0, 60),
-        7: (R2, R3, 60, 120),
-        8: (R2, R3, 120, 180),
-        9: (R2, R3, -180, -120),
-        10: (R2, R3, -120, -60),
-        11: (R2, R3, -60, 0),
-        12: (R2, R3, 0, 60),
-        13: (R3, R4, 45, 135),
-        14: (R3, R4, 135, -135),
-        15: (R3, R4, -135, -45),
-        16: (R3, R4, -45, 45),
-    }
-
-    # Plot the segments
-    canvas = np.zeros(xx.shape)
-    cx, cy = (np.array(xx.shape) - 1) / 2
-    sz = cx
-
-    for i in range(1, 17):
-        val = data[i - 1]
-        r1, r2, theta1, theta2 = rad_deg[i]
-        if theta2 > theta1:
-            mask = ((r < r1) & (r >= r2)) & ((theta >= theta1) & (theta < theta2))
-        else:
-            mask = ((r < r1) & (r >= r2)) & ((theta >= theta1) | (theta < theta2))
-        canvas[mask] = val
-    plt.imshow(canvas, cmap=cmap, vmin=vmin, vmax=vmax)
-    plt.colorbar()
-    plt.axis("off")
-    plt.gca().invert_yaxis()  # gca(): get current axes
-
-    # Plot the circles
-    for r in [R1, R2, R3]:
-        deg = np.linspace(0, 2 * np.pi, 201)
-        circle_x = cx + sz * r * np.cos(deg)
-        circle_y = cy + sz * r * np.sin(deg)
-        plt.plot(circle_x, circle_y, color=color_line)
-
-    # Plot the lines between segments
-    for i in range(1, 17):
-        r1, r2, theta1, theta2 = rad_deg[i]
-        line_x = cx + sz * np.array([r1, r2]) * np.cos(np.radians(theta1))
-        line_y = cy + sz * np.array([r1, r2]) * np.sin(np.radians(theta1))
-        plt.plot(line_x, line_y, color=color_line)
-
-    # Plot the indicator for RV insertion points
-    for i in [2, 4]:
-        r1, r2, theta1, theta2 = rad_deg[i]
-        x = cx + sz * r1 * np.cos(np.radians(theta1))
-        y = cy + sz * r1 * np.sin(np.radians(theta1))
-        plt.plot([x, x - sz * 0.2], [y, y], color=color_line)
-
-
 def evaluate_ventricular_length_sax(label_sa: Tuple[float, float, float], nim_sa: nib.nifti1.Nifti1Image, long_axis, short_axis):
     """
-    Evaluate the ventricular length from short-axis view images.
+    Evaluate the ventricular length from short-axis view images on the basal slice.
     """
 
     if label_sa.ndim != 3:
@@ -2135,7 +2073,8 @@ def evaluate_ventricular_length_lax(label_la_seg4: Tuple[float, float], nim_la: 
     # Longitudinal diameter; Unit: cm
     L_long = np.linalg.norm(points[-1, :3] - points[0, :3]) * 1e-1
 
-    _, _, _, image_line_minor = determine_axes(label_LV, nim_la, long_axis)
+    # The transverse diameter should be calculated at the basal level.
+    _, _, _, image_line_minor = determine_axes(label_LV, nim_la, long_axis, basal=True)
 
     # Search through the image_line_minor
     points_line = np.nonzero(image_line_minor)
@@ -2214,9 +2153,7 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
         # Longitudinal diameter; Unit: cm
         L += [np.linalg.norm(points[-1] - points[0]) * 1e-1]  # Here we have already applied nim.affine, no need to multiply
 
-        # Define Transverse diameter is obtained perpendicular to longitudinal diameter, at the mid level of atrium
-        # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-29 for example in right atrium
-
+        # define Transverse diameter is obtained perpendicular to longitudinal diameter, at the mid level of atrium
         points_line_minor = np.nonzero(image_line_minor)
         points_minor = []
         points_minor_image = []  # for easier visualization
@@ -2240,11 +2177,11 @@ def evaluate_atrial_area_length(label_la: Tuple[float, float], nim_la: nib.nifti
     return A, L, landmarks
 
 
-def evaluate_valve_diameter(
+def evaluate_valve_length(
     label_la_seg4: Tuple[float, float, float, float],
     nim_la: nib.nifti1.Nifti1Image,
     t,
-    display=False,
+    visualize=True,
 ):
     """
     Calculate the mitral valve and tricuspid valve diameters at end-diastole and end-systole using 4 chamber long axis images.
@@ -2259,40 +2196,41 @@ def evaluate_valve_diameter(
 
     # * We use the average of ventricles and atriums
     LV_lm, LA_lm, RV_lm, RA_lm = determine_valve_landmark(label_t)
+    print(LV_lm, LA_lm, RV_lm, RA_lm)
 
     LV_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], LV_lm))
     LA_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], LA_lm))
     RV_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], RV_lm))
     RA_lm_real = list(map(lambda x: np.dot(nim_la.affine, np.array([x[0], x[1], 0, 1]))[:3], RA_lm))
 
-    TA_diameters = {"ventricle": None, "atrium": None, "average": None, "min": None}
-    MA_diameters = {"ventricle": None, "atrium": None, "average": None, "min": None}
+    MA_diameters = {"ventricle": None, "atrium": None, "average": None, "min": None}  # mitral valve
+    TA_diameters = {"ventricle": None, "atrium": None, "average": None, "min": None}  # tricuspid valve
 
-    # unit: cm
-    TA_diameters["ventricle"] = np.linalg.norm(LV_lm_real[0] - LV_lm_real[1]) * 1e-1
-    TA_diameters["atrium"] = np.linalg.norm(LA_lm_real[0] - LA_lm_real[1]) * 1e-1
-    TA_diameters["average"] = (TA_diameters["ventricle"] + TA_diameters["atrium"]) / 2
-    TA_diameters["min"] = min(TA_diameters["ventricle"], TA_diameters["atrium"])
-    MA_diameters["ventricle"] = np.linalg.norm(RV_lm_real[0] - RV_lm_real[1]) * 1e-1
-    MA_diameters["atrium"] = np.linalg.norm(RA_lm_real[0] - RA_lm_real[1]) * 1e-1
+    MA_diameters["ventricle"] = np.linalg.norm(LV_lm_real[0] - LV_lm_real[1]) * 1e-1  # unit: cm
+    MA_diameters["atrium"] = np.linalg.norm(LA_lm_real[0] - LA_lm_real[1]) * 1e-1
     MA_diameters["average"] = (MA_diameters["ventricle"] + MA_diameters["atrium"]) / 2
     MA_diameters["min"] = min(MA_diameters["ventricle"], MA_diameters["atrium"])
 
-    if display is True:
-        fig = plt.figure(figsize=(9, 6))
+    TA_diameters["ventricle"] = np.linalg.norm(RV_lm_real[0] - RV_lm_real[1]) * 1e-1
+    TA_diameters["atrium"] = np.linalg.norm(RA_lm_real[0] - RA_lm_real[1]) * 1e-1
+    TA_diameters["average"] = (TA_diameters["ventricle"] + TA_diameters["atrium"]) / 2
+    TA_diameters["min"] = min(TA_diameters["ventricle"], TA_diameters["atrium"])
+
+    if visualize:
+        figure = plt.figure(figsize=(9, 6))
         plt.imshow(label_t, cmap="gray")
         plt.title(f"Valve Landmarks (Timeframe = {t})")
-        plt.scatter(*zip(*LV_lm), c="red", s=8, label="Landmark 1 (Mitral)")
-        plt.scatter(*zip(*LA_lm), c="orange", s=8, label="Landmark 2 (Mitral)")
-        plt.scatter(*zip(*RV_lm), c="blue", s=8, label="Landmark 3 (Tricuspid)")
-        plt.scatter(*zip(*RA_lm), c="cyan", s=8, label="Landmark 4 (Tricuspid)")
-        plt.plot([LV_lm[0][0], LV_lm[1][0]], [LV_lm[0][1], LV_lm[1][1]], c="gray", linewidth=1.5)
-        plt.plot([LA_lm[0][0], LA_lm[1][0]], [LA_lm[0][1], LA_lm[1][1]], c="gray", linestyle="--", linewidth=1.5)
-        plt.plot([RV_lm[0][0], RV_lm[1][0]], [RV_lm[0][1], RV_lm[1][1]], c="gold", linewidth=1.5)
-        plt.plot([RA_lm[0][0], RA_lm[1][0]], [RA_lm[0][1], RA_lm[1][1]], c="gold", linestyle="--", linewidth=1.5)
+        plt.scatter(*zip(*LV_lm), c="red", s=8, label="Mitral Landmark 1")
+        plt.scatter(*zip(*LA_lm), c="orange", s=8, label="Mitral Landmark 2")
+        plt.scatter(*zip(*RV_lm), c="blue", s=8, label="Tricuspid Landmark 1")
+        plt.scatter(*zip(*RA_lm), c="cyan", s=8, label="Tricuspid Landmark 2")
+        plt.plot([LV_lm[0][0], LV_lm[1][0]], [LV_lm[0][1], LV_lm[1][1]], c="pink", linewidth=1.5)
+        plt.plot([LA_lm[0][0], LA_lm[1][0]], [LA_lm[0][1], LA_lm[1][1]], c="pink", linestyle="--", linewidth=1.5)
+        plt.plot([RV_lm[0][0], RV_lm[1][0]], [RV_lm[0][1], RV_lm[1][1]], c="pink", linewidth=1.5)
+        plt.plot([RA_lm[0][0], RA_lm[1][0]], [RA_lm[0][1], RA_lm[1][1]], c="pink", linestyle="--", linewidth=1.5)
         plt.legend(loc="lower right")
 
-        return TA_diameters, MA_diameters, fig
+        return TA_diameters, MA_diameters, figure
     else:
         return TA_diameters, MA_diameters
 
@@ -2302,7 +2240,7 @@ def evaluate_AVPD(
     nim_la: nib.nifti1.Nifti1Image,
     t_ED,
     t_ES,
-    display=False,
+    visualize=True,
 ):
     """
     Determine the atrioventricular plane displacement (AVPD).
@@ -2311,8 +2249,7 @@ def evaluate_AVPD(
     (https://journals.physiology.org/doi/epdf/10.1152/ajpheart.01148.2006).
     """
 
-    # * Currently, we follow https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3
-    # * only consider AVPD of LV at ED and ES. For time series of AVPD, feature tracking would be better
+    # Ref Atrioventricular plane displacement and regional function to predict outcome in pulmonary arterial hypertension https://pmc.ncbi.nlm.nih.gov/articles/PMC10509124/
 
     if label_la_seg4.ndim != 4:
         raise ValueError("The label_la should be a 4D image.")
@@ -2384,8 +2321,8 @@ def evaluate_AVPD(
     AV_displacement = np.sort(AV_displacement)
     AVPD = np.mean(AV_displacement[1:-1])
 
-    if display is True:
-        fig = plt.figure(figsize=(10, 5))
+    if visualize:
+        figure = plt.figure(figsize=(10, 5))
         plt.subplot(1, 2, 1)
         plt.title("Landmarks at ED")
         plt.imshow(label_ED, cmap="gray")
@@ -2416,9 +2353,9 @@ def evaluate_AVPD(
 
         plt.legend(loc="lower right")
 
-        return (AVPD * 1e-1, fig)  # unit: cm
+        return (AVPD * 1e-1, figure)  # unit: cm
     else:
-        return AVPD * 1e-1  # unit: cm
+        return AVPD * 1e-1
 
 
 def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float):
@@ -2429,8 +2366,8 @@ def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti
     seg_z = seg_sa_s_t.astype(np.uint8)
 
     labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
-    # * The segmentation masks are divided into 6 segmeents, depending on which interval [ k*pi/3, (k+1)*pi/3 )
-    # * the angle between vectors B_LP and B_LB_R is
+    # * The segmentation masks are divided into 6 segments
+    # * Depending on which interval [ k*pi/3, (k+1)*pi/3 ) the angle between vectors B_LP and B_LB_R lies in
 
     seg_z_LV = seg_z == labels["LV"]
     seg_z_RV = seg_z == labels["RV"]
@@ -2478,32 +2415,14 @@ def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti
         elif (labels["BG"] in neighbors) or (labels["RV"] in neighbors):
             boundaries[i] = 1
 
-    # plt.figure(figsize=(20, 10))
-    # plt.subplot(1,2,1)
-    # plt.imshow(seg_z, cmap="gray")
-    # plt.scatter(myo_points[:, 1], myo_points[:, 0], c=zones)
-    # plt.subplot(1,2,2)
-    # plt.imshow(seg_z, cmap="gray")
-    # plt.scatter(myo_points[:, 1], myo_points[:, 0], c=boundaries, s=0.5)
-
     barycenter_segments_inner = []  # define barycenter of inner boundary of segment
     barycenter_segments_outer = []  # define barycenter of outer boundary of segment
-
-    # seg_z_segments = np.ascontiguousarray(np.zeros_like(seg_z))
-    # seg_z_segments[seg_z_Myo] = zones
-    # plt.imshow(seg_z_segments, cmap='gray')
 
     for i in range(1, NUM_SEGMENTS + 1):
         segment_points = myo_points[zones == i]
         segment_boundary = boundaries[zones == i]
         segment_inner_barycenter = np.mean(segment_points[segment_boundary == -1], axis=0)
         segment_outer_barycenter = np.mean(segment_points[segment_boundary == 1], axis=0)
-
-        # seg_z_segment = seg_z_segments == i
-        # plt.figure(figsize=(20, 10))
-        # plt.imshow(seg_z_segment, cmap="gray")
-        # plt.scatter(segment_inner_barycenter[1], segment_inner_barycenter[0], c="r",s=1)
-        # plt.scatter(segment_outer_barycenter[1], segment_outer_barycenter[0], c="b",s=1)
 
         barycenter_segments_inner.append(segment_inner_barycenter)
         barycenter_segments_outer.append(segment_outer_barycenter)
@@ -2533,6 +2452,7 @@ def evaluate_radius_thickness(seg_sa_s_t: Tuple[float, float], nim_sa: nib.nifti
 def evaluate_radius_thickness_disparity(
     seg_sa: Tuple[float, float, float, float], nim_sa: nib.nifti1.Nifti1Image, BSA_value: float
 ):
+    # Ref Explainable cardiac pathology classification on cine MRI with motion characterization https://doi.org/10.1016/j.media.2019.06.001
     if seg_sa.ndim != 4:
         raise ValueError("The seg_sa should be a 4D (3D+t) image.")
     T = seg_sa.shape[3]
@@ -2549,23 +2469,26 @@ def evaluate_radius_thickness_disparity(
 
         radius_t = []
         thickness_t = []
+        # similar to the paper, here we focus on extracting from the middle sub-stack.
         for s in range(basal_slice, apical_slice + 1):
             seg_sa_s_t = seg_sa_t[:, :, s]
+
             if not sa_pass_quality_control2(seg_sa_s_t, pixel_thres=25):
                 logger.warning(f"Slice {s} at time {t} does not pass quality control, skipped.")
                 continue
+
             radius_segments, thickness_segments = evaluate_radius_thickness(seg_sa_s_t, nim_sa, BSA_value)
             radius_t.append(radius_segments)
             thickness_t.append(thickness_segments)
         radius.append(np.array(radius_t).ravel().tolist())
         thickness.append(np.array(thickness_t).ravel().tolist())
 
-    # We cannot use numpy manipulation here as the slice*segment is variable for each timepoint
     T_used = len(radius)
     radius_disparity = np.zeros(T_used)
     thickness_disparity = np.zeros(T_used)
     for t in range(T_used):
-        # define Disparity: max(value_t/value_0) - min(value_t/value_0)
+        # define Disparity at certain time: max(value_t/value_0) - min(value_t/value_0) for all segments and slices
+        # define Motion disparity is the maximum disparity over time
         # Since we have lots of elements, we remove top 10% and bottom 10% to avoid possible outliers
 
         radius_t = radius[t]
@@ -2591,49 +2514,92 @@ def evaluate_radius_thickness_disparity(
     return radius_motion_disparity, thickness_motion_disparity, radius, thickness
 
 
-def fractal_dimension(seg_sa_ED: Tuple[float, float, float], nim_sa_ED: nib.nifti1.Nifti1Image):
+def fractal_dimension(seg_sa_ED: Tuple[float, float, float], nim_sa_ED: nib.nifti1.Nifti1Image, visualize_info=True):
+    """
+    Determine the global and maximum apical FD using box-counting algorithm on the end-diastolic frames of each short-axis slice.
+    """
     fds = []
 
+    # Ref Quantification of left ventricular trabeculae using fractal analysis. https://doi.org/10.1186/1532-429X-15-36
+    # * Here we calculate the global FD, where FD from each slice are averaged
+    labels = {"BG": 0, "LV": 1, "Myo": 2, "RV": 3}
+
     img_sa = nim_sa_ED.get_fdata()
-    for i in range(0, seg_sa_ED.shape[2]):
-        seg_endo = seg_sa_ED[:, :, i] == 1
-        img_endo = img_sa[:, :, i] * seg_endo
-        if img_endo.sum() == 0:
+    assert img_sa.shape == seg_sa_ED.shape, "Image and segmentation should have the same shape."
+
+    if visualize_info:
+        img_roi = np.zeros_like(seg_sa_ED)
+        seg_roi = np.zeros_like(seg_sa_ED)
+
+    for s in range(0, seg_sa_ED.shape[2]):
+        seg_LV = (seg_sa_ED[:, :, s] == labels["LV"]).astype(np.uint8)
+        seg_myo = (seg_sa_ED[:, :, s] == labels["Myo"]).astype(np.uint8)
+        img_LV = img_sa[:, :, s] * seg_LV
+        # Normalize the intensity so that the threshold is more appropriate for analysis
+        img_LV = exposure.equalize_hist(img_LV)
+
+        if visualize_info:
+            img_roi[:, :, s] = img_LV
+
+        # Quality control Criterion 1: The pixels of the myocardium should be above a threshold
+        if img_LV.sum() < 20:
+            fds.append(np.nan)
             continue
-        img_endo = (255 * (img_endo - np.min(img_endo)) / (np.max(img_endo) - np.min(img_endo))).astype(np.uint8)
-        # plt.imshow(img_endo, cmap="gray")
-        seg_backgroud = (img_endo > 0).astype(np.uint8)
-        adaptive_thresh = cv2.adaptiveThreshold(img_endo, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
-        seg_endo_trabeculation = cv2.bitwise_and(adaptive_thresh, seg_backgroud)
-        # plt.imshow(seg_endo_trabeculation, cmap="gray")
+
+        # Quality control Criterion 2: The ventricle is completely surrounded by the endocardium
+        contours, _ = cv2.findContours(seg_myo, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        surround = True
+        for i in range(seg_LV.shape[0]):
+            for j in range(seg_LV.shape[1]):
+                if seg_LV[i, j] == 1:
+                    if all(cv2.pointPolygonTest(contour, (j, i), False) < 0 for contour in contours):
+                        surround = False
+        if not surround:
+            fds.append(np.nan)
+            continue
+
+        thresh = threshold_otsu(img_LV)
+        seg_endo = (img_LV > thresh).astype(np.uint8)  # endocardial border
+
+        if visualize_info:
+            seg_roi[:, :, s] = seg_endo
 
         # Find a bounding box that contain the endocardium and trabeculation
-        coords = cv2.findNonZero(seg_endo_trabeculation)
-        x, y, w, h = cv2.boundingRect(coords)
+        seg_endo_coords = cv2.findNonZero(seg_endo)
+        x, y, w, h = cv2.boundingRect(seg_endo_coords)
         # print(f"{i}: {w}, {h}")
-        if w < 20 or h < 20:
+        if w < 15 or h < 15:
+            fds.append(np.nan)
             continue
         x -= 10
         y -= 10
         w += 20
         h += 20
-        seg_endo_trabeculation_cropped = seg_endo_trabeculation[y : y + h, x : x + w]
+        seg_endo_cropped = seg_endo[y : y + h, x : x + w]
 
-        contours, _ = cv2.findContours(seg_endo_trabeculation_cropped, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-        seg_endo_trabeculation_contour = np.zeros_like(seg_endo_trabeculation_cropped)
-        cv2.drawContours(seg_endo_trabeculation_contour, contours, -1, 255, 1)
+        contours, _ = cv2.findContours(seg_endo_cropped, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+        seg_endo_contour = np.zeros_like(seg_endo_cropped)
+        seg_endo_contour = np.ascontiguousarray(seg_endo_contour)
+        cv2.drawContours(seg_endo_contour, contours, -1, 255, 1)
 
         scale = np.arange(0.05, 0.5, 0.01)
-        bins = scale * seg_endo_trabeculation_cropped.shape[0]
-        ps.metrics.boxcount(seg_endo_trabeculation_contour, bins=bins)
-        boxcount_data = ps.metrics.boxcount(seg_endo_trabeculation_contour, bins=bins)
+        bins = scale * seg_endo_cropped.shape[0]
+        ps.metrics.boxcount(seg_endo_contour, bins=bins)
+        boxcount_data = ps.metrics.boxcount(seg_endo_contour, bins=bins)
         slope, _, _, _, _ = linregress(np.log(scale), np.log(boxcount_data.count))
         slope = abs(slope)
         if slope < 1 or slope > 2:
             raise ValueError("Fractal dimension should lie between 1 and 2.")
         fds.append(slope)
 
-    return np.mean(np.array(fds))
+    fds = np.array(fds)
+    global_fd = np.nanmean(fds)
+    max_apical_fd = np.nanmean(fds[seg_sa_ED.shape[2] // 3 :])  # define The maximal FD in the apical thirds of LV
+
+    if not visualize_info:
+        return global_fd, max_apical_fd
+    else:
+        return global_fd, max_apical_fd, fds, img_roi, seg_roi
 
 
 def calculate_LV_center(seg_sa, affine, time, slice):
@@ -2695,7 +2661,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
     n_slices_used = apical_slice - basal_slice + 1
     logger.info(f"Basal slice: {basal_slice}, Apical slice: {apical_slice}, # of Slices used: {n_slices_used}")
 
-    # Ref https://dx.plos.org/10.1371/journal.pone.0109164
+    # Ref Quantification of Left Ventricular Torsion and Diastolic Recoil Using Myocardial Feature Tracking https://dx.plos.org/10.1371/journal.pone.0109164
     SLICE_THICKNESS = 8  # unit: mm
     SLICE_GAP = 2
 
@@ -2793,7 +2759,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         if len(points_base_ED["epi"]) != len(points_base["epi"]) or len(points_base_ED["endo"]) != len(points_base["endo"]):
             raise ValueError(f"The number of points at frame {fr} is different from ED")
 
-        # Ref https://www.sciencedirect.com/science/article/pii/S1097664723012437?via%3Dihub
+        # Ref Regional assessment of left ventricular torsion by CMR tagging https://www.sciencedirect.com/science/article/pii/S1097664723012437?via%3Dihub
         # * The rotation is calculated using arcsin of normalized cross product
 
         rotations_base_z = {"epi": np.zeros(len(points_base["epi"])), "endo": np.zeros(len(points_base["endo"]))}
@@ -2845,9 +2811,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
         torsion_epi["base"][fr] = np.mean(rotations_base_z["epi"])
         torsion_epi["apex"][fr] = np.mean(rotations_apex_z["epi"])
         torsion_epi["twist"][fr] = torsion_epi["apex"][fr] - torsion_epi["base"][fr]
-        torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / (
-            ((SLICE_THICKNESS + SLICE_GAP) * (n_slices_used - 1)) * 0.1
-        )
+        torsion_epi["torsion"][fr] = torsion_epi["twist"][fr] / (((SLICE_THICKNESS + SLICE_GAP) * (n_slices_used - 1)) * 0.1)
 
         torsion_global["base"][fr] = (n_base * torsion_endo["base"][fr] + n_apex * torsion_epi["base"][fr]) / (n_base + n_apex)
         torsion_global["apex"][fr] = (n_base * torsion_endo["apex"][fr] + n_apex * torsion_epi["apex"][fr]) / (n_base + n_apex)
@@ -2859,7 +2823,7 @@ def evaluate_torsion(seg_sa: Tuple[float, float, float, float], nim_sa: nib.nift
     return torsion_endo, torsion_epi, torsion_global, basal_slice, apical_slice
 
 
-def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple[float, float], labels):
+def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple[float, float], labels, visualize=True):
     """
     Determine the global native T1 values as well as those for inter-ventricular septum (IVS), free-wall (FW) and blood pools.
     """
@@ -2967,29 +2931,30 @@ def evaluate_t1_uncorrected(img_ShMOLLI: Tuple[float, float], seg_ShMOLLI: Tuple
     T1_blood_right = img_ShMOLLI[seg_RV_eroded == 1]
 
     # visualization
-    figure = plt.figure(figsize=(15, 5))
-    plt.subplot(1, 3, 1)
-    plt.imshow(img_ShMOLLI, cmap="gray")
-    plt.imshow(seg_myo_IVS_eroded, cmap="gray", alpha=0.5)
-    plt.scatter(lm1[0], lm1[1], c="r", s=8)
-    plt.scatter(lm2[0], lm2[1], c="r", s=8)
-    plt.scatter(LV_barycenter[0], LV_barycenter[1], c="blue", s=8)
-    plt.title("Intraventricular septum (IVS)")
-    plt.subplot(1, 3, 2)
-    plt.imshow(img_ShMOLLI, cmap="gray")
-    plt.imshow(seg_myo_FW_eroded, cmap="gray", alpha=0.5)
-    plt.title("Free wall (FW)")
-    plt.subplot(1, 3, 3)
-    plt.imshow(img_ShMOLLI, cmap="gray")
-    plt.imshow(seg_blood_eroded, cmap="gray", alpha=0.5)
-    plt.title("Blood pool")
-    return (T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood_left.mean(), T1_blood_right.mean(), figure)
+    if visualize:
+        figure = plt.figure(figsize=(15, 5))
+        plt.subplot(1, 3, 1)
+        plt.imshow(img_ShMOLLI, cmap="gray")
+        plt.imshow(seg_myo_IVS_eroded, cmap="gray", alpha=0.5)
+        plt.scatter(lm1[0], lm1[1], c="r", s=8)
+        plt.scatter(lm2[0], lm2[1], c="r", s=8)
+        plt.scatter(LV_barycenter[0], LV_barycenter[1], c="blue", s=8)
+        plt.title("Intraventricular septum (IVS)")
+        plt.subplot(1, 3, 2)
+        plt.imshow(img_ShMOLLI, cmap="gray")
+        plt.imshow(seg_myo_FW_eroded, cmap="gray", alpha=0.5)
+        plt.title("Free wall (FW)")
+        plt.subplot(1, 3, 3)
+        plt.imshow(img_ShMOLLI, cmap="gray")
+        plt.imshow(seg_blood_eroded, cmap="gray", alpha=0.5)
+        plt.title("Blood pool")
+        return T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood_left.mean(), T1_blood_right.mean(), figure
+    else:
+        return T1_global.mean(), T1_IVS.mean(), T1_FW.mean(), T1_blood_left.mean(), T1_blood_right.mean()
 
 
-def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float], 
-                           img_phase: Tuple[float, float, float], 
-                           VENC,
-                           square_per_pix
+def evaluate_velocity_flow(
+    seg_morphology: Tuple[float, float, float], img_phase: Tuple[float, float, float], VENC, square_per_pix
 ):
     if seg_morphology.ndim != 3 or img_phase.ndim != 3:
         raise ValueError("The input should be 3D image.")
@@ -2999,6 +2964,8 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
     velocity = []
     gradient = []
     flow = []
+    flow_positive = []
+    flow_negative = []
     velocity_center = []
     velocity_map_all = np.zeros_like(img_phase)
 
@@ -3006,23 +2973,25 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
         mask = seg_morphology[:, :, t]
         phase = img_phase[:, :, t]
 
-        # Ref Nayak, Krishna S., et al. “Cardiovascular Magnetic Resonance Phase Contrast Imaging.”
-        phase_normalized = (phase / 4096.0) * (2 * np.pi) - np.pi
+        # Ref Cardiovascular magnetic resonance phase contrast imaging. https://doi.org/10.1186/s12968-015-0172-7
+        phase_normalized = (phase / 4095.0) * (2 * np.pi) - np.pi  # range from 0 to 4096
         velocity_map = (phase_normalized / np.pi) * VENC
+        # Or equivalently, velocity_map = (phase / 4095) * (2 * VENC) - VENC
         velocity_map_roi = velocity_map[mask == 1]
 
-        # Ref Kany, S., et.al (2023). Assessment of valvular function in over 47,000 people using deep learning-based flow measurements.https://doi.org/10.1101/2023.04.29.23289299
-        # * We follow the paper and selects the 99th percentile to reduce supuriously high peak velocity
-        peak_velocity = np.percentile(velocity_map_roi, 99)
+        # Ref Assessment of valvular function in over 47,000 people using deep learning-based flow measurements.https://doi.org/10.1101/2023.04.29.23289299
+        peak_velocity = np.max(velocity_map_roi)
         velocity.append(peak_velocity)  # unit: cm/s
         # * Gradient is determined by using the Bernoulli formula, first convert speed to m/s
         gradient.append(4 * (peak_velocity / 100) ** 2)  # unit: mmHg
         flow.append(np.sum(velocity_map_roi) * square_per_pix)  # unit: cm^3/s=mL/s
+        flow_positive.append(np.sum(velocity_map_roi[velocity_map_roi > 0]) * square_per_pix)
+        flow_negative.append(np.sum(velocity_map_roi[velocity_map_roi < 0]) * square_per_pix)
 
         # Ref Systolic Flow Displacement Correlates With Future Ascending Aortic Growth in Patients With Bicuspid Aortic Valves
         # Calculate the center of velocity: weighted by the absolute velocity information
         velocity_map_y_coords, velocity_map_x_coords = np.indices(velocity_map.shape)
-        weights = np.where(mask == 1, np.abs(velocity_map), 0)
+        weights = np.where((mask == 1) & (velocity_map > 0), np.abs(velocity_map), 0)
         total_weight = np.sum(weights)
         center_x = np.sum(velocity_map_x_coords * weights) / total_weight
         center_y = np.sum(velocity_map_y_coords * weights) / total_weight
@@ -3030,4 +2999,15 @@ def evaluate_velocity_flow(seg_morphology: Tuple[float, float, float],
 
         velocity_map_all[:, :, t] = velocity_map
 
-    return np.array(velocity), np.array(gradient), np.array(flow), np.array(velocity_center), velocity_map_all
+    return (
+        # Lists
+        np.array(velocity),
+        np.array(gradient),
+        np.array(flow),
+        np.array(flow_positive),
+        np.array(flow_negative),
+        # 2D arrays
+        np.array(velocity_center),
+        # 3D arrays
+        velocity_map_all,
+    )

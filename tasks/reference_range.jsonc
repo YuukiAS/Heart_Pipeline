@@ -728,6 +728,20 @@
                     "n": 213,
                     "target": "women, 65-74",
                     "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
+                },
+                {
+                    "mean": 581,
+                    "sd": 100,
+                    "n": 12,
+                    "target": "normal control",
+                    "cite": "Erdei, T., Rodrigues, J. C. L., Hartley-Davies, R., Dastidar, A. G., Szantho, G. V., Hart, E. C., Nightingale, A. K., Manghat, N. E., & Hamilton, M. C. K. (2022). The effect of left ventricular longitudinal strain on left atrial function and ventricular filling in hypertension. Clinical Radiology, 77(5), e379–e386. https://doi.org/10.1016/j.crad.2022.01.056"
+                },
+                {
+                    "mean": 324,
+                    "sd": 94,
+                    "n": 8,
+                    "target": "no CAD",
+                    "cite": "Sharifov, O., Denney, T. S., Girard, A. A., Gupta, H., & Lloyd, S. G. (2023). Coronary Artery Disease is Associated With Impaired Atrial Function Regardless of Left Ventricular Filling Pressure. International Journal of Cardiology, 387, 131102. https://doi.org/10.1016/j.ijcard.2023.05.052"
                 }
             ]
         },
@@ -798,7 +812,21 @@
                     "n": 213,
                     "target": "women, 65-74",
                     "cite": "Ruijsink, Bram, et al. “Fully Automated, Quality-Controlled Cardiac Analysis From CMR: Validation and Large-Scale Application to Characterize Cardiac Function.” JACC: Cardiovascular Imaging, vol. 13, no. 3, Mar. 2020, pp. 684–95. ScienceDirect, https://doi.org/10.1016/j.jcmg.2019.05.030."
-                }    
+                },
+                {
+                    "mean": 220,
+                    "sd": 101,
+                    "n": 12,
+                    "target": "normal control",
+                    "cite": "Erdei, T., Rodrigues, J. C. L., Hartley-Davies, R., Dastidar, A. G., Szantho, G. V., Hart, E. C., Nightingale, A. K., Manghat, N. E., & Hamilton, M. C. K. (2022). The effect of left ventricular longitudinal strain on left atrial function and ventricular filling in hypertension. Clinical Radiology, 77(5), e379–e386. https://doi.org/10.1016/j.crad.2022.01.056"
+                },
+                {
+                    "mean": 210,
+                    "sd": 97,
+                    "n": 8,
+                    "target": "no CAD",
+                    "cite": "Sharifov, O., Denney, T. S., Girard, A. A., Gupta, H., & Lloyd, S. G. (2023). Coronary Artery Disease is Associated With Impaired Atrial Function Regardless of Left Ventricular Filling Pressure. International Journal of Cardiology, 387, 131102. https://doi.org/10.1016/j.ijcard.2023.05.052"
+                }
             ]
         },
         {
@@ -3002,6 +3030,112 @@
                     "n": 432,
                     "target": "women, 2ch",
                     "cite": "Petersen, Steffen E., et al. “Reference Ranges for Cardiac Structure and Function Using Cardiovascular Magnetic Resonance (CMR) in Caucasians from the UK Biobank Population Cohort.” Journal of Cardiovascular Magnetic Resonance, vol. 19, no. 1, Feb. 2017, p. 18. BioMed Central, https://doi.org/10.1186/s12968-017-0327-9."
+                },
+                {
+                    "mean": 59,
+                    "sd": 5,
+                    "n": 12,
+                    "target": "normal control",
+                    "cite": "Erdei, T., Rodrigues, J. C. L., Hartley-Davies, R., Dastidar, A. G., Szantho, G. V., Hart, E. C., Nightingale, A. K., Manghat, N. E., & Hamilton, M. C. K. (2022). The effect of left ventricular longitudinal strain on left atrial function and ventricular filling in hypertension. Clinical Radiology, 77(5), e379–e386. https://doi.org/10.1016/j.crad.2022.01.056"
+                },
+                {
+                    "mean": 64,
+                    "sd": 5,
+                    "n": 8,
+                    "target": "no CAD",
+                    "cite": "Sharifov, O., Denney, T. S., Girard, A. A., Gupta, H., & Lloyd, S. G. (2023). Coronary Artery Disease is Associated With Impaired Atrial Function Regardless of Left Ventricular Filling Pressure. International Journal of Cardiology, 387, 131102. https://doi.org/10.1016/j.ijcard.2023.05.052"
+                },
+                {
+                    "lower": 47,
+                    "upper": 68,
+                    "n": 60,
+                    "target": "male",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
+                },
+                {
+                    "lower": 48,
+                    "upper": 72,
+                    "n": 60,
+                    "target": "female",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
+                }
+            ]
+        },
+        {
+            "name": "EI",
+            "full_name": "Expansion Index",
+            "note": "",
+            "reference_range": [
+                {
+                    "mean": 162,
+                    "sd": 79,
+                    "n": 97,
+                    "target": "male, 31-40",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 162,
+                    "sd": 99,
+                    "n": 169,
+                    "target": "male, 41-50",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 146,
+                    "sd": 87,
+                    "n": 243,
+                    "target": "male, 51-60",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 129,
+                    "sd": 63,
+                    "n": 176,
+                    "target": "male, 61-70",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 126,
+                    "sd": 74,
+                    "n": 177,
+                    "target": "male, 71-80",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+
+                {
+                    "mean": 160,
+                    "sd": 77,
+                    "n": 131,
+                    "target": "female, 31-40",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 166,
+                    "sd": 92,
+                    "n": 217,
+                    "target": "female, 41-50",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 149,
+                    "sd": 84,
+                    "n": 240,
+                    "target": "female, 51-60",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 125,
+                    "sd": 65,
+                    "n": 199,
+                    "target": "female, 61-70",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
+                },
+                {
+                    "mean": 122,
+                    "sd": 72,
+                    "n": 116,
+                    "target": "female, 71-80",
+                    "cite": "Hsu, K.-C., Chou, M.-C., Chu, H.-C., Chiou, K.-R., Kuo, F.-Y., Huang, W.-C., Chang, W.-T., & Chen, W.-Y. (2020). Comparisons of Left Atrial Functional Parameters with Left Ventricular Diastolic Dysfunction in a Large Taiwanese Population with Normal Left Ventricular Ejection Fraction According to Age. Acta Cardiologica Sinica, 36(6), 633–640. https://doi.org/10.6515/ACS.202011_36(6).20200412A"
                 }
             ]
         },
@@ -3111,6 +3245,34 @@
                     "n": 25,
                     "target": "healthy control",
                     "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
+                },
+                {
+                    "mean": 313,
+                    "sd": 83,
+                    "n": 12,
+                    "target": "normal control",
+                    "cite": "Erdei, T., Rodrigues, J. C. L., Hartley-Davies, R., Dastidar, A. G., Szantho, G. V., Hart, E. C., Nightingale, A. K., Manghat, N. E., & Hamilton, M. C. K. (2022). The effect of left ventricular longitudinal strain on left atrial function and ventricular filling in hypertension. Clinical Radiology, 77(5), e379–e386. https://doi.org/10.1016/j.crad.2022.01.056"
+                },
+                {
+                    "mean": 137,
+                    "sd": 44,
+                    "n": 8,
+                    "target": "no CAD",
+                    "cite": "Sharifov, O., Denney, T. S., Girard, A. A., Gupta, H., & Lloyd, S. G. (2023). Coronary Artery Disease is Associated With Impaired Atrial Function Regardless of Left Ventricular Filling Pressure. International Journal of Cardiology, 387, 131102. https://doi.org/10.1016/j.ijcard.2023.05.052"
+                },
+                {
+                    "lower": 111,
+                    "upper": 367,
+                    "n": 60,
+                    "target": "male",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
+                },
+                {
+                    "lower": 76,
+                    "upper": 366,
+                    "n": 60,
+                    "target": "female",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
                 }
             ]
         },
@@ -3139,6 +3301,34 @@
                     "n": 25,
                     "target": "healthy control",
                     "cite": "Aquaro, G. D., Pizzino, F., Terrizzi, A., Carerj, S., Khandheria, B. K., & Di Bella, G. (2019). Diastolic dysfunction evaluated by cardiac magnetic resonance: The value of the combined assessment of atrial and ventricular function. European Radiology, 29(3), 1555–1564. https://doi.org/10.1007/s00330-018-5571-3                    "
+                },
+                {
+                    "mean": 171,
+                    "sd": 83,
+                    "n": 12,
+                    "target": "normal control",
+                    "cite": "Erdei, T., Rodrigues, J. C. L., Hartley-Davies, R., Dastidar, A. G., Szantho, G. V., Hart, E. C., Nightingale, A. K., Manghat, N. E., & Hamilton, M. C. K. (2022). The effect of left ventricular longitudinal strain on left atrial function and ventricular filling in hypertension. Clinical Radiology, 77(5), e379–e386. https://doi.org/10.1016/j.crad.2022.01.056"
+                },
+                {
+                    "mean": 95,
+                    "sd": 44,
+                    "n": 8,
+                    "target": "no CAD",
+                    "cite": "Sharifov, O., Denney, T. S., Girard, A. A., Gupta, H., & Lloyd, S. G. (2023). Coronary Artery Disease is Associated With Impaired Atrial Function Regardless of Left Ventricular Filling Pressure. International Journal of Cardiology, 387, 131102. https://doi.org/10.1016/j.ijcard.2023.05.052"
+                },
+                {
+                    "lower": 117,
+                    "upper": 342,
+                    "n": 60,
+                    "target": "male",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
+                },
+                {
+                    "lower": 77,
+                    "upper": 280,
+                    "n": 60,
+                    "target": "female",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
                 }
             ]
         },
@@ -3203,6 +3393,34 @@
                     "n": 50,
                     "target": "controls",
                     "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
+                },
+                {
+                    "mean": 59,
+                    "sd": 42,
+                    "n": 10,
+                    "target": "normal control",
+                    "cite": "Erdei, T., Rodrigues, J. C. L., Hartley-Davies, R., Dastidar, A. G., Szantho, G. V., Hart, E. C., Nightingale, A. K., Manghat, N. E., & Hamilton, M. C. K. (2022). The effect of left ventricular longitudinal strain on left atrial function and ventricular filling in hypertension. Clinical Radiology, 77(5), e379–e386. https://doi.org/10.1016/j.crad.2022.01.056"
+                },
+                {
+                    "mean": 44,
+                    "sd": 11,
+                    "n": 8,
+                    "target": "no CAD",
+                    "cite": "Sharifov, O., Denney, T. S., Girard, A. A., Gupta, H., & Lloyd, S. G. (2023). Coronary Artery Disease is Associated With Impaired Atrial Function Regardless of Left Ventricular Filling Pressure. International Journal of Cardiology, 387, 131102. https://doi.org/10.1016/j.ijcard.2023.05.052"
+                },
+                {
+                    "lower": 22,
+                    "upper": 44,
+                    "n": 60,
+                    "target": "male",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
+                },
+                {
+                    "lower": 25,
+                    "upper": 50,
+                    "n": 60,
+                    "target": "female",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
                 }
             ]
         },
@@ -3245,6 +3463,34 @@
                     "n": 50,
                     "target": "controls",
                     "cite": "Williams, L. K., Chan, R. H., Carasso, S., Durand, M., Misurka, J., Crean, A. M., Ralph-Edwards, A., Gruner, C., Woo, A., Lesser, J. R., Maron, B. J., Maron, M. S., & Rakowski, H. (2015). Effect of Left Ventricular Outflow Tract Obstruction on Left Atrial Mechanics in Hypertrophic Cardiomyopathy. BioMed Research International, 2015, 481245. https://doi.org/10.1155/2015/481245"
+                },
+                {
+                    "mean": 29,
+                    "sd": 7,
+                    "n": 12,
+                    "target": "normal control",
+                    "cite": "Erdei, T., Rodrigues, J. C. L., Hartley-Davies, R., Dastidar, A. G., Szantho, G. V., Hart, E. C., Nightingale, A. K., Manghat, N. E., & Hamilton, M. C. K. (2022). The effect of left ventricular longitudinal strain on left atrial function and ventricular filling in hypertension. Clinical Radiology, 77(5), e379–e386. https://doi.org/10.1016/j.crad.2022.01.056"
+                },
+                {
+                    "mean": 34,
+                    "sd": 12,
+                    "n": 8,
+                    "target": "no CAD",
+                    "cite": "Sharifov, O., Denney, T. S., Girard, A. A., Gupta, H., & Lloyd, S. G. (2023). Coronary Artery Disease is Associated With Impaired Atrial Function Regardless of Left Ventricular Filling Pressure. International Journal of Cardiology, 387, 131102. https://doi.org/10.1016/j.ijcard.2023.05.052"
+                },
+                {
+                    "lower": 25,
+                    "upper": 48,
+                    "n": 60,
+                    "target": "male",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
+                },
+                {
+                    "lower": 24,
+                    "upper": 48,
+                    "n": 60,
+                    "target": "female",
+                    "cite": "Maceira, A. M., Cosin-Sales, J., Prasad, S. K., & Pennell, D. J. (2016). Characterization of left and right atrial function in healthy volunteers by cardiovascular magnetic resonance. Journal of Cardiovascular Magnetic Resonance, 18(1), 64. https://doi.org/10.1186/s12968-016-0284-8"
                 }
             ]
         }
@@ -3310,6 +3556,20 @@
                     "n": 284,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
+                },
+                {
+                    "mean": 23,
+                    "sd": 4,
+                    "n": 60,
+                    "target": "men",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
+                },
+                {
+                    "mean": 19,
+                    "sd": 3,
+                    "n": 284,
+                    "target": "women",
+                    "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table18"
                 }
             ]
         },
@@ -3344,16 +3604,30 @@
                     "lower": 43,
                     "upper": 143,
                     "n": 363,
-                    "target": "men, 2ch",
+                    "target": "men, 4ch",
                     "cite": "Petersen, Steffen E., et al. “Reference Ranges for Cardiac Structure and Function Using Cardiovascular Magnetic Resonance (CMR) in Caucasians from the UK Biobank Population Cohort.” Journal of Cardiovascular Magnetic Resonance, vol. 19, no. 1, Feb. 2017, p. 18. BioMed Central, https://doi.org/10.1186/s12968-017-0327-9."
                 },
                 {
                     "lower": 38,
                     "upper": 101,
                     "n": 432,
-                    "target": "women, 2ch",
+                    "target": "women, 4ch",
                     "cite": "Petersen, Steffen E., et al. “Reference Ranges for Cardiac Structure and Function Using Cardiovascular Magnetic Resonance (CMR) in Caucasians from the UK Biobank Population Cohort.” Journal of Cardiovascular Magnetic Resonance, vol. 19, no. 1, Feb. 2017, p. 18. BioMed Central, https://doi.org/10.1186/s12968-017-0327-9."
-                }             
+                },
+                {
+                    "mean": 71,
+                    "sd": 25.3,
+                    "n": 59,
+                    "target": "female",
+                    "cite": "Sarikouch, S., Koerperich, H., Boethig, D., Peters, B., Lotz, J., Gutberlet, M., Beerbaum, P., & Kuehne, T. (2011). Reference values for atrial size and function in children and young adults by cardiac MR: A study of the german competence network congenital heart defects. Journal of Magnetic Resonance Imaging, 33(5), 1028–1039. https://doi.org/10.1002/jmri.22521"
+                },
+                {
+                    "mean": 89.2,
+                    "sd": 43.3,
+                    "n": 56,
+                    "target": "male",
+                    "cite": "Sarikouch, S., Koerperich, H., Boethig, D., Peters, B., Lotz, J., Gutberlet, M., Beerbaum, P., & Kuehne, T. (2011). Reference values for atrial size and function in children and young adults by cardiac MR: A study of the german competence network congenital heart defects. Journal of Magnetic Resonance Imaging, 33(5), 1028–1039. https://doi.org/10.1002/jmri.22521"
+                }
             ]
         },
         {
@@ -3374,6 +3648,20 @@
                     "n": 69,
                     "target": "women",
                     "cite": "Kawel-Boehm, N., Hetzel, S. J., Ambale-Venkatesh, B., Captur, G., Francois, C. J., Jerosch-Herold, M., Salerno, M., Teague, S. D., Valsangiacomo-Buechel, E., Van Der Geest, R. J., & Bluemke, D. A. (2020). Reference ranges (“normal values”) for cardiovascular magnetic resonance (CMR) in adults and children: 2020 update. Journal of Cardiovascular Magnetic Resonance, 22(1), 87. https://doi.org/10.1186/s12968-020-00683-3 Table17"
+                },
+                {
+                    "mean": 31.3,
+                    "sd": 12.8,
+                    "n": 59,
+                    "target": "female",
+                    "cite": "Sarikouch, S., Koerperich, H., Boethig, D., Peters, B., Lotz, J., Gutberlet, M., Beerbaum, P., & Kuehne, T. (2011). Reference values for atrial size and function in children and young adults by cardiac MR: A study of the german competence network congenital heart defects. Journal of Magnetic Resonance Imaging, 33(5), 1028–1039. https://doi.org/10.1002/jmri.22521"
+                },
+                {
+                    "mean": 41.8,
+                    "sd": 21.3,
+                    "n": 56,
+                    "target": "male",
+                    "cite": "Sarikouch, S., Koerperich, H., Boethig, D., Peters, B., Lotz, J., Gutberlet, M., Beerbaum, P., & Kuehne, T. (2011). Reference values for atrial size and function in children and young adults by cardiac MR: A study of the german competence network congenital heart defects. Journal of Magnetic Resonance Imaging, 33(5), 1028–1039. https://doi.org/10.1002/jmri.22521"
                 }
             ]
         },
@@ -6146,20 +6434,7 @@
             "full_name": "Global Torsion",
             "note": "",
             "reference_range": [
-                {
-                    "mean": 15.3,
-                    "sd": 6.1,
-                    "n": 20,
-                    "target": "scan 1",
-                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
-                },
-                {
-                    "mean": 15.5,
-                    "sd": 6.7,
-                    "n": 20,
-                    "target": "scan 2",
-                    "cite": "Oxborough, D., George, K., & Birch, K. M. (2012). Intraobserver Reliability of Two‐Dimensional Ultrasound Derived Strain Imaging in the Assessment of the Left Ventricle, Right Ventricle, and Left Atrium of Healthy Human Hearts. Echocardiography, 29(7), 793–802. https://doi.org/10.1111/j.1540-8175.2012.01698.x"
-                }  
+                // todo add reference range (degree/cm)
             ]
         },
         {
@@ -7026,9 +7301,9 @@
     ],
     "Valve": [
         {
-            "name": "Tricuspid Diameter",
-            "full_name": "Tricuspid Valve Annulus Diameter",
-            "note": "Obtained at ED",
+            "name": "Tricuspid_diameter_ED",
+            "full_name": "Tricuspid Valve Annulus Diameter at ED",
+            "note": "",
             "reference_range": [
                 {
                     "lower": 2.3,
@@ -7047,29 +7322,57 @@
             ]
         },
         {
-            "name": "Mitral Diameter",
-            "full_name": "Mitral Valve Annulus Diameter",
-            "note": "Obtained at ED",
+            "name": "Mitral_diameter_ED",
+            "full_name": "Mitral Valve Annulus Diameter at ED",
+            "note": "",
             "reference_range": [
                 {
                     "lower": 2.4,
                     "upper": 4.1,
                     "n": 328,
-                    "target": "male",
+                    "target": "male, 4ch",
                     "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
                 },
                 {
                     "lower": 2.4,
                     "upper": 3.6,
                     "n": 393,
-                    "target": "female",
+                    "target": "female, 4ch",
                     "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
-                }                
+                },
+                {
+                    "lower": 2.2,
+                    "upper": 3.6,
+                    "n": 328,
+                    "target": "male, 3ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 1.9,
+                    "upper": 3.3,
+                    "n": 393,
+                    "target": "female, 3ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.9,
+                    "upper": 4.2,
+                    "n": 328,
+                    "target": "male, 2ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.6,
+                    "upper": 3.8,
+                    "n": 393,
+                    "target": "female, 2ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                }         
             ]
         },
         {
-            "name": "TA/MA Diameter Ratio",
-            "full_name": "Ratio of Tricuspid Annulus Diameter to Mitral Annulus Diameter",
+            "name": "TA/MA Ratio_ED",
+            "full_name": "Ratio of Tricuspid Annulus Diameter to Mitral Annulus Diameter at ED",
             "note": "",
             "reference_range": [
                 {
@@ -7086,6 +7389,77 @@
                     "target": "female",
                     "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
                 }                      
+            ]
+        },
+
+        {
+            "name": "Tricuspid_diameter_ES",
+            "full_name": "Tricuspid Valve Annulus Diameter at ES",
+            "note": "",
+            "reference_range": [
+                {
+                    "lower": 2.3,
+                    "upper": 4.2,
+                    "n": 328,
+                    "target": "male",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.0,
+                    "upper": 3.6,
+                    "n": 393,
+                    "target": "female",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                }
+            ]
+        },
+        {
+            "name": "Mitral_diameter_ES",
+            "full_name": "Mitral Valve Annulus Diameter at ES",
+            "note": "",
+            "reference_range": [
+                {
+                    "lower": 2.4,
+                    "upper": 4.3,
+                    "n": 328,
+                    "target": "male, 4ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.4,
+                    "upper": 3.8,
+                    "n": 393,
+                    "target": "female, 4ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.6,
+                    "upper": 4.1,
+                    "n": 328,
+                    "target": "male, 3ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.3,
+                    "upper": 3.8,
+                    "n": 393,
+                    "target": "female, 3ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.9,
+                    "upper": 4.4,
+                    "n": 328,
+                    "target": "male, 2ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                },
+                {
+                    "lower": 2.6,
+                    "upper": 3.9,
+                    "n": 393,
+                    "target": "female, 2ch",
+                    "cite": "Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y"
+                }                
             ]
         }
     ]

@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 
 from utils.log_utils import setup_logging
-from utils.cardiac_utils import evaluate_valve_diameter, evaluate_AVPD
+from utils.cardiac_utils import evaluate_valve_length, evaluate_AVPD
 
 logger = setup_logging("eval_ventricular_atrium_feature")
 
@@ -80,17 +80,17 @@ if __name__ == "__main__":
 
         # * Feature1: IPVT
 
-        # Ref https://link.springer.com/article/10.1007/s00330-018-5571-3#Fig1
+        # Ref Diastolic dysfunction evaluated by cardiac magnetic resonance https://link.springer.com/article/10.1007/s00330-018-5571-3#Fig1
         try:
-            IPVT = ventricular_features["LV: SV [mL]"].values[0] - atrial_features["LA: Total SV(bip) [mL]"].values[0]
+            IPVT = ventricular_features["LV: SV [mL]"].values[0] - atrial_features["LA: Total SV (bip) [mL]"].values[0]
             if IPVT < 0:
                 raise ValueError()
-            IPVT_ratio = IPVT / atrial_features["LA: Total SV(bip) [mL]"].values[0]
+            IPVT_ratio = IPVT / atrial_features["LA: Total SV (bip) [mL]"].values[0]
             logger.info(f"{subject}: Extract IPVT features")
             feature_dict.update(
                 {
-                    "IPVT": IPVT,
-                    "IPVT Ratio": IPVT_ratio,
+                    "LVLA: IPVT [mL]": IPVT,
+                    "LVLA: IPVT Ratio": IPVT_ratio,
                 }
             )
         except ValueError:
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
         # * Feature2: Average Atrial Contribution to LVEDV
 
-        # Ref https://www.sciencedirect.com/science/article/pii/0002934375902296
+        # Ref Left atrial transport function in myocardial infarction https://www.sciencedirect.com/science/article/pii/0002934375902296
         LVEDV = ventricular_features["LV: V_ED [mL]"].values[0]
         # Since T_pre_a is determined using ECG, it may not be available for all subjects
         try:
@@ -113,9 +113,8 @@ if __name__ == "__main__":
             logger.info(f"{subject}: Extract % AC features")
             feature_dict.update(
                 {
-                    "LV: V_pre_a [mL]": LV_pre_a,
-                    "% AC to LVSV [%]": Contribution_AC_LVSV * 100,
-                    "% AC to LVEDV [%]": Contribution_AC_LVEDV * 100,
+                    "LVLA: % AC to LVSV [%]": Contribution_AC_LVSV * 100,
+                    "LVLA: % AC to LVEDV [%]": Contribution_AC_LVEDV * 100,
                 }
             )
         except KeyError:
@@ -123,52 +122,67 @@ if __name__ == "__main__":
         except ValueError:
             logger.error(f"{subject}: Pre-contraction volume is greater than ED volume, skipped.")
 
-        # * Feature3: Valve Diameters at ED
+        # * Feature3: Valve Diameters at ED and ES
 
         try:
-            TA_diameters, MA_diameters, fig_valve = evaluate_valve_diameter(
-                seg4_la_4ch.astype(np.uint8), 
-                nim_la_4ch, 
-                T_ED,
-                display=True)
+            TA_diameters_ED, MA_diameters_ED, fig_valve_ED = evaluate_valve_length(
+                seg4_la_4ch.astype(np.uint8), nim_la_4ch, T_ED, visualize=True
+            )
             logger.info(f"{subject}: Extract Tricuspid and Mitral valve diameters")
             feature_dict.update(
                 {
-                    "Tricuspid Diameter [cm]": TA_diameters["min"],
-                    "Mitral Diameter [cm]": MA_diameters["min"],
-                    "TA/MA Diameter Ratio": TA_diameters["min"] / MA_diameters["min"],
+                    "Valve: Tricuspid_diameter_ED [cm]": TA_diameters_ED["min"],
+                    "Valve: Mitral_diameter_ED [cm]": MA_diameters_ED["min"],
                 }
             )
-            fig_valve.savefig(os.path.join(sub_dir, "visualization", "combined", "valve.png"))
+            if TA_diameters_ED["min"] / MA_diameters_ED["min"] > 5:
+                logger.warning(f"{subject}: Extremely high TA/MA Diameter Ratio at ED, skipped.")
+            else:
+                feature_dict.update(
+                    {
+                        "Valve: TA/MA Ratio_ED": TA_diameters_ED["min"] / MA_diameters_ED["min"],
+                    }
+                )
+            fig_valve_ED.savefig(os.path.join(sub_dir, "visualization", "combined", "valve_ED.png"))
         except ValueError as e:
-            logger.error(f"{subject}: AVPD extraction failed due to reason: {e}")
-
-        # * Feature4: AVPD (AV plane descent)
-        # Ref https://pubmed.ncbi.nlm.nih.gov/17098822/
+            logger.error(f"{subject}: Valve diameters at ED failed due to reason: {e}")
 
         try:
-            AVPD, fig_AVPD = evaluate_AVPD(
-                seg4_la_4ch.astype(np.uint8), 
-                nim_la_4ch, 
-                T_ED, 
-                T_ES,
-                display=True)
+            TA_diameters_ES, MA_diameters_ES, fig_valve_ES = evaluate_valve_length(
+                seg4_la_4ch.astype(np.uint8), nim_la_4ch, T_ES, visualize=True
+            )
+            logger.info(f"{subject}: Extract Tricuspid and Mitral valve diameters")
+            feature_dict.update(
+                {
+                    "Valve: Tricuspid_diameter_ES [cm]": TA_diameters_ES["min"],
+                    "Valve: Mitral_diameter_ES [cm]": MA_diameters_ES["min"],
+                }
+            )
+            # no ratio calculated at ES
+            fig_valve_ES.savefig(os.path.join(sub_dir, "visualization", "combined", "valve_ES.png"))
+        except ValueError as e:
+            logger.error(f"{subject}: Valve diameters at ES failed due to reason: {e}")
+
+        # * Feature4: AVPD (AV plane descent)
+        # Ref Atrioventricular plane displacement is the major contributor to left ventricular pumping https://pubmed.ncbi.nlm.nih.gov/17098822/
+
+        try:
+            AVPD, fig_AVPD = evaluate_AVPD(seg4_la_4ch.astype(np.uint8), nim_la_4ch, T_ED, T_ES, visualize=True)
             logger.info(f"{subject}: Extract AVPD features")
             feature_dict.update(
                 {
-                    "AVPD [cm]": AVPD,
+                    "LVLA: AVPD [cm]": AVPD,
                 }
             )
             fig_AVPD.savefig(os.path.join(sub_dir, "visualization", "combined", "AV_plane.png"))
         except ValueError as e:
             logger.error(f"{subject}: AVPD extraction failed due to reason: {e}")
 
-        logger.info("All combined feature of ventricle and atrium are extracted successfully!")
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
 
     target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
-    target_dir = os.path.join(target_dir, "combined")
+    target_dir = os.path.join(target_dir, "ventricular_atrial_feature")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
-    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"))
+    df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), index=False)
