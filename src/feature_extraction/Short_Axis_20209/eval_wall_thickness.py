@@ -14,8 +14,10 @@
 # ============================================================================
 import os
 import argparse
+import numpy as np
 import pandas as pd
 import nibabel as nib
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 import vtk
 
@@ -26,7 +28,9 @@ import config
 
 from utils.log_utils import setup_logging
 from utils.quality_control_utils import sa_pass_quality_control
+from utils.analyze_utils import plot_bulls_eye
 from utils.cardiac_utils import evaluate_wall_thickness, evaluate_radius_thickness_disparity, fractal_dimension
+from utils.biobank_utils import query_BSA
 
 
 logger = setup_logging("eval_wall_thickness")
@@ -52,6 +56,7 @@ if __name__ == "__main__":
         sa_ED_name = f"{sub_dir}/sa_ED.nii.gz"
         seg_sa_name = f"{sub_dir}/seg_sa.nii.gz"
         seg_sa_ED_name = f"{sub_dir}/seg_sa_ED.nii.gz"
+        seg_sa_ES_name = f"{sub_dir}/seg_sa_ES.nii.gz"
 
         nim_sa = nib.load(sa_name)
         nim_sa_ED = nib.load(sa_ED_name)
@@ -75,77 +80,141 @@ if __name__ == "__main__":
         nim_seg_sa_ED = nib.load(seg_sa_ED_name)
         seg_sa = nim_seg_sa.get_fdata()
         seg_sa_ED = nim_seg_sa_ED.get_fdata()
+        seg_sa_ES = nib.load(seg_sa_ES_name).get_fdata()
 
         feature_dict = {
             "eid": subject,
         }
 
-        # * Basic Feature: Evaluate myocardial wall thickness at ED (17 segment)
-        # Ref https://media.springernature.com/lw685/springer-static/image/chp%3A10.1007%2F978-3-030-63560-2_16/MediaObjects/496124_1_En_16_Fig13_HTML.png
-        # Ref https://www.pmod.com/files/download/v34/doc/pcardp/3618.gif for illustration
-        # Ref https://jcmr-online.biomedcentral.com/articles/10.1186/s12968-020-00683-3 for reference range
+        # * Basic Feature: Evaluate myocardial wall thickness at ED (17 segment). Note segment 17 is usually excluded
+        # Note that measurements on long axis at basal and mid-cavity level have been shown to be greater compared to short axis.
+        # While apical level demonstrates the opposite trend such phenomenon.
 
-        # Note that measurements on long axis at basal and mid-cavity level have been shown to be significantly
-        # greater compared to short axis measurements; while apical level demonstrates the opposite trend
-        # Save wall thickness for all the subjects
-        endo_poly, epi_poly, index, table_thickness, table_thickness_max = evaluate_wall_thickness(
-            seg_sa_ED, nim_sa_ED, save_epi_contour=True
-        )
+        endo_poly_ED, epi_poly_ED, wall_thickness_ED, _, _ = evaluate_wall_thickness(seg_sa_ED, nim_sa_ED)
 
         endo_writer = vtk.vtkPolyDataWriter()
-        endo_output_name = f"{sub_dir}/landmark/myocardium_endo.vtk"
-        endo_writer.SetFileName(endo_output_name)
-        endo_writer.SetInputData(endo_poly)
+        endo_output_name_ED = f"{sub_dir}/landmark/myocardium_endo_ED.vtk"
+        endo_writer.SetFileName(endo_output_name_ED)
+        endo_writer.SetInputData(endo_poly_ED)
         endo_writer.Write()
 
         epi_writer = vtk.vtkPolyDataWriter()
-        epi_output_name = f"{sub_dir}/landmark/myocardium_epi.vtk"
-        epi_writer.SetFileName(epi_output_name)
-        epi_writer.SetInputData(epi_poly)
+        epi_output_name_ED = f"{sub_dir}/landmark/myocardium_epi_ED.vtk"
+        epi_writer.SetFileName(epi_output_name_ED)
+        epi_writer.SetInputData(epi_poly_ED)
         epi_writer.Write()
-        logger.info(f"{subject}: Wall-thickness evaluation completed, data saved")
+        logger.info(f"{subject}: Wall-thickness evaluation at ED completed, myocardial contours are saved")
 
         # 16 segment + 1 global
+        # * The mean is the major feature, as more reference range will report such feature instead of the max.
         for i in range(16):
             feature_dict.update(
                 {
-                    f"Myo: Thickness (AHA_{i + 1}) [mm]": table_thickness[i],
-                    f"Myo: Thickness (AHA_{i + 1}_max) [mm]": table_thickness_max[i],
+                    f"Myo: Thickness (AHA_{i + 1}) [mm]": wall_thickness_ED[i],  # mean
                 }
             )
         feature_dict.update(
             {
-                "Myo: Thickness (Global_mean) [mm]": table_thickness[16],
-                "Myo: Thickness (Global_max) [mm]": table_thickness_max[16],
+                "Myo: Thickness (Global) [mm]": wall_thickness_ED[16],
             }
         )
 
+        # * Feature 1: Calculate the wall thickening ratio
+        # Ref Reference parameters for left ventricular wall thickness, thickening, and motion in stress myocardial perfusion CT https://doi.org/10.1016/j.clinimag.2019.04.002
+
+        # We only record the mean wall thickness, not the maximal or minimal ones
+        endo_poly_ES, epi_poly_ES, wall_thickness_ES, _, _ = evaluate_wall_thickness(seg_sa_ES, nim_sa_ED)
+
+        thickening = np.zeros(17)
+        thickening = (wall_thickness_ES - wall_thickness_ED) / wall_thickness_ED * 100
+
+        for i in range(16):
+            feature_dict.update(
+                {
+                    f"Myo: Thickening (AHA_{i + 1}) [%]": thickening[i],
+                }
+            )
+        feature_dict.update(
+            {
+                "Myo: Thickening (Global) [%]": thickening[16],
+            }
+        )
+
+        endo_writer = vtk.vtkPolyDataWriter()
+        endo_output_name_ES = f"{sub_dir}/landmark/myocardium_endo_ES.vtk"
+        endo_writer.SetFileName(endo_output_name_ES)
+        endo_writer.SetInputData(endo_poly_ES)
+        endo_writer.Write()
+
+        epi_writer = vtk.vtkPolyDataWriter()
+        epi_output_name_ES = f"{sub_dir}/landmark/myocardium_epi_ES.vtk"
+        epi_writer.SetFileName(epi_output_name_ES)
+        epi_writer.SetInputData(epi_poly_ES)
+        epi_writer.Write()
+        logger.info(f"{subject}: Wall-thickness evaluation at ES completed, myocardial contours are saved")
+
+        # Add Bull's eye plot
+        os.makedirs(f"{sub_dir}/visualization/myocardium", exist_ok=True)
+        fig, ax = plot_bulls_eye(wall_thickness_ED[:16], title="Myocardium Strain at ED", label="Strain [%]")
+        fig.savefig(f"{sub_dir}/visualization/myocardium/thickness_ED.png")
+        plt.close(fig)
+        fig, ax = plot_bulls_eye(wall_thickness_ES[:16], title="Myocardium Strain at ES", label="Strain [%]")
+        fig.savefig(f"{sub_dir}/visualization/myocardium/thickness_ES.png")
+        plt.close(fig)
+        fig, ax = plot_bulls_eye(thickening[:16], title="Myocardium Thickening", label="Thickening [%]")
+        fig.savefig(f"{sub_dir}/visualization/myocardium/thickening.png")
+        plt.close(fig)
+
         # * Feature 2: Radius and thickness that incorporate distance to barycenter of LV cavity (with modification)
-        # Refer https://www.sciencedirect.com/science/article/pii/S1361841519300519
-        # * This features utilizes the entire time series instead of just ED
+        # Refer Explainable cardiac pathology classification on cine MRI with motion characterization https://www.sciencedirect.com/science/article/pii/S1361841519300519
+        # * This features utilizes the entire time series instead of just feature at ED, and can indicate abnormal contraction
 
         # BSA is required in calculation
         try:
-            BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
-            BSA_subject = BSA_info[BSA_info["eid"] == int(subject)][config.BSA_col_name].values[0]
+            BSA_subject = query_BSA(subject)
             logger.info(f"{subject}: Implement disparity features")
             # we temporarily do not use radius and thickness
-            radius_motion_disparity, thickness_motion_disparity, radius, thickness = (
-                evaluate_radius_thickness_disparity(seg_sa, nim_sa, BSA_subject)
+            radius_motion_disparity, thickness_motion_disparity, radius, thickness = evaluate_radius_thickness_disparity(
+                seg_sa, nim_sa, BSA_subject
             )
-            feature_dict.update({
-                "Myo: Radius motion disparity": radius_motion_disparity,
-                "Myo: Thickness motion disparity": thickness_motion_disparity,
-            })
+            if radius_motion_disparity > 5:
+                logger.warning(f"{subject}: Extremely high radius motion disparity detected, skipped")
+            else:
+                feature_dict.update({"Myo: Radius motion disparity": radius_motion_disparity})
+            if thickness_motion_disparity > 5:
+                logger.warning(f"{subject}: Extremely high thickness motion disparity detected, skipped")
+            else:
+                feature_dict.update({"Myo: Thickness motion disparity": thickness_motion_disparity})
         except (FileNotFoundError, IndexError):
-            logger.error(f"{subject}: BSA information not found, skip disparity features.")
-            continue
+            logger.warning(f"{subject}: BSA information not found, skip disparity features.")
+        except ValueError as e:
+            logger.warning(f"{subject}: Error {e} when determining disparity features.")
 
-        # * Feature 3: Fractal dimension for trabeculation
-        # Refer  https://jcmr-online.biomedcentral.com/articles/10.1186/1532-429X-15-36
+        # * Feature 3: Global fractal dimension (FD) for trabeculation
+        # Ref Quantification of left ventricular trabeculae using fractal analysis. https://doi.org/10.1186/1532-429X-15-36
+        # From the reference, there is no significant difference between global FD and maximal apical FD.
+        global_fd, _, fds, img_roi, seg_roi = fractal_dimension(seg_sa_ED, nim_sa_ED, visualize_info=True)
+        logger.info(f"{subject}: Fractal dimensions are {fds}")
 
-        fd = fractal_dimension(seg_sa_ED, nim_sa_ED)
-        feature_dict.update({"Myo: Fractal dimension": fd})
+        for i, fd in enumerate(fds):
+            if np.isnan(fd):
+                continue
+            else:
+                plt.figure(figsize=(12, 10))
+                plt.subplot(1, 3, 1)
+                plt.imshow(seg_sa_ED[:, :, i], cmap="gray")
+                plt.title(f"Full Segmentation: Slice{i}")
+                plt.subplot(1, 3, 2)
+                plt.imshow(img_roi[:, :, i], cmap="gray")
+                plt.title(f"Image for Thresholding: Slice{i}")
+                plt.subplot(1, 3, 3)
+                plt.imshow(seg_roi[:, :, i], cmap="gray")
+                plt.title(f"Segmentation for Analysis: Slice{i}")
+                plt.text(0.5, -0.15, f"Fractal Dimension is {fd:.2f}", ha="center", va="center", transform=plt.gca().transAxes)
+                plt.savefig(f"{sub_dir}/visualization/myocardium/fd_{i}.png")
+                plt.close()
+
+        feature_dict.update({"Myo: Fractal dimension": global_fd})
         logger.info(f"{subject}: Fractal dimension calculation completed")
 
         df_row = pd.DataFrame([feature_dict])
