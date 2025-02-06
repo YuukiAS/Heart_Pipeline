@@ -13,7 +13,8 @@ from utils.log_utils import setup_logging
 logger = setup_logging("preprocess_lvot")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_dir", type = str, help="Folder for one subject that contains Nifti files", required=True)
+parser.add_argument("--data_dir", type=str, help="Folder for one subject that contains Nifti files", required=True)
+
 
 def check_brightness_anomaly(nii):
     """
@@ -23,7 +24,7 @@ def check_brightness_anomaly(nii):
 
     if nii.ndim != 4:
         raise ValueError("Input image must be 4D")
-    
+
     if nii.shape[2] != 1 or nii.shape[3] != 50:
         raise ValueError("Input image must be of shape (H, W, 1, 50)")
 
@@ -33,11 +34,11 @@ def check_brightness_anomaly(nii):
         image = nii[:, :, 0, t]
 
         # After rotation, this becomes left and right
-        left_std = np.std(image[:image.shape[0] // 2, :])
-        right_std = np.std(image[image.shape[0] // 2:, :])
+        left_std = np.std(image[: image.shape[0] // 2, :])
+        right_std = np.std(image[image.shape[0] // 2 :, :])
         std_diff = abs(right_std - left_std)
         std_diff_list.append(std_diff)
-    
+
     std_diff_mean = np.mean(std_diff_list)
     return std_diff_mean > 35, std_diff_mean
 
@@ -71,75 +72,72 @@ if __name__ == "__main__":
         if std_diff_mean < 70:
             # Run one time
             plt.figure(figsize=(20, 10))
-            plt.subplot(1,2,1)
-            plt.imshow(lvot_3d[:, :, 0], cmap='gray')
+            plt.subplot(1, 2, 1)
+            plt.imshow(lvot_3d[:, :, 0], cmap="gray")
             plt.title("Original")
             plt.axis("off")
 
             lvot_3d_bias_corrected = ants.n4_bias_field_correction(ants.from_numpy(lvot_3d), verbose=True)
             lvot_3d_bias_corrected = lvot_3d_bias_corrected.numpy()
-            plt.subplot(1,2,2)
-            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap='gray')
+            plt.subplot(1, 2, 2)
+            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap="gray")
             plt.title("Bias Corrected 1st")
             plt.axis("off")
 
         elif std_diff_mean >= 70 and std_diff_mean < 100:
             # Run two times
             plt.figure(figsize=(20, 10))
-            plt.subplot(1,3,1)
-            plt.imshow(lvot_3d[:, :, 0], cmap='gray')
+            plt.subplot(1, 3, 1)
+            plt.imshow(lvot_3d[:, :, 0], cmap="gray")
             plt.title("Original")
             plt.axis("off")
 
             lvot_3d_bias_corrected = ants.n4_bias_field_correction(ants.from_numpy(lvot_3d), verbose=True)
             lvot_3d_bias_corrected = lvot_3d_bias_corrected.numpy()
-            plt.subplot(1,3,2)
-            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap='gray')
+            plt.subplot(1, 3, 2)
+            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap="gray")
             plt.title("Bias Corrected 1st")
             plt.axis("off")
 
             lvot_3d_bias_corrected = ants.n4_bias_field_correction(ants.from_numpy(lvot_3d_bias_corrected), verbose=True)
             lvot_3d_bias_corrected = lvot_3d_bias_corrected.numpy()
-            plt.subplot(1,3,3)
-            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap='gray')
+            plt.subplot(1, 3, 3)
+            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap="gray")
             plt.title("Bias Corrected 2nd")
             plt.axis("off")
 
         else:
             # # Run three times
             plt.figure(figsize=(20, 10))
-            plt.subplot(1,4,1)
-            plt.imshow(lvot_3d[:, :, 0], cmap='gray')
+            plt.subplot(1, 4, 1)
+            plt.imshow(lvot_3d[:, :, 0], cmap="gray")
             plt.title("Original")
             plt.axis("off")
 
             lvot_3d_bias_corrected = ants.n4_bias_field_correction(
-                ants.from_numpy(lvot_3d), 
-                convergence = {'iters': [100, 100, 100, 50], 'tol': 1e-8},
-                verbose=True)
+                ants.from_numpy(lvot_3d), convergence={"iters": [100, 100, 100, 50], "tol": 1e-8}, verbose=True
+            )
             lvot_3d_bias_corrected = lvot_3d_bias_corrected.numpy()
-            plt.subplot(1,4,2)
-            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap='gray')
+            plt.subplot(1, 4, 2)
+            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap="gray")
             plt.title("Bias Corrected 1st")
             plt.axis("off")
 
             lvot_3d_bias_corrected = ants.n4_bias_field_correction(
-                ants.from_numpy(lvot_3d_bias_corrected), 
-                convergence = {'iters': [100, 100, 100, 50], 'tol': 1e-8},
-                verbose=True)
+                ants.from_numpy(lvot_3d_bias_corrected), convergence={"iters": [100, 100, 100, 50], "tol": 1e-8}, verbose=True
+            )
             lvot_3d_bias_corrected = lvot_3d_bias_corrected.numpy()
-            plt.subplot(1,4,3)
-            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap='gray')
+            plt.subplot(1, 4, 3)
+            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap="gray")
             plt.title("Bias Corrected 2nd")
             plt.axis("off")
 
             lvot_3d_bias_corrected = ants.n4_bias_field_correction(
-                ants.from_numpy(lvot_3d_bias_corrected), 
-                convergence = {'iters': [100, 100, 100, 50], 'tol': 1e-8},
-                verbose=True)
+                ants.from_numpy(lvot_3d_bias_corrected), convergence={"iters": [100, 100, 100, 50], "tol": 1e-8}, verbose=True
+            )
             lvot_3d_bias_corrected = lvot_3d_bias_corrected.numpy()
-            plt.subplot(1,4,4)
-            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap='gray')
+            plt.subplot(1, 4, 4)
+            plt.imshow(lvot_3d_bias_corrected[:, :, 0], cmap="gray")
             plt.title("Bias Corrected 3rd")
             plt.axis("off")
 
@@ -154,9 +152,7 @@ if __name__ == "__main__":
     nii_rotated = np.rot90(lvot_3d, 3, (0, 1))  # rotate on first and second axes
     nii_final = np.expand_dims(nii_rotated, axis=2)
 
-    rotation_matrix = np.array([[0, 1, 0],
-                                [-1, 0, 0],
-                                [0, 0, 1]])
+    rotation_matrix = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])
     nii_final_affine = nii_lvot.affine.copy()
     nii_final_affine[:3, :3] = np.dot(nii_final_affine[:3, :3], rotation_matrix)
 

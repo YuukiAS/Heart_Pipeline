@@ -14,7 +14,7 @@ from utils.log_utils import setup_logging
 logger = setup_logging("segment_aortic_scout")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_dir", type = str, help="Folder for one subject that contains Nifti files", required=True)
+parser.add_argument("--data_dir", type=str, help="Folder for one subject that contains Nifti files", required=True)
 
 
 if __name__ == "__main__":
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     if not os.path.exists(aorta_name):
         logger.error(f"Aorta structure file for {subject} does not exist")
         sys.exit(1)
-    
+
     # * Resample the aorta_volume from (240, 240, 20) to (238, 238, 136) so that code can be implemented
     new_spacing = [1.66667, 1.66667, 1.66667]
     new_size = [238, 238, 136]
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     # output file will be named as seg_aortic_scout.nii.gz
     single_image_segmentation(
-        image_path=aorta_name, 
+        image_path=aorta_name,
         data_output_path=data_dir,
-        weight_path=os.path.join(config.model_dir, "Aortic_Scout_20207", "alt_unet.pth")
+        weight_path=os.path.join(config.model_dir, "Aortic_Scout_20207", "alt_unet.pth"),
     )

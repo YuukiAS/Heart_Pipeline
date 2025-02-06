@@ -224,6 +224,7 @@ def compute_boundary_distance(mask1, mask2):
 
     return distances.min() if len(distances) > 0 else None
 
+
 def get_largest_cc(binary):
     """Get the largest connected component in the foreground."""
     cc, n_cc = measure.label(binary)

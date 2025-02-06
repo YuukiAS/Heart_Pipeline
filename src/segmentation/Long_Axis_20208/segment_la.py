@@ -9,8 +9,8 @@ from utils.log_utils import setup_logging
 logger = setup_logging("segment_la")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_dir", type = str, help="Folder for one subject that contains Nifti files", required=True)
-parser.add_argument("--modality", type = str, help="Modality of the long axis",required=True)
+parser.add_argument("--data_dir", type=str, help="Folder for one subject that contains Nifti files", required=True)
+parser.add_argument("--modality", type=str, help="Modality of the long axis", required=True)
 
 
 if __name__ == "__main__":
@@ -23,22 +23,27 @@ if __name__ == "__main__":
     pipeline_dir = config.pipeline_dir
 
     if modality == "2ch":
-        os.system(f"cd {pipeline_dir}/src/segmentation/Long_Axis_20208 && "
-                f"python ./deploy_network.py --seq_name la_2ch "
-                f"--data_dir {data_dir} --model_path {model_dir}/Long_Axis_20208/FCN_la_2ch\n")
+        os.system(
+            f"cd {pipeline_dir}/src/segmentation/Long_Axis_20208 && "
+            f"python ./deploy_network.py --seq_name la_2ch "
+            f"--data_dir {data_dir} --model_path {model_dir}/Long_Axis_20208/FCN_la_2ch\n"
+        )
 
     elif modality == "4ch":
-        os.system(f"cd {pipeline_dir}/src/segmentation/Long_Axis_20208 && "
-                f"python ./deploy_network.py --seq_name la_4ch "
-                f"--data_dir {data_dir} --model_path {model_dir}/Long_Axis_20208/FCN_la_4ch\n")
+        os.system(
+            f"cd {pipeline_dir}/src/segmentation/Long_Axis_20208 && "
+            f"python ./deploy_network.py --seq_name la_4ch "
+            f"--data_dir {data_dir} --model_path {model_dir}/Long_Axis_20208/FCN_la_4ch\n"
+        )
 
     elif modality == "4ch_4chamber":
-        os.system(f"cd {pipeline_dir}/src/segmentation/Long_Axis_20208 && "
-                f"python ./deploy_network.py --seq_name la_4ch "
-                f"--data_dir {data_dir} --seg4 1 --model_path {model_dir}/Long_Axis_20208/FCN_la_4ch_seg4\n")
+        os.system(
+            f"cd {pipeline_dir}/src/segmentation/Long_Axis_20208 && "
+            f"python ./deploy_network.py --seq_name la_4ch "
+            f"--data_dir {data_dir} --seg4 1 --model_path {model_dir}/Long_Axis_20208/FCN_la_4ch_seg4\n"
+        )
     elif modality == "3ch":
         # todo Need to be implemented
         pass
     else:
         raise ValueError(f"Modality {modality} is not supported")
-    

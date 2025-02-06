@@ -53,7 +53,6 @@ overlay
 *.nrrd
 .ruff_cache
 others
-doc
 EasyReg
 NiftyReg
 uniGradICON
@@ -63,3 +62,10 @@ src/**/*.ipynb
 third_party
 template
 model
+tasks/visualization
+tasks/visualization_compare
+node_modules
+.next
+out
+env_phase_contrast
+ICC_result.*

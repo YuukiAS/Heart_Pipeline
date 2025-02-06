@@ -17,7 +17,6 @@ import math
 import numpy as np
 import nibabel as nib
 import cv2
-from collections import OrderedDict
 import vtk
 import pandas as pd
 import matplotlib.pyplot as plt

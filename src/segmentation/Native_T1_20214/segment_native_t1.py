@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import nibabel as nib
-import matplotlib.pyplot as plt
 import cv2
 import argparse
 import sys
@@ -9,18 +8,15 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 import config
 from utils.log_utils import setup_logging
-from utils.os_utils import (
-    setup_segmentation_folders, 
-    prepare_files_to_segment,
-    run_segment_code,
-    obtain_files_segmented
-)
+from utils.os_utils import setup_segmentation_folders, prepare_files_to_segment, run_segment_code, obtain_files_segmented
 
 logger = setup_logging("segment_native_t1")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_dir", type = str, help="Folder for one subject that contains Nifti files", required=True)
-parser.add_argument("--model", type = str, help="Trained model to be used for segmentation", required=True, choices=["nnUNet", "UMamba"])
+parser.add_argument("--data_dir", type=str, help="Folder for one subject that contains Nifti files", required=True)
+parser.add_argument(
+    "--model", type=str, help="Trained model to be used for segmentation", required=True, choices=["nnUNet", "UMamba"]
+)
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -37,9 +33,13 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if args.model == "nnUNet":
-        trained_model_path = os.path.join(config.model_dir, "Native_T1_20214", "Dataset20214_ShMOLLI", "nnUNetTrainer__nnUNetPlans__2d")        
+        trained_model_path = os.path.join(
+            config.model_dir, "Native_T1_20214", "Dataset20214_ShMOLLI", "nnUNetTrainer__nnUNetPlans__2d"
+        )
     elif args.model == "UMamba":
-        trained_model_path = os.path.join(config.model_dir, "Native_T1_20214", "Dataset20214_ShMOLLI", "nnUNetTrainerUMambaBot__nnUNetPlans__2d")
+        trained_model_path = os.path.join(
+            config.model_dir, "Native_T1_20214", "Dataset20214_ShMOLLI", "nnUNetTrainerUMambaBot__nnUNetPlans__2d"
+        )
     else:
         raise ValueError("Model should be either nnUNet or UMamba")
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     run_segment_code(subject, 20214, "ShMOLLI", args.model)
 
     logger.info(f"{subject}: Retrieve segmented images")
-    obtain_files_segmented(subject, 20214, "ShMOLLI", os.path.join(data_dir, f"seg_shmolli_t1map.nii.gz"))
+    obtain_files_segmented(subject, 20214, "ShMOLLI", os.path.join(data_dir, "seg_shmolli_t1map.nii.gz"))
 
     # * For about 1/9 cases, the segmentation of LV and myocardium are swapped, we need to correct it.
 
@@ -74,13 +74,16 @@ if __name__ == "__main__":
         contour2 = max(contours2, key=lambda x: cv2.arcLength(x, False))
     except ValueError:
         logger.error(f"{subject}: No contours found in the segmentation, the segmentation is invalid.")
-        os.remove(os.path.join(data_dir, f"seg_shmolli_t1map.nii.gz"))
+        os.remove(os.path.join(data_dir, "seg_shmolli_t1map.nii.gz"))
         sys.exit(1)
 
-
     # >= 0 means the point is inside the contour
-    contour1_nest = all(cv2.pointPolygonTest(contour2, (int(round(point[0][0])), int(round(point[0][1]))), False) >= 0 for point in contour1)
-    contour2_nest = all(cv2.pointPolygonTest(contour1, (int(round(point[0][0])), int(round(point[0][1]))), False) >= 0 for point in contour2)
+    contour1_nest = all(
+        cv2.pointPolygonTest(contour2, (int(round(point[0][0])), int(round(point[0][1]))), False) >= 0 for point in contour1
+    )
+    contour2_nest = all(
+        cv2.pointPolygonTest(contour1, (int(round(point[0][0])), int(round(point[0][1]))), False) >= 0 for point in contour2
+    )
 
     print(contour1_nest, contour2_nest)
     # By default, contour2_nest should be True, we should correct it if contour1_nest is True
@@ -92,15 +95,14 @@ if __name__ == "__main__":
         label_corrected = np.expand_dims(label_corrected, axis=-1)
         label_corrected = np.round(label_corrected).astype(np.uint8)
         nii_label_corrected = nib.Nifti1Image(label_corrected, nii_label_original.affine, nii_label_original.header)
-        os.remove(os.path.join(data_dir, f"seg_shmolli_t1map.nii.gz"))
-        nib.save(nii_label_corrected, os.path.join(data_dir, f"seg_shmolli_t1map.nii.gz"))
+        os.remove(os.path.join(data_dir, "seg_shmolli_t1map.nii.gz"))
+        nib.save(nii_label_corrected, os.path.join(data_dir, "seg_shmolli_t1map.nii.gz"))
     elif contour2_nest:
         logger.info(f"{subject}: Segmentation of LV and myocardium is correct")
     else:
         # for visit2, there are around 284 such subjects
         logger.error(f"{subject}: Segmentation of LV and myocardium is invalid")
-        os.remove(os.path.join(data_dir, f"seg_shmolli_t1map.nii.gz"))
+        os.remove(os.path.join(data_dir, "seg_shmolli_t1map.nii.gz"))
         sys.exit(1)
-
 
     logger.info(f"{subject}: Finish segmentation of native T1 mapping")
