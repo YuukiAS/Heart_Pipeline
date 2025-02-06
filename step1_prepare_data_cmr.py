@@ -19,6 +19,7 @@ logger = setup_logging("main: prepare_data_cmr")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--overwrite", action="store_true", help="Overwrite the existing files")
+parser.add_argument("--keepdicom", action="store_true", help="Keep the DICOM files after converting to Nifti")
 
 
 def generate_scripts(
@@ -31,7 +32,7 @@ def generate_scripts(
     retest_suffix=None,
     cpu=True,
     overwrite=False,
-    keepdicom=True
+    keepdicom=False,
 ):
     if retest_suffix is None:
         code_step1_dir = os.path.join(code_dir, "prepare_data_visit1")
@@ -96,6 +97,8 @@ def generate_scripts(
         sub_shmolli = [x.split("_")[0] for x in sub_shmolli]
         sub_total = sub_total + sub_shmolli
 
+    sub_total = list(set(sub_total))
+    sub_total = sorted(sub_total)
     length_total = len(sub_total)
     logger.info(f"Total number of zip files: {length_total}")
     num_files = length_total // num_subjects_per_file + 1
@@ -109,21 +112,6 @@ def generate_scripts(
                     generate_header_cpu("Heart_Prepare", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
                 else:
                     generate_header_gpu("Heart_Prepare", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
-                # file_script.write("#!/bin/bash\n")
-                # file_script.write("#SBATCH --ntasks=1\n")
-                # if retest_suffix is None:
-                #     file_script.write(f"#SBATCH --job-name=Heart_Prepare_{file_i}\n")
-                #     file_script.write(f"#SBATCH --output=Heart_Prepare_{file_i}.out\n")
-                # else:
-                #     file_script.write(f"#SBATCH --job-name=Heart_Prepare_{file_i}_{retest_suffix}\n")
-                #     file_script.write(f"#SBATCH --output=Heart_Prepare_{file_i}_{retest_suffix}.out\n")
-                # file_script.write("#SBATCH --cpus-per-task=4\n")
-                # file_script.write("#SBATCH --mem=8G\n")
-                # file_script.write("#SBATCH --time=48:00:00\n")
-                # file_script.write("#SBATCH --partition=general\n")
-                # file_script.write("\n")
-                # file_script.write("\n")
-                # file_script.write(f"cd {pipeline_dir}\n")
 
                 for sub_i in range(
                     (file_i - 1) * num_subjects_per_file + 1,
@@ -171,15 +159,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     overwrite = args.overwrite
+    keepdicom = args.keepdicom
 
     if overwrite:
         logger.info("Overwrite is set to True, existing files will be overwritten")
     logger.info("Generate scripts for preparing visit1 data")
-    generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, modality, overwrite=overwrite)
+    generate_scripts(pipeline_dir, data_raw_dir, code_dir, out_dir, modality, overwrite=overwrite, keepdicom=keepdicom)
     if retest_suffix is not None:
         logger.info("Generate scripts for preparing visit2 data")
         generate_scripts(
-            pipeline_dir, data_raw_dir, code_dir, out_dir, modality, retest_suffix=retest_suffix, overwrite=overwrite
+            pipeline_dir,
+            data_raw_dir,
+            code_dir,
+            out_dir,
+            modality,
+            retest_suffix=retest_suffix,
+            overwrite=overwrite,
+            keepdicom=keepdicom,
         )
     else:
         logger.info("No retest_suffix is provided, only visit1 data will be prepared")

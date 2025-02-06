@@ -117,8 +117,7 @@ if __name__ == "__main__":
                 "Aortic Structure-Descending Arch: Min Diameter [mm]": df_raw["min_descending_arch"].values[0] * 10,
                 "Aortic Structure-Descending Arch: Length [mm]": df_raw["descending_arch_length"].values[0] * 10,
                 "Aortic Structure-Descending Arch: Linear Distance [mm]": df_raw["linear_descending_arch_length"].values[0] * 10,
-                "Aortic Structure-Descending Arch: Tortuosity Index [%]": df_raw["descending_arch_tortuosity"].values[0]
-                * 100,
+                "Aortic Structure-Descending Arch: Tortuosity Index [%]": df_raw["descending_arch_tortuosity"].values[0] * 100,
                 "Aortic Structure-Descending Arch: Curvature [1/mm]": df_raw["descending_arch_curvature"].values[0] / 10,
                 "Aortic Structure-Descending Arch: Torsion [1/mm]": df_raw["descending_arch_torsion"].values[0] / 10,
             }
@@ -134,8 +133,7 @@ if __name__ == "__main__":
                 "Aortic Structure-Descending Aorta: Length [mm]": df_raw["descending_aorta_length"].values[0] * 10,
                 "Aortic Structure-Descending Aorta: Linear Distance [mm]": df_raw["linear_descending_aorta_length"].values[0]
                 * 10,
-                "Aortic Structure-Descending Aorta: Tortuosity Index [%]": df_raw["descending_aorta_tortuosity"].values[0]
-                * 100,
+                "Aortic Structure-Descending Aorta: Tortuosity Index [%]": df_raw["descending_aorta_tortuosity"].values[0] * 100,
                 "Aortic Structure-Descending Aorta: Curvature [1/mm]": df_raw["descending_aorta_curvature"].values[0] / 10,
                 "Aortic Structure-Descending Aorta: Torsion [1/mm]": df_raw["descending_aorta_torsion"].values[0] / 10,
             }

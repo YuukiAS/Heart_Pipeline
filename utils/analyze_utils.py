@@ -11,7 +11,6 @@ import seaborn as sns
 import re
 import os
 from collections import defaultdict
-
 import pingouin as pg
 
 import rpy2.robjects as robjects
@@ -37,37 +36,94 @@ if not rpackages.isinstalled("fANCOVA"):
 file_folder = os.path.dirname(os.path.abspath(__file__))
 robjects.r["source"](os.path.join(file_folder, "analyze_utils.r"))
 
-FEATURES_PER_ROW = 5  # If there are more than 10 features, we will splitu77 the boxplot
+FEATURES_PER_ROW = 5  # If there are more than 10 features, we will splitu the boxplot into smaller ones
+FEATURE_PATTERN = r"([\w\s\-]+):\s+([\w\s\/\-\.\,]+(?:\([\w\s\-,\.]+\))?)\s*(?:\[([\w\/\^\%\-\d\.°]+)\])?"
 
 
-def calculate_icc(data_1, data_2, eid_name_1, eid_name_2, features_dict):
+def _calculate_icc_single(combined_df):
+    combined_df = pd.melt(combined_df, id_vars="Subject", var_name="Rater", value_vars=["Rater1", "Rater2"], value_name="Value")
+    # Ref https://pingouin-stats.org/build/html/generated/pingouin.intraclass_corr.html
+    # Ref https://cran.r-project.org/web/packages/psych/psych.pdf
+    # * ICC3 should be used to assess the reliability of the method.
+    ICC_info = pg.intraclass_corr(data=combined_df, targets="Subject", raters="Rater", ratings="Value")
+    ICC = ICC_info[ICC_info["Type"] == "ICC3"]["ICC"].values[0]
+    return ICC, ICC_info
+
+
+def calculate_icc(data1, data2, features_list=None, features_dict=None, eid_col_name1="eid", eid_col_name2="eid"):
     """
-    Calculate ICC for each feature in the features_dict, where the key is the name in data_1
-    and value is the name in data_2.
+    Calculate ICC for each feature. Either a list or dictionary of features can be provided.
+    If a list of features is provided, the ICC will be calculated for each feature in the list.
+    If a dictionary of features is provided, the ICC will be calculated, where the key will be used in data1 and value in data2.
     """
-    data_1 = data_1.sort_values(by=eid_name_1)
-    data_2 = data_2.sort_values(by=eid_name_2)
+
+    # If both data have same columns and features_list, features_dict are not provided, we will use all columns except eid
+    if not features_list and not features_dict and data1.columns.equals(data2.columns):
+        features_list = list(data1.columns)
+        if eid_col_name1 in features_list:
+            features_list.remove(eid_col_name1)
+        if eid_col_name2 in features_list:
+            features_list.remove(eid_col_name2)
+        if "Unnamed: 0" in features_list:
+            features_list.remove("Unnamed: 0")
+
+    data1 = data1.sort_values(by=eid_col_name1)
+    data2 = data2.sort_values(by=eid_col_name2)
+
+    # drop rows with duplicate eid for each data
+    data1 = data1.drop_duplicates(subset=eid_col_name1)
+    data2 = data2.drop_duplicates(subset=eid_col_name2)
+
     pd.set_option("display.width", 200)  # Make sure there is no line break for icc result
-    eid_common = set(data_1[eid_name_1]).intersection(set(data_2[eid_name_2]))
+    eid_common = set(data1[eid_col_name1]).intersection(set(data2[eid_col_name2]))
+
     logger.info(f"There are {len(eid_common)} common subjects in the two datasets.")
-    for key, val in features_dict.items():
-        logger.info(f"Feature: {key} in data_1 and {val} in data_2")
-        data_1_feature = data_1[data_1[eid_name_1].isin(eid_common)][key]
-        data_2_feature = data_2[data_2[eid_name_2].isin(eid_common)][val]
-        combined_df = pd.DataFrame(
-            {
-                "Subject": list(eid_common),
-                "Rater1": pd.Series.tolist(data_1_feature),
-                "Rater2": pd.Series.tolist(data_2_feature),
-            }
-        )
-        combined_df = pd.melt(
-            combined_df, id_vars="Subject", var_name="Rater", value_vars=["Rater1", "Rater2"], value_name="Value"
-        )
-        icc = pg.intraclass_corr(data=combined_df, targets="Subject", raters="Rater", ratings="Value")
-        # https://pingouin-stats.org/build/html/generated/pingouin.intraclass_corr.html
-        # We will use ICC3 and ICC3k as raters is a fixed set
-        logger.info(icc.iloc[[2, 5]])
+
+    ICC_all = []
+    ICC_info_all = pd.DataFrame()
+    if features_list:
+        for feature in features_list:
+            eid_valid_1 = set(data1.loc[data1[feature].notna(), eid_col_name1])
+            eid_valid_2 = set(data2.loc[data2[feature].notna(), eid_col_name2])
+            eid_valid = eid_common.intersection(eid_valid_1, eid_valid_2)
+            logger.info(f"There are {len(eid_valid)} common subjects for feature {feature}.")
+            data1_feature = data1[data1[eid_col_name1].isin(eid_valid)][feature]
+            data2_feature = data2[data2[eid_col_name2].isin(eid_valid)][feature]
+            combined_df = pd.DataFrame(
+                {
+                    "Subject": list(eid_valid),
+                    "Rater1": pd.Series.tolist(data1_feature),
+                    "Rater2": pd.Series.tolist(data2_feature),
+                }
+            )
+            ICC, ICC_info = _calculate_icc_single(combined_df)
+            ICC_all.append(ICC)
+            ICC_info_all = pd.concat([ICC_info_all, ICC_info], axis=0)
+    elif features_dict:
+        for key, val in features_dict.items():
+            # We also need to ensure that both data have observations for eid_common
+            eid_valid_1 = set(data1.loc[data1[key].notna(), eid_col_name1])
+            eid_valid_2 = set(data2.loc[data2[val].notna(), eid_col_name2])
+            eid_valid = eid_common.intersection(eid_valid_1, eid_valid_2)
+            logger.info(f"There are {len(eid_valid)} common subjects for features {key} and {val}.")
+            data1_feature = data1[data1[eid_col_name1].isin(eid_valid)][key]
+            data2_feature = data2[data2[eid_col_name2].isin(eid_valid)][val]
+            combined_df = pd.DataFrame(
+                {
+                    "Subject": list(eid_valid),
+                    "Rater1": pd.Series.tolist(data1_feature),
+                    "Rater2": pd.Series.tolist(data2_feature),
+                }
+            )
+            ICC, ICC_info = _calculate_icc_single(combined_df)
+            ICC_all.append(ICC)
+            ICC_info_all = pd.concat([ICC_info_all, ICC_info], axis=0)
+    else:
+        raise ValueError("Either a list or dictionary of features must be provided.")
+
+    if not features_list:
+        features_list = features_dict.keys()
+    return features_list, ICC_all, ICC_info_all
 
 
 def _bland_altman_plot(feature1, feature2, *args, **kwargs):
@@ -88,22 +144,22 @@ def _bland_altman_plot(feature1, feature2, *args, **kwargs):
     plt.show()
 
 
-def bland_altman_plot(data1, data2, eid_name_1, eid_name_2, features_dict, *args, **kwargs):
+def bland_altman_plot(data1, data2, eid_col_name1, eid_col_name2, features_dict, *args, **kwargs):
     """
     Create a Bland-Altman plot for each feature in the features_dict,
-    where the key is the name in data_1 and value is the name in data_2.
+    where the key is the name in data1 and value is the name in data2.
     """
-    data1 = data1.sort_values(by=eid_name_1)
-    data2 = data2.sort_values(by=eid_name_2)
-    eid_common = set(data1[eid_name_1]).intersection(set(data2[eid_name_2]))
+    data1 = data1.sort_values(by=eid_col_name1)
+    data2 = data2.sort_values(by=eid_col_name2)
+    eid_common = set(data1[eid_col_name1]).intersection(set(data2[eid_col_name2]))
     logger.info(f"There are {len(eid_common)} common subjects in the two datasets.")
     for key, val in features_dict.items():
-        logger.info(f"Feature: {key} in data_1 and {val} in data_2")
-        data_1_feature = data1[data1[eid_name_1].isin(eid_common)][key]
-        data_1_feature = np.array(data_1_feature)
-        data_2_feature = data2[data2[eid_name_2].isin(eid_common)][val]
-        data_2_feature = np.array(data_2_feature)
-        _bland_altman_plot(data_1_feature, data_2_feature, *args, **kwargs)
+        logger.info(f"Feature: {key} in data1 and {val} in data2")
+        data1_feature = data1[data1[eid_col_name1].isin(eid_common)][key]
+        data1_feature = np.array(data1_feature)
+        data2_feature = data2[data2[eid_col_name2].isin(eid_common)][val]
+        data2_feature = np.array(data2_feature)
+        _bland_altman_plot(data1_feature, data2_feature, *args, **kwargs)
 
 
 # There will be some variants of this function, such as allowing multiple y or stacked
@@ -339,7 +395,7 @@ def analyze_time_series_derivative(x: list, y: list, n_pos, n_neg, method="slope
 
     # Note this will reduce the number of frames
     if method == "slope":
-        x_ma = np.convolve(x, np.ones(3) / 3, mode="valid")
+        x_ma = np.convolve(x, np.ones(3) / 3, mode="valid")  # moving average
         y_ma = np.convolve(y, np.ones(3) / 3, mode="valid")
 
         y_ma_diff = np.gradient(y_ma, x_ma)
@@ -352,12 +408,12 @@ def analyze_time_series_derivative(x: list, y: list, n_pos, n_neg, method="slope
 
         # Ref Time-resolved tracking of the atrioventricular plane displacement in Cardiovascular Magnetic Resonance (CMR) images https://pubmed.ncbi.nlm.nih.gov/28241751/
         for T in T_PR_pos:  # usually for peak filling rate
-            if T < 1 or T > len(x_ma) - 2:
+            if T < 1 or T >= len(x_ma) - 2:
                 raise IndexError("The positive peak is too close to the boundary of the time series.")
             PR_pos.append((y_ma[T + 2] - y_ma[T - 1]) / (x_ma[T + 2] - x_ma[T - 1]))
 
         for T in T_PR_neg:  # usually for peak emptying rate
-            if T < 2 or T > len(x_ma) - 2:
+            if T < 2 or T >= len(x_ma) - 2:
                 raise IndexError("The negative peak is too close to the boundary of the time series.")
             PR_neg.append((y_ma[T + 2] - y_ma[T - 2]) / (x_ma[T + 2] - x_ma[T - 2]))
 
@@ -373,12 +429,12 @@ def analyze_time_series_derivative(x: list, y: list, n_pos, n_neg, method="slope
 
         for T in T_PR_pos:
             # ensure consistency
-            if T < 1 or T > len(x) - 2:
+            if T < 1 or T >= len(x) - 2:
                 raise IndexError("The positive peak is too close to the boundary of the time series.")
             PR_pos.append(y_diff[T])
 
         for T in T_PR_neg:
-            if T < 2 or T > len(x) - 2:
+            if T < 2 or T >= len(x) - 2:
                 raise IndexError("The negative peak is too close to the boundary of the time series.")
             PR_neg.append(y_diff[T])
 
@@ -529,19 +585,68 @@ def _query_reference_range(json_data, region, name, diagnosis=False):
     raise ValueError(f"Feature {name} in region {region} not found in the reference range json file.")
 
 
-def analyze_aggregated_csv(
+def _process_csv(csv, columns, unit):
+    csv_features = csv[columns]
+    csv_melted = csv_features.melt(var_name="Feature", value_name=f"{unit}")
+    csv_melted["Feature"] = csv_melted["Feature"].apply(lambda x: re.match(FEATURE_PATTERN, x).group(2))
+    feature_counts = csv_melted.groupby("Feature").size()
+    feature_order = csv_melted.groupby("Feature")[f"{unit}"].mean().sort_values(ascending=False).index
+    csv_melted["Feature"] = pd.Categorical(csv_melted["Feature"], categories=feature_order, ordered=True)
+    return csv_melted, feature_counts, feature_order
+
+
+def _add_reference_range(ax, index: int, CI, PI, AD_RR, wide=True):
+    width = 0.4 if wide else 0.2
+    if AD_RR:
+        ax.fill_betweenx(
+            y=[AD_RR[0], AD_RR[1]],
+            x1=index - width,
+            x2=index + width,
+            color="lightgreen",
+            alpha=0.2,
+            label="AD RR for new individual",
+            zorder=10,
+        )
+        ax.hlines(y=AD_RR[0], xmin=index - width, xmax=index + width, color="lightgreen", alpha=0.5, linestyle="--", zorder=10)
+        ax.hlines(y=AD_RR[1], xmin=index - width, xmax=index + width, color="lightgreen", alpha=0.5, linestyle="--", zorder=10)
+    if PI:
+        ax.fill_betweenx(
+            y=[PI[0], PI[1]],
+            x1=index - width,
+            x2=index + width,
+            color="lightblue",
+            alpha=0.2,
+            label="PI for new study mean",
+            zorder=10,
+        )
+        ax.hlines(y=PI[0], xmin=index - width, xmax=index + width, color="lightblue", alpha=0.5, linestyle="--", zorder=10)
+        ax.hlines(y=PI[1], xmin=index - width, xmax=index + width, color="lightblue", alpha=0.5, linestyle="--", zorder=10)
+    if CI:
+        ax.fill_betweenx(
+            y=[CI[0], CI[1]],
+            x1=index - width,
+            x2=index + width,
+            color="lightpink",
+            alpha=0.2,
+            label="CI for pooled mean",
+            zorder=10,
+        )
+        ax.hlines(y=CI[0], xmin=index - width, xmax=index + width, color="lightpink", alpha=0.5, linestyle="--", zorder=10)
+        ax.hlines(y=CI[1], xmin=index - width, xmax=index + width, color="lightpink", alpha=0.5, linestyle="--", zorder=10)
+    return ax
+
+
+def analyze_aggregated_csv_specified_single(
     csv_path: str,
     visualization_path: str,
+    specified_columns: str,
+    specified_file_name: str,
     reference_range_json_path=None,
-    specified_columns=None,
-    specified_file_name=None,
     diagnosis=False,
 ):
     """
-    The main function to analyze features extracted from the aggregated csv file.
-    It will generate boxplot for numerical feature and pieplot for categorical feature.
+    The function to analyze specified features in a single aggregated csv file. It will only generate boxplots for numerical ones.
     If the reference range json file is provided, it will also query the reference range for each feature.
-    (This function may be further simplified in the future)
     """
     csv = pd.read_csv(csv_path)
     reference_range_json = None
@@ -550,358 +655,483 @@ def analyze_aggregated_csv(
             reference_range_json = json5.load(file)
 
     if specified_columns:
-        # * We can manually specify the columns to be analyzed
+        # Manually specify the columns to be analyzed
         columns = specified_columns
-        for column in columns:
-            if csv[column].dtype in [object]:
-                logger.warning("The specified column is not numeric, skipped.")
-                columns.remove(column)
-            # drop columns if specified
-        csv = csv[columns]
     else:
         columns = csv.columns
 
-    feature_pattern = r"([\w\s\-]+):\s+([\w\s\/\-\.\,]+(?:\([\w\s\-,\.]+\))?)\s*(?:\[([\w\/\^\%\-\d\.°]+)\])?"
+    if not specified_file_name:
+        raise ValueError("If specified_columns is provided, specified_file_name must be provided as well.")
 
-    # * Option1: If we specify the columns, we will only generate plots for these columns
-    if specified_columns:
-        features_list = []  # we will report all specified features, regardless of region and unit
-        if not specified_file_name:
-            raise ValueError("If specified_columns is provided, specified_file_name must be provided.")
-        for feature in specified_columns:
-            match = re.match(feature_pattern, feature)
-            if match:
-                region = match.group(1)
-                name = match.group(2).strip()
-                unit = match.group(3) if match.group(3) else ""
-                CI = None
-                PI = None
-                AD_RR = None
-                if reference_range_json:
-                    try:
-                        CI, PI, AD_RR = _query_reference_range(reference_range_json, region, name, diagnosis=diagnosis)
-                    except ValueError:
-                        logger.warning(f"No reference range found for feature {name} in region {region}")
-                features_list.append((region, name, unit, CI, PI, AD_RR))
-            else:
-                logger.warning(f"Feature {feature} does not match the naming convention, skipped.")
-                continue
+    # We only accept numeric columns
+    for column in columns:
+        if csv[column].dtype in [object]:
+            logger.warning(f"Column {column} is not numeric, skipped.")
+            columns.remove(column)
 
-        _, names, units, CIs, PIs, AD_RRs = zip(*features_list)
-        # Make sure units are the same
-        if not all(unit == units[0] for unit in units):
-            raise ValueError("All specified columns must have the same unit.")
-        unit = units[0]
-        reference_ranges = {name: (CI, PI, AD_RR) for name, CI, PI, AD_RR in zip(names, CIs, PIs, AD_RRs)}
-        column_features = columns
-        csv_features = csv[column_features]
-        csv_melted = csv_features.melt(var_name="Feature", value_name=f"{unit}")
-        csv_melted["Feature"] = csv_melted["Feature"].apply(lambda x: re.match(feature_pattern, x).group(2))
-        feature_counts = csv_melted.groupby("Feature").size()
-        feature_order = csv_melted.groupby("Feature")[f"{unit}"].mean().sort_values(ascending=False).index
-        csv_melted["Feature"] = pd.Categorical(csv_melted["Feature"], categories=feature_order, ordered=True)
-        palette = sns.color_palette("husl", len(csv_melted["Feature"].unique()))
-        plt.figure(figsize=(20, 6))
-        ax = sns.boxplot(x="Feature", y=f"{unit}", data=csv_melted, palette=palette, hue="Feature", legend=False)
-        plt.xticks(fontsize=8)
-        plt.xlabel("Feature", fontsize=10)
-        for i, feature in enumerate(feature_order):
-            count = feature_counts[feature]
-            ax.text(i, ax.get_ylim()[1] * 0.95, f"(n={count})", ha="center", va="bottom", fontsize=10, color="black")
-        plt.ylabel(f"{unit}", fontsize=10)
-        if unit != "":
-            plt.title(f"Boxplot of Features in with unit {unit}", fontsize=12)
+    # drop columns if specified
+    csv = csv[columns]
+
+    # * Step1: Extract feature names and obtain reference ranges if available
+    features_list = []  # we will report all specified features, regardless of region and unit
+    for feature in columns:
+        match = re.match(FEATURE_PATTERN, feature)
+        if feature == "eid" or feature == "Unnamed: 0":
+            continue
+        if match:
+            region = match.group(1)
+            name = match.group(2).strip()
+            unit = match.group(3) if match.group(3) else ""
+            CI = None
+            PI = None
+            AD_RR = None
+            if reference_range_json:
+                try:
+                    CI, PI, AD_RR = _query_reference_range(reference_range_json, region, name, diagnosis=diagnosis)
+                except ValueError:
+                    logger.warning(f"No reference range found for feature {name} in region {region}")
+            features_list.append((region, name, unit, CI, PI, AD_RR))
         else:
-            plt.title("Boxplot of Features in with no unit", fontsize=12)
+            logger.warning(f"Feature {feature} does not match the naming convention, skipped.")
+            continue
 
-        # Add reference ranges to the boxplot
-        reference_ranges_ordered = []
-        for name_i in feature_order:
-            name_str = str(name_i).strip()
-            if reference_ranges[name_str]:
-                reference_ranges_ordered.append(reference_ranges[name_str])
-            else:
-                reference_ranges_ordered.append((None, None, None))
-        for index, reference_range in enumerate(reference_ranges_ordered):
-            # If there is reference range for certain features, add them to the boxplot
-            CI, PI, AD_RR = reference_range
-            if AD_RR:
-                ax.fill_betweenx(
-                    y=[AD_RR[0], AD_RR[1]],
-                    x1=index - 0.4,
-                    x2=index + 0.4,
-                    color="lightgreen",
-                    alpha=0.2,
-                    label="AD RR for new individual",
-                    zorder=10,
-                )
-                ax.hlines(
-                    y=AD_RR[0], xmin=index - 0.4, xmax=index + 0.4, color="lightgreen", alpha=0.5, linestyle="--", zorder=10
-                )
-                ax.hlines(
-                    y=AD_RR[1], xmin=index - 0.4, xmax=index + 0.4, color="lightgreen", alpha=0.5, linestyle="--", zorder=10
-                )
-            if PI:
-                ax.fill_betweenx(
-                    y=[PI[0], PI[1]],
-                    x1=index - 0.4,
-                    x2=index + 0.4,
-                    color="lightblue",
-                    alpha=0.2,
-                    label="PI for new study mean",
-                    zorder=10,
-                )
-                ax.hlines(y=PI[0], xmin=index - 0.4, xmax=index + 0.4, color="lightblue", alpha=0.5, linestyle="--", zorder=10)
-                ax.hlines(y=PI[1], xmin=index - 0.4, xmax=index + 0.4, color="lightblue", alpha=0.5, linestyle="--", zorder=10)
-            if CI:
-                ax.fill_betweenx(
-                    y=[CI[0], CI[1]],
-                    x1=index - 0.4,
-                    x2=index + 0.4,
-                    color="lightpink",
-                    alpha=0.2,
-                    label="CI for pooled mean",
-                    zorder=10,
-                )
-                ax.hlines(y=CI[0], xmin=index - 0.4, xmax=index + 0.4, color="lightpink", alpha=0.5, linestyle="--", zorder=10)
-                ax.hlines(y=CI[1], xmin=index - 0.4, xmax=index + 0.4, color="lightpink", alpha=0.5, linestyle="--", zorder=10)
-        plt.tight_layout(rect=[0, 0, 1, 0.95])
-        handles, labels = ax.get_legend_handles_labels()
-        unique = dict(zip(labels, handles))
-        ax.legend(unique.values(), unique.keys(), loc="upper right")
-        plt.savefig(f"{visualization_path}/{specified_file_name}.png")
-        plt.close()
-        return
+    # * We only accept each numeric column to have the same unit
+    _, names, units, CIs, PIs, AD_RRs = zip(*features_list)
+    # Make sure units are the same
+    if not all(unit == units[0] for unit in units):
+        raise ValueError("All specified columns must have the same unit.")
+    unit = units[0]
 
-    # * Option2: Otherwise we will generate a few boxplots, each figure corresponds to features in the same region with same unit
+    # * Step2: Process and sort columns
+    reference_ranges = {name: (CI, PI, AD_RR) for name, CI, PI, AD_RR in zip(names, CIs, PIs, AD_RRs)}
+    column_features = columns  # no need to recover the original column names
+    csv_melted, feature_counts, feature_order = _process_csv(csv, column_features, unit)
+
+    # * Step3: Generate boxplot
+    palette = sns.color_palette("husl", len(csv_melted["Feature"].unique()))
+    plt.figure(figsize=(20, 6))
+    ax = sns.boxplot(x="Feature", y=f"{unit}", data=csv_melted, palette=palette, hue="Feature", legend=False)
+    plt.xticks(fontsize=8)
+    plt.xlabel("Feature", fontsize=10)
+    for i, feature in enumerate(feature_order):
+        count = feature_counts[feature]
+        ax.text(i, ax.get_ylim()[1] * 0.95, f"(n={count})", ha="center", va="bottom", fontsize=10, color="black")
+    plt.ylabel(f"{unit}", fontsize=10)
+    if unit != "":
+        plt.title(f"Boxplot of Features in with unit {unit}", fontsize=12)
     else:
-        features_dict = defaultdict(list)  # define The dictionary to hold the features for each region
-        for feature in columns:
-            if feature == "eid" or feature == "Unnamed: 0":
-                continue
-            match = re.match(feature_pattern, feature)
-            if match:
-                region = match.group(1)
-                name = match.group(2).strip()
-                unit = match.group(3) if match.group(3) else ""  # for some features thre is no unit
-                # print(f"Region: {region}, Name: {name}, Unit: {unit}")
-                CI = None
-                PI = None
-                AD_RR = None
-                if reference_range_json and csv[feature].dtype not in [object]:
-                    # * We only consider reference range for numeric features
-                    try:
-                        CI, PI, AD_RR = _query_reference_range(reference_range_json, region, name, diagnosis=diagnosis)
-                    except ValueError:
-                        logger.warning(f"No reference range found for feature {name} in region {region}")
+        plt.title("Boxplot of Features in with no unit", fontsize=12)
 
-                features_dict[(region, unit)].append((name, CI, PI, AD_RR))
-            else:
-                logger.warning(f"Feature {feature} does not match the naming convention, skipped.")
-                continue
+    # If there is reference range for certain features, add them to the boxplot
+    # We need to sort according to the feature_order before adding reference range
+    reference_ranges_ordered = []
+    for name_i in feature_order:
+        name_str = str(name_i).strip()
+        if reference_ranges[name_str]:
+            reference_ranges_ordered.append(reference_ranges[name_str])
+        else:
+            reference_ranges_ordered.append((None, None, None))
+    for index, reference_range in enumerate(reference_ranges_ordered):
+        # If there is reference range for certain features, add them to the boxplot
+        CI, PI, AD_RR = reference_range
+        _add_reference_range(ax, index, CI, PI, AD_RR)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    # remove duplicate labels
+    handles, labels = ax.get_legend_handles_labels()
+    unique = dict(zip(labels, handles))
 
-        cnt = 0
-        region_old = None
-        for (region, unit), features_info in features_dict.items():
-            features, CIs, PIs, AD_RRs = zip(*features_info)
-            # this will be extended and sorted later
-            reference_ranges = {feature: (CI, PI, AD_RR) for feature, CI, PI, AD_RR in zip(features, CIs, PIs, AD_RRs)}
-            if region != region_old:
-                cnt = 0
-            region_old = region
-            cnt += 1
-            # * For most numerical features with units, recover the column names
+    ax.legend(unique.values(), unique.keys(), loc="upper right")
+    plt.savefig(f"{visualization_path}/{specified_file_name}_compare.png")
+    plt.close()
+    return
+
+
+def analyze_aggregated_csv_main_single(
+    csv_path: str,
+    visualization_path: str,
+    reference_range_json_path=None,
+    diagnosis=False,
+):
+    """
+    The main function to analyze features in a single aggregated csv file. It will only generate boxplots for numerical ones.
+    Each generated figure will correspond to features in the same region with the same unit.
+    If the reference range json file is provided, it will also query the reference range for each feature.
+    """
+    csv = pd.read_csv(csv_path)
+    reference_range_json = None
+    if reference_range_json_path:
+        with open(reference_range_json_path, "r") as file:
+            reference_range_json = json5.load(file)
+    columns = csv.columns
+
+    # We only accept numeric columns
+    for column in columns:
+        if csv[column].dtype in [object]:
+            logger.warning(f"Column {column} is not numeric, skipped.")
+            columns.remove(column)
+
+    # We will generate a few boxplots, each figure corresponds to features in the same region with same unit
+    # * Step1: Extract feature names and obtain reference ranges if available
+    features_dict = defaultdict(list)  # define The dictionary to hold the features for each region
+    for feature in columns:
+        if feature == "eid" or feature == "Unnamed: 0":
+            continue
+        match = re.match(FEATURE_PATTERN, feature)
+        if match:
+            region = match.group(1)
+            name = match.group(2).strip()
+            unit = match.group(3) if match.group(3) else ""  # Some features don't have any unit
+            CI = None
+            PI = None
+            AD_RR = None
+            if reference_range_json:
+                # We only consider reference range for numeric features
+                try:
+                    CI, PI, AD_RR = _query_reference_range(reference_range_json, region, name, diagnosis=diagnosis)
+                except ValueError:
+                    logger.warning(f"No reference range found for feature {name} in region {region}")
+
+            features_dict[(region, unit)].append((name, CI, PI, AD_RR))
+        else:
+            logger.warning(f"Feature {feature} does not match the naming convention, skipped.")
+            continue
+
+    cnt = 0
+    region_old = None
+    for (region, unit), features_info in features_dict.items():
+        features, CIs, PIs, AD_RRs = zip(*features_info)
+        reference_ranges = {feature: (CI, PI, AD_RR) for feature, CI, PI, AD_RR in zip(features, CIs, PIs, AD_RRs)}
+        if region != region_old:
+            cnt = 0
+        region_old = region
+        cnt += 1
+        # For most numerical features with units, recover the original column names
+        if unit != "":
+            logger.info(f"Generating boxplots for all features in {region} with unit {unit}")
+            column_features = [f"{region}: {feature} [{unit}]" for feature in features]
+        else:
+            column_features = [f"{region}: {feature}" for feature in features]
+
+        # * If there are too many features with same unit, we will generate separete boxplots
+        if len(column_features) > FEATURES_PER_ROW:
+            n_boxplots = len(column_features) // FEATURES_PER_ROW + 1
+            for i in range(n_boxplots):
+                column_features_i = column_features[i * FEATURES_PER_ROW : min((i + 1) * FEATURES_PER_ROW, len(column_features))]
+                analyze_aggregated_csv_specified_single(
+                    csv_path=csv_path,
+                    visualization_path=visualization_path,
+                    specified_columns=column_features_i,
+                    specified_file_name=f"{region}_{cnt}_{i + 1}",
+                    reference_range_json_path=reference_range_json_path,
+                )
+        else:
+            # * Step2: Process and sort columns
+            csv_melted, feature_counts, feature_order = _process_csv(csv, column_features, unit)
+
+            # * Step3: Generate boxplot
+            palette = sns.color_palette("husl", len(csv_melted["Feature"].unique()))
+            plt.figure(figsize=(15, 6))
+            ax = sns.boxplot(x="Feature", y=f"{unit}", data=csv_melted, palette=palette, hue="Feature", legend=False)
+            plt.xticks(fontsize=8)
+            plt.xlabel("Feature", fontsize=10)
+            for i, feature in enumerate(feature_order):
+                count = feature_counts[feature]
+                ax.text(i, ax.get_ylim()[1] * 0.95, f"(n={count})", ha="center", va="bottom", fontsize=10, color="black")
+            plt.ylabel(f"{unit}", fontsize=10)
             if unit != "":
-                logger.info(f"Generating boxplots for all features in {region} with unit {unit}")
-                columns_features = [f"{region}: {feature} [{unit}]" for feature in features]
-            # * Note some features can be categorical or have no unit. We generate pieplot for categorical features
+                plt.title(f"Boxplot of Features in {region} with unit {unit}", fontsize=12)
             else:
-                columns_features = [f"{region}: {feature}" for feature in features]
+                plt.title(f"Boxplot of Features in {region} with no unit", fontsize=12)
 
-                columns_features_numeric = [
-                    column_feature for column_feature in columns_features if csv[column_feature].dtype not in [object]
-                ]
-                columns_features_categorical = [
-                    column_feature for column_feature in columns_features if csv[column_feature].dtype in [object]
-                ]
-                # Generate pieplot
-                for column_feature_categorical in columns_features_categorical:
-                    feature = column_feature_categorical.split(": ")[1]  # name of feature
-                    logger.info(f"Generating pieplot for categorical feature {feature}")
-                    feature_categorical = csv[column_feature_categorical]
-                    feature_counts = feature_categorical.value_counts()
-                    palette = sns.color_palette("husl", len(feature_counts))
-                    _, ax = plt.subplots(figsize=(10, 6))
-                    wedges, _, _ = ax.pie(
-                        feature_counts.values,
-                        labels=None,
-                        autopct="",
-                        startangle=90,
-                        colors=palette,
-                    )
-                    for i, wedge in enumerate(wedges):
-                        angle = (wedge.theta2 - wedge.theta1) / 2.0 + wedge.theta1
-                        x = np.cos(np.radians(angle))
-                        y = np.sin(np.radians(angle))
-
-                        if feature_counts.values[i] / feature_counts.sum() < 0.05:
-                            ax.annotate(
-                                f"{feature_counts.values[i] / feature_counts.sum() * 100:.1f}%",
-                                xy=(x * 0.6, y * 0.6),
-                                xytext=(x * 1.2, y * 1.2),
-                                arrowprops=dict(arrowstyle="->", color="black"),
-                                ha="center",
-                                fontsize=8,
-                            )
-                        else:
-                            ax.text(
-                                x * 0.6,
-                                y * 0.6,
-                                f"{feature_counts.values[i] / feature_counts.sum() * 100:.1f}%",
-                                ha="center",
-                                fontsize=8,
-                            )
-                    # avoid possible overlap
-                    ax.legend(
-                        labels=feature_counts.index,
-                        loc="lower right",
-                        bbox_to_anchor=(1, 0, 0.5, 1),
-                    )
-                    plt.title(f"Pieplot of categorical feature {feature}")
-                    plt.tight_layout(rect=[0, 0, 1, 0.95])
-                    plt.savefig(f"{visualization_path}/{region}_{feature}.png")
-                    plt.close()
-
-                # The remaining numerical features with
-                columns_features = columns_features_numeric
-                if len(columns_features) == 0:
-                    # no boxplot generated if all these features are categorical and there is no feature without unit
-                    cnt -= 1
-                    continue
+            # If there is reference range for certain features, add them to the boxplot
+            # We need to sort according to the feature_order before adding reference range
+            reference_ranges_ordered = []
+            for name_i in feature_order:
+                name_str = str(name_i).strip()
+                if reference_ranges[name_str]:
+                    reference_ranges_ordered.append(reference_ranges[name_str])
                 else:
-                    logger.info(f"Generating boxplots for all features in {region} with no unit")
+                    reference_ranges_ordered.append((None, None, None))
+            for index, reference_range in enumerate(reference_ranges_ordered):
+                CI, PI, AD_RR = reference_range
+                _add_reference_range(ax, index, CI, PI, AD_RR)
+            plt.tight_layout(rect=[0, 0, 1, 0.95])
+            # remove duplicate labels
+            handles, labels = ax.get_legend_handles_labels()
+            unique = dict(zip(labels, handles))
 
-            if len(columns_features) > FEATURES_PER_ROW:
-                # * If there are too many features with same unit, we will generate separete boxplots
-                n_boxplots = len(columns_features) // FEATURES_PER_ROW + 1
-                for i in range(n_boxplots):
-                    columns_features_i = columns_features[
-                        i * FEATURES_PER_ROW : min((i + 1) * FEATURES_PER_ROW, len(columns_features))
-                    ]
-                    analyze_aggregated_csv(
-                        csv_path=csv_path,
-                        visualization_path=visualization_path,
-                        reference_range_json_path=reference_range_json_path,
-                        specified_columns=columns_features_i,
-                        specified_file_name=f"{region}_{cnt}_{i + 1}",
-                    )
+            ax.legend(unique.values(), unique.keys(), loc="upper right")  # legend is better at the top since we sort descendingly
+            plt.savefig(f"{visualization_path}/{region}_{cnt}.png")
+            plt.close()
+
+    return
+
+
+def analyze_aggregated_csv_specified_compare(
+    csv1_path: str,
+    csv2_path: str,
+    label_csv1: str,  # e.g. "Visit1"
+    label_csv2: str,  # e.g. "Visit2"
+    visualization_path: str,
+    specified_columns: str,
+    specified_file_name: str,
+    reference_range_json_path=None,
+    diagnosis=False,
+):
+    """
+    The function to compare specified features in two aggregated csv file. It will only generate boxplots for numerical ones.
+    If the reference range json file is provided, it will also query the reference range for each feature.
+    """
+    csv1 = pd.read_csv(csv1_path)
+    csv2 = pd.read_csv(csv2_path)
+    # ensure two csv have the same columns
+    if not csv1.columns.equals(csv2.columns):
+        raise ValueError("The two csv files must have the same columns.")
+
+    reference_range_json = None
+    if reference_range_json_path:
+        with open(reference_range_json_path, "r") as file:
+            reference_range_json = json5.load(file)
+
+    if specified_columns:
+        # Manually specify the columns to be analyzed
+        columns = specified_columns
+    else:
+        columns = csv1.columns
+
+    if not specified_file_name:
+        raise ValueError("If specified_columns is provided, specified_file_name must be provided as well.")
+
+    # We only accept numeric columns
+    for column in columns:
+        if csv1[column].dtype in [object]:
+            logger.warning(f"Column {column} is not numeric, skipped.")
+            columns.remove(column)
+
+    # drop columns if specified
+    csv1 = csv1[columns]
+    csv2 = csv2[columns]
+
+    # * Step1: Extract feature names and obtain reference ranges if available
+    features_list = []  # we will report all specified features, regardless of region and unit
+    for feature in columns:
+        match = re.match(FEATURE_PATTERN, feature)
+        if feature == "eid" or feature == "Unnamed: 0":
+            continue
+        if match:
+            region = match.group(1)
+            name = match.group(2).strip()
+            unit = match.group(3) if match.group(3) else ""
+            CI = None
+            PI = None
+            AD_RR = None
+            if reference_range_json:
+                try:
+                    CI, PI, AD_RR = _query_reference_range(reference_range_json, region, name, diagnosis=diagnosis)
+                except ValueError:
+                    logger.warning(f"No reference range found for feature {name} in region {region}")
+            features_list.append((region, name, unit, CI, PI, AD_RR))
+        else:
+            logger.warning(f"Feature {feature} does not match the naming convention, skipped.")
+            continue
+
+    # * We only accept each numeric column to have the same unit
+    _, names, units, CIs, PIs, AD_RRs = zip(*features_list)
+    # Make sure units are the same
+    if not all(unit == units[0] for unit in units):
+        raise ValueError("All specified columns must have the same unit.")
+    unit = units[0]
+
+    # * Step2: Process and sort columns
+    reference_ranges = {name: (CI, PI, AD_RR) for name, CI, PI, AD_RR in zip(names, CIs, PIs, AD_RRs)}
+    column_features = columns  # no need to recover the original column names
+    csv1_melted, csv1_counts, feature_order = _process_csv(csv1, column_features, unit)
+    csv2_melted, csv2_counts, _ = _process_csv(csv2, column_features, unit)
+
+    csv1_melted["Source"] = label_csv1
+    csv2_melted["Source"] = label_csv2
+    csv_combined = pd.concat([csv1_melted, csv2_melted], ignore_index=True)
+
+    # * Step3: Generate boxplot
+    plt.figure(figsize=(20, 6))
+    # now different features in same csv will have the same color
+    ax = sns.boxplot(x="Feature", y=f"{unit}", data=csv_combined, palette="Set2", hue="Source", legend=False)
+    plt.xticks(fontsize=8)
+    plt.xlabel("Feature", fontsize=10)
+    for i, feature in enumerate(feature_order):
+        count1 = csv1_counts[feature]
+        count2 = csv2_counts[feature]
+        ax.text(i - 0.2, ax.get_ylim()[1] * 0.95, f"(n={count1})", ha="center", va="bottom", fontsize=10, color="black")
+        ax.text(i + 0.2, ax.get_ylim()[1] * 0.95, f"(n={count2})", ha="center", va="bottom", fontsize=10, color="black")
+    plt.ylabel(f"{unit}", fontsize=10)
+    if unit != "":
+        plt.title(f"Boxplot of Features in with unit {unit}", fontsize=12)
+    else:
+        plt.title("Boxplot of Features in with no unit", fontsize=12)
+
+    # If there is reference range for certain features, add them to the boxplot
+    # We need to sort according to the feature_order before adding reference range
+    reference_ranges_ordered = []
+    for name_i in feature_order:
+        name_str = str(name_i).strip()
+        if reference_ranges[name_str]:
+            reference_ranges_ordered.append(reference_ranges[name_str])
+        else:
+            reference_ranges_ordered.append((None, None, None))
+    for index, reference_range in enumerate(reference_ranges_ordered):
+        # If there is reference range for certain features, add them to the boxplot
+        CI, PI, AD_RR = reference_range
+        _add_reference_range(ax, index - 0.2, CI, PI, AD_RR, wide=False)
+        _add_reference_range(ax, index + 0.2, CI, PI, AD_RR, wide=False)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    # remove duplicate labels
+    handles, labels = ax.get_legend_handles_labels()
+    unique = dict(zip(labels, handles))
+
+    ax.legend(unique.values(), unique.keys(), loc="upper right")
+    plt.savefig(f"{visualization_path}/{specified_file_name}.png")
+    plt.close()
+    return
+
+
+def analyze_aggregated_csv_main_compare(
+    csv1_path: str,
+    csv2_path: str,
+    label_csv1: str,
+    label_csv2: str,
+    visualization_path: str,
+    reference_range_json_path=None,
+    diagnosis=False,
+):
+    """
+    The main function to analyze features in a single aggregated csv file. It will only generate boxplots for numerical ones.
+    Each generated figure will correspond to features in the same region with the same unit.
+    If the reference range json file is provided, it will also query the reference range for each feature.
+    """
+    csv1 = pd.read_csv(csv1_path)
+    csv2 = pd.read_csv(csv2_path)
+
+    # ensure two csv have the same columns
+    if not csv1.columns.equals(csv2.columns):
+        raise ValueError("The two csv files must have the same columns.")
+
+    reference_range_json = None
+    if reference_range_json_path:
+        with open(reference_range_json_path, "r") as file:
+            reference_range_json = json5.load(file)
+    columns = csv1.columns
+
+    # We only accept numeric columns
+    for column in columns:
+        if csv1[column].dtype in [object]:
+            logger.warning(f"Column {column} is not numeric, skipped.")
+            columns.remove(column)
+
+    # We will generate a few boxplots, each figure corresponds to features in the same region with same unit
+    # * Step1: Extract feature names and obtain reference ranges if available
+    features_dict = defaultdict(list)  # define The dictionary to hold the features for each region
+    for feature in columns:
+        if feature == "eid" or feature == "Unnamed: 0":
+            continue
+        match = re.match(FEATURE_PATTERN, feature)
+        if match:
+            region = match.group(1)
+            name = match.group(2).strip()
+            unit = match.group(3) if match.group(3) else ""  # Some features don't have any unit
+            CI = None
+            PI = None
+            AD_RR = None
+            if reference_range_json:
+                # We only consider reference range for numeric features
+                try:
+                    CI, PI, AD_RR = _query_reference_range(reference_range_json, region, name, diagnosis=diagnosis)
+                except ValueError:
+                    logger.warning(f"No reference range found for feature {name} in region {region}")
+
+            features_dict[(region, unit)].append((name, CI, PI, AD_RR))
+        else:
+            logger.warning(f"Feature {feature} does not match the naming convention, skipped.")
+            continue
+
+    cnt = 0
+    region_old = None
+    for (region, unit), features_info in features_dict.items():
+        features, CIs, PIs, AD_RRs = zip(*features_info)
+        reference_ranges = {feature: (CI, PI, AD_RR) for feature, CI, PI, AD_RR in zip(features, CIs, PIs, AD_RRs)}
+        if region != region_old:
+            cnt = 0
+        region_old = region
+        cnt += 1
+        # For most numerical features with units, recover the original column names
+        if unit != "":
+            logger.info(f"Generating boxplots for all features in {region} with unit {unit}")
+            column_features = [f"{region}: {feature} [{unit}]" for feature in features]
+        else:
+            column_features = [f"{region}: {feature}" for feature in features]
+
+        # * If there are too many features with same unit, we will generate separete boxplots
+        if len(column_features) > FEATURES_PER_ROW:
+            n_boxplots = len(column_features) // FEATURES_PER_ROW + 1
+            for i in range(n_boxplots):
+                column_features_i = column_features[i * FEATURES_PER_ROW : min((i + 1) * FEATURES_PER_ROW, len(column_features))]
+                analyze_aggregated_csv_specified_compare(
+                    csv1_path=csv1_path,
+                    csv2_path=csv2_path,
+                    label_csv1=label_csv1,
+                    label_csv2=label_csv2,
+                    visualization_path=visualization_path,
+                    specified_columns=column_features_i,
+                    specified_file_name=f"{region}_{cnt}_{i + 1}_compare",
+                    reference_range_json_path=reference_range_json_path,
+                )
+        else:
+            # * Step2: Process and sort columns
+            csv1_melted, csv1_counts, feature_order = _process_csv(csv1, column_features, unit)
+            csv2_melted, csv2_counts, _ = _process_csv(csv2, column_features, unit)
+
+            csv1_melted["Source"] = label_csv1
+            csv2_melted["Source"] = label_csv2
+            csv_combined = pd.concat([csv1_melted, csv2_melted], ignore_index=True)
+
+            # * Step3: Generate boxplot
+            plt.figure(figsize=(15, 6))
+            ax = sns.boxplot(x="Feature", y=f"{unit}", data=csv_combined, palette="Set2", hue="Source", legend=False)
+            plt.xticks(fontsize=8)
+            plt.xlabel("Feature", fontsize=10)
+            for i, feature in enumerate(feature_order):
+                count1 = csv1_counts[feature]
+                count2 = csv2_counts[feature]
+                ax.text(i - 0.2, ax.get_ylim()[1] * 0.95, f"(n={count1})", ha="center", va="bottom", fontsize=10, color="black")
+                ax.text(i + 0.2, ax.get_ylim()[1] * 0.95, f"(n={count2})", ha="center", va="bottom", fontsize=10, color="black")
+            plt.ylabel(f"{unit}", fontsize=10)
+            if unit != "":
+                plt.title(f"Boxplot of Features in {region} with unit {unit}", fontsize=12)
             else:
-                csv_features = csv[columns_features]
-                csv_melted = csv_features.melt(var_name="Feature", value_name=f"{unit}")
-                # replace the long name with short name
-                csv_melted["Feature"] = csv_melted["Feature"].apply(lambda x: re.match(feature_pattern, x).group(2))
-                # coun the number of subjects for each feature
-                feature_counts = csv_melted.groupby("Feature").size()
-                # sort the features by the mean value in descending order
-                feature_order = csv_melted.groupby("Feature")[f"{unit}"].mean().sort_values(ascending=False).index
-                csv_melted["Feature"] = pd.Categorical(csv_melted["Feature"], categories=feature_order, ordered=True)
-                # * Generate boxplot
-                palette = sns.color_palette("husl", len(csv_melted["Feature"].unique()))
-                plt.figure(figsize=(15, 6))
-                ax = sns.boxplot(x="Feature", y=f"{unit}", data=csv_melted, palette=palette, hue="Feature", legend=False)
-                plt.xticks(fontsize=8)
-                plt.xlabel("Feature", fontsize=10)
-                for i, feature in enumerate(feature_order):
-                    count = feature_counts[feature]
-                    ax.text(i, ax.get_ylim()[1] * 0.95, f"(n={count})", ha="center", va="bottom", fontsize=10, color="black")
-                plt.ylabel(f"{unit}", fontsize=10)
-                if unit != "":
-                    plt.title(f"Boxplot of Features in {region} with unit {unit}", fontsize=12)
-                else:
-                    plt.title(f"Boxplot of Features in {region} with no unit", fontsize=12)
+                plt.title(f"Boxplot of Features in {region} with no unit", fontsize=12)
 
-                # If there is reference range for certain features, add them to the boxplot
-                # We need to sort according to the feature_order before adding reference range
-                reference_ranges_ordered = []
-                for name_i in feature_order:
-                    name_str = str(name_i).strip()
-                    if reference_ranges[name_str]:
-                        reference_ranges_ordered.append(reference_ranges[name_str])
-                    else:
-                        reference_ranges_ordered.append((None, None, None))
-                    # for index, reference_range in enumerate(reference_ranges):
-                for index, reference_range in enumerate(reference_ranges_ordered):
-                    CI, PI, AD_RR = reference_range
-                    if AD_RR:
-                        ax.fill_betweenx(
-                            y=[AD_RR[0], AD_RR[1]],
-                            x1=index - 0.4,
-                            x2=index + 0.4,
-                            color="lightgreen",
-                            alpha=0.2,
-                            label="Reference Range for new individual",
-                            zorder=10,
-                        )
-                        ax.hlines(
-                            y=AD_RR[0],
-                            xmin=index - 0.4,
-                            xmax=index + 0.4,
-                            color="lightgreen",
-                            alpha=0.5,
-                            linestyle="--",
-                            zorder=10,
-                        )
-                        ax.hlines(
-                            y=AD_RR[1],
-                            xmin=index - 0.4,
-                            xmax=index + 0.4,
-                            color="lightgreen",
-                            alpha=0.5,
-                            linestyle="--",
-                            zorder=10,
-                        )
-                    if PI:
-                        ax.fill_betweenx(
-                            y=[PI[0], PI[1]],
-                            x1=index - 0.4,
-                            x2=index + 0.4,
-                            color="lightblue",
-                            alpha=0.2,
-                            label="PI for new study mean",
-                            zorder=10,
-                        )
-                        ax.hlines(
-                            y=PI[0], xmin=index - 0.4, xmax=index + 0.4, color="lightblue", alpha=0.6, linestyle="--", zorder=10
-                        )
-                        ax.hlines(
-                            y=PI[1], xmin=index - 0.4, xmax=index + 0.4, color="lightblue", alpha=0.6, linestyle="--", zorder=10
-                        )
-                    if CI:
-                        ax.fill_betweenx(
-                            y=[CI[0], CI[1]],
-                            x1=index - 0.4,
-                            x2=index + 0.4,
-                            color="lightpink",
-                            alpha=0.2,
-                            label="CI for pooled mean",
-                            zorder=10,
-                        )
-                        ax.hlines(
-                            y=CI[0], xmin=index - 0.4, xmax=index + 0.4, color="lightpink", alpha=0.7, linestyle="--", zorder=10
-                        )
-                        ax.hlines(
-                            y=CI[1], xmin=index - 0.4, xmax=index + 0.4, color="lightpink", alpha=0.7, linestyle="--", zorder=10
-                        )
-                    # if CI or PI or AD_RR:
-                    # plt.legend(loc="upper right")
-                plt.tight_layout(rect=[0, 0, 1, 0.95])
-                # remove duplicate labels
-                handles, labels = ax.get_legend_handles_labels()
-                unique = dict(zip(labels, handles))
-                # since we sort descendingly, legend is better put at the top
-                ax.legend(unique.values(), unique.keys(), loc="upper right")
-                plt.savefig(f"{visualization_path}/{region}_{cnt}.png")
-                plt.close()
+            # If there is reference range for certain features, add them to the boxplot
+            # We need to sort according to the feature_order before adding reference range
+            reference_ranges_ordered = []
+            for name_i in feature_order:
+                name_str = str(name_i).strip()
+                if reference_ranges[name_str]:
+                    reference_ranges_ordered.append(reference_ranges[name_str])
+                else:
+                    reference_ranges_ordered.append((None, None, None))
+            for index, reference_range in enumerate(reference_ranges_ordered):
+                CI, PI, AD_RR = reference_range
+                _add_reference_range(ax, index - 0.2, CI, PI, AD_RR, wide=False)
+                _add_reference_range(ax, index + 0.2, CI, PI, AD_RR, wide=False)
+            plt.tight_layout(rect=[0, 0, 1, 0.95])
+            # remove duplicate labels
+            handles, labels = ax.get_legend_handles_labels()
+            unique = dict(zip(labels, handles))
+
+            ax.legend(unique.values(), unique.keys(), loc="upper right")  # legend is better at the top since we sort descendingly
+            plt.savefig(f"{visualization_path}/{region}_{cnt}_compare.png")
+            plt.close()
+
+    return
 
 
 def plot_bulls_eye(data, title=None, label=None, vmin=None, vmax=None, cmap="Reds", color_line="black"):
@@ -984,9 +1214,9 @@ def plot_bulls_eye(data, title=None, label=None, vmin=None, vmax=None, cmap="Red
                 mask1 = ((r < r1) & (r >= r2)) & ((theta >= theta1) & (theta <= 180))
                 mask2 = ((r < r1) & (r >= r2)) & ((theta >= -180) & (theta < theta2))
             else:
-                # theta1 = -45, theta2= 45            
+                # theta1 = -45, theta2= 45
                 mask1 = ((r < r1) & (r >= r2)) & ((theta >= theta1) & (theta < 0))
-                mask2 = ((r < r1) & (r >= r2)) & ((theta >= 0) & (theta < theta2))                
+                mask2 = ((r < r1) & (r >= r2)) & ((theta >= 0) & (theta < theta2))
             mask = mask1 | mask2  # take the union of two sub-mask to get the complete mask
         canvas[mask] = val
 
@@ -1034,11 +1264,11 @@ def plot_bulls_eye(data, title=None, label=None, vmin=None, vmax=None, cmap="Red
         # y = cy + sz * r1 * np.sin(np.radians(0))
         ax.plot([x, x - sz * 0.2], [y, y], color=color_line, linestyle="--")
         ax.annotate(
-            "RV Intersection", 
-            xy=(x, y), 
+            "RV Intersection",
+            xy=(x, y),
             xytext=(x - sz * 0.4, y + np.where(y >= 100, 1, -1) * sz * 0.2),
-            arrowprops=dict(facecolor='black', arrowstyle='->'),
+            arrowprops=dict(facecolor="black", arrowstyle="->"),
             fontsize=8,
-            color=color_line
+            color=color_line,
         )
     return fig, ax

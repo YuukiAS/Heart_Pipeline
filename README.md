@@ -28,6 +28,8 @@ Please ensure you have access to the following essential equipment to run the pi
 
 1. The `pipeline_dir` should be the root folder of the entire pipeline. By default, several subfolders like `code` and `data` will be created in the root folder. You can manually set the location. For example, you may want to adjust `data_dir` if the root folder cannot accommodate all the CMR data.
 
+2. After setting up `pipeline_dir`, by default, `temp_dir` will be created inside the `pipeline_dir`. This folder is used to store temporary segmentation files generated during the pipeline process. You can adjust the location if necessary. Be sure to modify `env_variable.sh` in `pipeline_dir` to reflect the new location, that is, replace `/work/users/y/u/yuukias/Heart_Pipeline/temp` to the new `temp_dir` location.
+
 ### Step2: Configure Raw Data Folders
 
 1. `data_raw_dir` does not need to be located in the `pipeline_dir`; it can be placed anywhere, as long as it follows the structure below::
@@ -94,7 +96,7 @@ Please ensure you have access to the following essential equipment to run the pi
 2. The suffix for visit2 raw data is set to `retest` by default. You can rename this suffix, but ensure to update it in `config.py`. If visit2 data is unnecessary, set `retest_suffix = None` to only use visit1 data.
 
 3. The pipeline also requires information about individual's Body Surface Area (BSA) and central pulse pressure information to calculate certain features. **These files should be generated on our own**. 
-    + `BSA_file`: Calculate using the *Du Bois and Du Bois* formula from [height](https://biobank.ctsu.ox.ac.uk/ukb/field.cgi?id=50) and [weight](https://biobank.ctsu.ox.ac.uk/ukb/field.cgi?id=21002).
+    + `BSA_file`: There are many formulas that can be used to derive the BSA, as shown in [this calculator](https://www.calculator.net/body-surface-area-calculator.html). We choose to calculate BSA according to the *Du Bois and Du Bois* formula from [height](https://biobank.ctsu.ox.ac.uk/ukb/field.cgi?id=50) and [weight](https://biobank.ctsu.ox.ac.uk/ukb/field.cgi?id=21002).
     + `pressure_file`: Extract from [UK Biobank](https://biobank.ctsu.ox.ac.uk/ukb/field.cgi?id=12678). The pipeline will only make use of the visit1 information.
  
 ### Step3: Configure Data Modalities
@@ -141,6 +143,7 @@ The pipeline consists of four main steps, which can be executed sequentially and
 2. Image Segmentation
     `step2_segment.py`: This script creates job scripts for submission to Slurm, enabling segmentation for each imaging modality using various pre-trained models. These models are trained on subsets of UK Biobank CMR data. The resulting segmentations are stored in the same folder as the input data.
 3. Feature Extraction (Separate)
+
     `step3_extract_feature_separate.py`: This script generates job scripts for submission to Slurm to extract features from the segmented images, which also include `batECG.sh` when `useECG` is set to `True`. During this process, several subfolders are created for each individual.
 
     + `feature_tracking`: Contains intermediate VTK files generated during strain calculation for feature tracking.
@@ -153,6 +156,9 @@ The pipeline consists of four main steps, which can be executed sequentially and
     Once all Slurm jobs are completed, the extracted features are stored as CSV files in subfolders within the `features_dir` directory. An `aggregate.pbs` script in the same directory aggregates these CSV files and organizes the results in an `aggregated` folder. The aggregated data can then be used for downstream analyses.
 
 4. Feature Extraction (Combined)
+
+    This is the final step in the pipeline, focusing on extracting combined features that should better be run after features of separate modalities have already been extracted.
+
     `step4_extract_feature_combined.py`: This final step focuses on combined feature extraction. All scripts are located in `src/feature_extraction/Combined_Features/`. Currently, two main scripts are provided:
     + `eval_ventricular_atrial_feature.py`: This script requires separate features from both long-axis and short-axis images. It calculates additional features that characterize the interaction between ventricular and atrial functions.
     + `eval_native_t1_corrected.py`: This script uses features from Native T1 images to calculate corrected T1 values. Adjustments are based on the mean $R_1=1/T_1$ value to account for water content in the myocardium.
@@ -162,8 +168,15 @@ The pipeline consists of four main steps, which can be executed sequentially and
 ## Individual Modalities
 
 ### 20207
-- [ ] Fix: Add units
-- [ ] Validate
+- [x] Fix: Add units
+- [x] Validate
+- [ ] Feature: Type of aortic arch
+- [ ] Enhancement: Currently, regions are not defined according to formal anatomical definitions. This should be improved.
+- [ ] Improve ICC
+- [ ] Documentation
+
+    *Refer to paper Minderhoud, S. C. S., van Montfoort, R., Meijs, T. A., Korteland, S.-A., Bruse, J. L., Kardys, I., Wentzel, J. J., Voskuil, M., Hirsch, A., Roos-Hesselink, J. W., & van den Bosch, A. E. (2024). Aortic geometry and long-term outcome in patients with a repaired coarctation. Open Heart, 11(1), e002642. https://doi.org/10.1136/openhrt-2024-002642*
+
 
 ### 20208
 - [ ] Validate
@@ -171,76 +184,55 @@ The pipeline consists of four main steps, which can be executed sequentially and
 
 ### 20209
 - [ ] Validate
+- [ ] Enhancement: Bull's eye plot for wall thickness
 - [ ] Feature: Change in angle caused by shear (ERC, ECL)
 - [ ] Feature: Thickening
 
 ### 20210
-- [ ] Validate
+- [x] Validate
 
 ### 20211
 - [ ] Validate
 - [ ] Feature: More possible approaches such as HARP
 
+    Refer to paper *Osman, N. F., McVeigh, E. R., & Prince, J. L. (2000). Imaging heart motion using harmonic phase MRI. IEEE Transactions on Medical Imaging, 19(3), 186–202. IEEE Transactions on Medical Imaging. https://doi.org/10.1109/42.845177*
+
 ### 20212
-- [ ] Validate
+- [x] Validate
+- [ ] Improve ICC
+- [ ] Documentation
 
 ### 20213
-- [ ] Validate
+- [x] Validate
+- [ ] Feature: ΔRA (Rotation Angle)
+
+    Refer to paper *Zhao, X., Garg, P., Assadi, H., Tan, R.-S., Chai, P., Yeo, T. J., Matthews, G., Mehmood, Z., Leng, S., Bryant, J. A., Teo, L. L. S., Ong, C. C., Yip, J. W., Tan, J. L., van der Geest, R. J., & Zhong, L. (2023). Aortic flow is associated with aging and exercise capacity. European Heart Journal Open, 3(4), oead079. https://doi.org/10.1093/ehjopen/oead079*
+
+- [ ] Feature: It might be possible to determine PWV if the velocity of descending aorta can also be obtained.
 - [ ] Feature: Determine number of cusps
 
+    Refer to paper *“Weakly Supervised Classification of Aortic Valve Malformations Using Unlabeled Cardiac MRI Sequences.” https://doi.org/10.1038/s41467-019-11012-3* **(I have tried out the code. However, the result for hand-labeled models is poor and I cannot validate the weakly-supervised model as I don't have access to the label. There are around 400 labels in the repo)**
+
+- [ ] Improve ICC
+- [ ] Documentation
+
 ### 20214
-- [ ] Validate
+- [x] Validate
+- [ ] Improve ICC
+- [ ] Documentation
+
+### Combined
+- [ ] Feature: TV, MV tenting area and tenting length
+
+    Refer to paper *Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y*
 
 ## Miscellaneous 
 - [ ] Calculate reproducibility metrics
 - [ ] Improve the registration for strain computation
 - [ ] Improve the segmentation quality
-- [ ] Improve the preprocessing quality such as bias correction
+- [ ] Improve the preprocessing quality, such as improving bias correction
+- [ ] Improve the post-processing quality, such as introducing uncertainty estimation
 - [ ] Potential downstream analysis such as prediction or GWAS.
-
-
-# Milestones
-
-+ 2025/1/20 Meeting
-    - [ ] Visit2: Validation of 80% scripts. 
-    - [ ] Visit1: Raw data should be prepared. Segmentation should start.
-
-    *We may use L-40 GPU*
-+ 2025/1/27 Meeting
-    - [ ] Visit2: Validation of all scripts.
-    - [ ] Visit1: Raw data should be segmented. Some features should be extracted.
-+ 2025/2/3 Meeting
-    - [ ] Visit1: All features extracted by end of January
-    - [ ] Visit1: Calculate reproducibility information
-+ 2025/2/10 Meeting
-    - [ ] Review paper: Draft 1/3
-
-    *Should I prioritize draft paper or website?*
-+ 2025/2/17 Meeting
-    - [ ] Review paper: Draft 2/3
-+ 2025/2/24 Meeting
-    - [ ] Review paper: Draft 3/3
-+ 2025/3/3 Meeting
-    - [ ] Review Paper: Final version
-    - [ ] Website & Full Paper: 20207, 20208
-
-    *Ensure that the citation in code is consistent: `# Ref <title> <url>`*
-+ 2025/3/10 Meeting
-    - [ ] Website & Full Paper: 20209, 20210
-+ 2025/3/17 Meeting
-    - [ ] Website & Full Paper: 20211, 20212
-+ 2025/3/24 Meeting
-    - [ ] Website & Full Paper: 20213, 20214
-+ 2025/3/31 Meeting
-    - [ ] Full Paper: Draft 1/4
-+ 2025/4/7 Meeting
-    - [ ] Full Paper: Draft 2/4
-+ 2025/4/14 Meeting
-    - [ ] Full Paper: Draft 3/4
-+ 2025/4/21 Meeting
-    - [ ] Full Paper: Draft 4/4
-+ 2025/4/28 Meeting
-    - [ ] Full Paper: Final version
 
 
 # References
@@ -253,6 +245,5 @@ Thanks to the code generously provided by the following papers:
 4. S. Petersen, et al. Reference ranges for cardiac structure and function using cardiovascular magnetic resonance (CMR) in Caucasians from the UK Biobank population cohort. Journal of Cardiovascular Magnetic Resonance, 19:18, 2017.
 5. Beeche, Cameron et al. “Thoracic Aortic 3-Dimensional Geometry: Effects of Aging and Genetic Determinants.” bioRxiv : the preprint server for biology 2024.05.09.593413. 19 Aug. 2024, doi:10.1101/2024.05.09.593413. Preprint.
 6. Ferdian, Edward et al. “Fully Automated Myocardial Strain Estimation from Cardiovascular MRI-tagged Images Using a Deep Learning Framework in the UK Biobank.” Radiology. Cardiothoracic imaging vol. 2,1 e190032. 27 Feb. 2020, doi:10.1148/ryct.2020190032
-7. Fries, Jason A., et al. “Weakly Supervised Classification of Aortic Valve Malformations Using Unlabeled Cardiac MRI Sequences.” Nature Communications, vol. 10, no. 1, July 2019, p. 3111. DOI.org (Crossref), https://doi.org/10.1038/s41467-019-11012-3.
 
 There are many other papers related to how to extract features from CMR images, as well as the reference ranges for such features, please see our paper.

@@ -155,10 +155,10 @@ if __name__ == "__main__":
 
         # Add Bull's eye plot
         os.makedirs(f"{sub_dir}/visualization/myocardium", exist_ok=True)
-        fig, ax = plot_bulls_eye(wall_thickness_ED[:16], title="Myocardium Strain at ED", label="Strain [%]")
+        fig, ax = plot_bulls_eye(wall_thickness_ED[:16], title="Myocardium Thickness at ED", label="Thickness [mm]")
         fig.savefig(f"{sub_dir}/visualization/myocardium/thickness_ED.png")
         plt.close(fig)
-        fig, ax = plot_bulls_eye(wall_thickness_ES[:16], title="Myocardium Strain at ES", label="Strain [%]")
+        fig, ax = plot_bulls_eye(wall_thickness_ES[:16], title="Myocardium Thickness at ES", label="Thickness [mm]")
         fig.savefig(f"{sub_dir}/visualization/myocardium/thickness_ES.png")
         plt.close(fig)
         fig, ax = plot_bulls_eye(thickening[:16], title="Myocardium Thickening", label="Thickening [%]")

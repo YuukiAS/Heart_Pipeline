@@ -827,9 +827,7 @@ if __name__ == "__main__":
         # * Plot volume curve together with ECG
 
         if config.useECG and ecg_processor.check_data_rest():
-            # Ref Expanding application of the Wiggers diagram to teach cardiovascular physiology. https://doi.org/10.1152/advan.00123.2013
-            # Note we don't have any pressure features
-            logger.info(f"{subject}: Create Wiggers diagram that combines ECG and ventricular volume")
+            logger.info(f"{subject}: Visualize atrial volume alongside with ECG")
 
             ecg_info = ecg_processor.visualize_ecg_info()
             time = ecg_info["time"]
@@ -978,6 +976,7 @@ if __name__ == "__main__":
             plt.suptitle(f"Subject {subject}: Atrial Volume Time Series and ECG Signal")
             plt.tight_layout()
             fig.savefig(f"{sub_dir}/timeseries/atrium_volume_ecg.png")
+            plt.close(fig)
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)

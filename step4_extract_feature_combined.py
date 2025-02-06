@@ -13,7 +13,9 @@ from utils.log_utils import setup_logging
 logger = setup_logging("main: extract_feature_combined")
 
 
-def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=100, retest_suffix=None, cpu=True):
+def generate_scripts(
+    pipeline_dir, data_dir, code_dir, modality, num_subjects_per_file=100, num_subjects_per_unit=5, retest_suffix=None, cpu=True
+):
     if retest_suffix is None:
         code_step4_dir = os.path.join(code_dir, "extract_feature_combined_visit1")
     else:
@@ -40,41 +42,50 @@ def generate_scripts(pipeline_dir, data_dir, code_dir, modality, num_subjects_pe
         else:
             generate_header_gpu("Heart_Aggregate", pipeline_dir, None, file_aggregate, retest_suffix=retest_suffix)
 
-        for file_i in tqdm(range(1, num_files + 1)):
-            sub_file_i = sub_total[
-                (file_i - 1) * num_subjects_per_file : min(file_i * num_subjects_per_file, length_total)
-            ]
-            sub_file_i_str = " ".join(map(str, sub_file_i))
+        for file_i in tqdm(range(1, num_files + 1)):  # start from 1
+            sub_file_i = sub_total[(file_i - 1) * num_subjects_per_file : min(file_i * num_subjects_per_file, length_total)]
+            num_units = len(sub_file_i) // num_subjects_per_unit + (len(sub_file_i) % num_subjects_per_unit > 0)
 
             file_submit.write(f"sbatch bat{file_i}.pbs\n")
             with open(os.path.join(code_step4_dir, f"bat{file_i}.pbs"), "w") as file_script:
                 if cpu:
-                    generate_header_cpu("Heart_Extract", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
+                    generate_header_cpu("Heart_Extract_Combined", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
                 else:
-                    generate_header_gpu("Heart_Extract", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
+                    generate_header_gpu("Heart_Extract_Combined", pipeline_dir, file_i, file_script, retest_suffix=retest_suffix)
 
-                if "la" in modality and "sa" in modality:
-                    file_script.write("echo 'Extract combined features that use both short axis and long axis'\n")
-                    file_script.write(
-                        f"python -u ./src/feature_extraction/Combined_Features/eval_ventricular_atrial_feature.py "
-                        f"{retest_str} --file_name=ventricular_atrial_feature_{file_i} --data_list {sub_file_i_str} \n"
-                    )
+                for unit in range(num_units):
+                    start_idx = unit * num_subjects_per_unit
+                    end_idx = min((unit + 1) * num_subjects_per_unit, len(sub_file_i))
+                    sub_file_unit = sub_file_i[start_idx:end_idx]
+                    sub_file_unit_str = " ".join(map(str, sub_file_unit))
 
-                # need the mean in first round
-                if "shmolli" in modality:
-                    file_script.write("echo 'Extract features for native T1 (corrected)'\n")
-                    file_script.write(
-                        f"python -u ./src/feature_extraction/Combined_Features/eval_native_t1.py "
-                        f"{retest_str} --file_name=native_t1_corrected_{file_i} --data_list {sub_file_i_str} \n"
-                    )
-                
-                if file_i == 1:
+                    file_script.write(f"echo 'Extract features for {sub_file_unit_str}'\n")
 
                     if "la" in modality and "sa" in modality:
-                        generate_aggregate(file_aggregate, "ventricular_atrial_feature", retest_suffix=retest_suffix)
-                    
+                        file_script.write("echo 'Extract combined features that use both short axis and long axis'\n")
+                        file_script.write(
+                            f"python -u ./src/feature_extraction/Combined_Features/eval_ventricular_atrial_feature.py "
+                            f"{retest_str} --file_name=ventricular_atrial_feature_{file_i}_{unit + 1} "
+                            f"--data_list {sub_file_unit_str}\n"
+                        )
+
                     if "shmolli" in modality:
-                        generate_aggregate(file_aggregate, "native_t1_corrected", retest_suffix=retest_suffix)
+                        file_script.write("echo 'Extract features for native T1 (corrected)'\n")
+                        file_script.write(
+                            f"python -u ./src/feature_extraction/Combined_Features/eval_native_t1_corrected.py "
+                            f"{retest_str} --file_name=native_T1_corrected_{file_i}_{unit + 1} "
+                            f"--data_list {sub_file_unit_str} \n"
+                        )
+
+                    if modality is not None:
+                        file_script.write("\n")
+
+                if file_i == 1:
+                    if "la" in modality and "sa" in modality:
+                        generate_aggregate(file_aggregate, "ventricular_atrial_feature", retest_suffix=retest_suffix)
+
+                    if "shmolli" in modality:
+                        generate_aggregate(file_aggregate, "native_T1_corrected", retest_suffix=retest_suffix)
 
                 file_script.write("echo 'Done!'\n")
 

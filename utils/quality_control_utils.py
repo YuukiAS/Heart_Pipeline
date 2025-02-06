@@ -2,6 +2,11 @@ import nibabel as nib
 import numpy as np
 import skimage.measure
 from .image_utils import get_largest_cc, remove_small_cc, compute_boundary_distance
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
+from utils.log_utils import setup_logging
+logger = setup_logging("quanlity-control-utils")
 
 
 def sa_pass_quality_control(seg_sa_name, t=0):
@@ -22,7 +27,7 @@ def sa_pass_quality_control(seg_sa_name, t=0):
     for l_name, l_value in label.items():
         pixel_thres = 10
         if np.sum(seg_sa == l_value) < pixel_thres:
-            print(
+            logger.info(
                 "{0}: The segmentation for class {1} is smaller than {2} pixels. "
                 "It does not pass the quality control.".format(seg_sa_name, l_name, pixel_thres)
             )
@@ -42,7 +47,7 @@ def sa_pass_quality_control(seg_sa_name, t=0):
     n_slice = len(z_pos)
     slice_thres = 6
     if n_slice < slice_thres:
-        print(
+        logger.info(
             "{0}: The segmentation has less than {1} slices. " "It does not pass the quality control.".format(
                 seg_sa_name, slice_thres
             )
@@ -50,7 +55,7 @@ def sa_pass_quality_control(seg_sa_name, t=0):
         return False
 
     if n_slice != (np.max(z_pos) - np.min(z_pos) + 1):
-        print(
+        logger.info(
             "{0}: There is missing segmentation between the slices. " "It does not pass the quality control.".format(
                 seg_sa_name
             )
@@ -72,8 +77,29 @@ def sa_pass_quality_control(seg_sa_name, t=0):
     rv = get_largest_cc(rv).astype(np.uint8)
     pixel_thres = 10
     if np.sum(epi) < pixel_thres or np.sum(rv) < pixel_thres:
-        print("{0}: Can not find LV epi or RV to determine the AHA " "coordinate system.".format(seg_sa_name))
+        logger.info("{0}: Can not find LV epi or RV to determine the AHA " "coordinate system.".format(seg_sa_name))
         return False
+    return True
+
+
+def sa_pass_quality_control2(seg_sa_s_t, pixel_thres=25):
+    """Quality control for short-axis image segmentation at certain slice s and timepoint t"""
+
+    if seg_sa_s_t.ndim != 2:
+        raise ValueError("The segmentation should be 2D.")
+
+    # Label class in the segmentation
+    label = {"LV": 1, "Myo": 2, "RV": 3}
+
+    # Criterion 1: every class exists and the area is above a threshold
+    # Count number of pixels in 3D
+    for l_name, l_value in label.items():
+        if np.sum(seg_sa_s_t == l_value) < pixel_thres:
+            logger.info(
+                "The segmentation for class {0} is smaller than {1} pixels. "
+                "It does not pass the quality control.".format(l_name, pixel_thres)
+            )
+            return False
     return True
 
 
@@ -94,7 +120,7 @@ def la_pass_quality_control(seg_la_name, t=0):
         # Criterion 1: every class exists and the area is above a threshold
         pixel_thres = 10
         if np.sum(seg_z == l_value) < pixel_thres:
-            print(
+            logger.info(
                 "{0}: The segmentation for class {1} is smaller than {2} pixels. "
                 "It does not pass the quality control.".format(seg_la_name, l_name, pixel_thres)
             )
@@ -109,7 +135,7 @@ def la_pass_quality_control(seg_la_name, t=0):
     epi = get_largest_cc(epi).astype(np.uint8)
     pixel_thres = 10
     if np.sum(endo) < pixel_thres or np.sum(myo) < pixel_thres or np.sum(epi) < pixel_thres:
-        print(
+        logger.info(
             "{0}: Can not find LV endo, myo or epi to extract the long-axis " "myocardial contour.".format(seg_la_name)
         )
         return False
@@ -130,7 +156,7 @@ def atrium_pass_quality_control(seg, label_dict):
             seg_t = seg[:, :, 0, t]
             area = np.sum(get_largest_cc(seg_t == l_value))
             if area < pixel_thres:
-                print("The area of {0} almost vanishes at time frame {1}.".format(l_name, t))
+                logger.info("The area of {0} almost vanishes at time frame {1}.".format(l_name, t))
                 return False
     return True
 
@@ -144,7 +170,7 @@ def aorta_pass_quality_control(image, seg):
             seg_t = seg[:, :, :, t]
             area = np.sum(seg_t == l_value)
             if area == 0:
-                print("The area of {0} is 0 at time frame {1}.".format(l_name, t))
+                logger.info("The area of {0} is 0 at time frame {1}.".format(l_name, t))
                 return False
 
         # Criterion 2: no strong image noise, which affects the segmentation accuracy.
@@ -158,7 +184,7 @@ def aorta_pass_quality_control(image, seg):
             max_intensity_t = np.max(image_t[seg_t == l_value])
             ratio = max_intensity_t / mean_intensity_ED
             if ratio >= ratio_thres:
-                print("The image becomes very noisy at time frame {0}.".format(t))
+                logger.info("The image becomes very noisy at time frame {0}.".format(t))
                 return False
 
         # Criterion 3: no fragmented segmentation
@@ -173,7 +199,7 @@ def aorta_pass_quality_control(image, seg):
                     # If this connected component has more than certain pixels, count it.
                     count_cc += 1
             if count_cc >= 2:
-                print(
+                logger.info(
                     "The segmentation has at least two connected components with more than {0} pixels "
                     "at time frame {1}.".format(pixel_thres, t)
                 )
@@ -184,7 +210,7 @@ def aorta_pass_quality_control(image, seg):
         for t in range(T):
             ratio = A[t] / float(A[t - 1])
             if ratio >= 2 or ratio <= 0.5:
-                print("There is abrupt change of area at time frame {0}.".format(t))
+                logger.info("There is abrupt change of area at time frame {0}.".format(t))
                 return False
     return True
 
@@ -223,7 +249,7 @@ def shmolli_pass_quality_control(seg_ShMOLLI_name, label_dict):
         # Criterion 1: every class exists and the area is above a threshold
         pixel_thres = 20
         if np.sum(seg == l_value) < pixel_thres:
-            print(
+            logger.info(
                 "{0}: The segmentation for class {1} is smaller than {2} pixels. "
                 "It does not pass the quality control.".format(seg_ShMOLLI_name, l_name, pixel_thres)
             )

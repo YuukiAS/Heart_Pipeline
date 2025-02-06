@@ -1,5 +1,6 @@
 import time
 import os
+import re
 import argparse
 import sys
 
@@ -24,7 +25,7 @@ parser.add_argument("--gif_path", help="Path to save the gif", type=str, default
 
 
 # ============== Data path ==============
-file_ext_pattern = ".h5"
+file_ext_pattern = r"^(?!.*_result).*\.h5$"
 batch_size = 20
 
 # ============== Network models config ==============
@@ -51,8 +52,8 @@ if __name__ == "__main__":
 
     # traverse the input folder, keep as array to combine later
     files = os.listdir(data_path)
-    # get all the .h5 input filenames
-    input_files = [f for f in files if file_ext_pattern in f]
+    # get all the .h5 input filenames that are not results
+    input_files = [f for f in files if re.match(file_ext_pattern, f)]
 
     logger.info("{} files found!".format(len(input_files)))
     logger.info(input_files)
@@ -96,7 +97,7 @@ if __name__ == "__main__":
             results.calculate_strains()
 
             # 6. Save results
-            output_prefix = input_file[: -len(file_ext_pattern)]  # strip the extension
+            output_prefix = input_file[: -len(".h5")]  # strip the extension
             results.save_predictions(output_path, output_prefix)
         # End of batch loop
         logger.info(f"\rProcessed {data_size}/{data_size} ...")

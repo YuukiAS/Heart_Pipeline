@@ -18,7 +18,7 @@ from utils.log_utils import setup_logging
 logger = setup_logging("main: prepare_data_ecg")
 
 
-def prepare_files_rest(pipeline_dir, data_raw_dir, retest_suffix=None):
+def prepare_files_rest(data_raw_dir, retest_suffix=None):
     """
     Make use of rest ECG in UKBiobank (data field 20205)
     """
@@ -34,7 +34,7 @@ def prepare_files_rest(pipeline_dir, data_raw_dir, retest_suffix=None):
 
     logger.info(f"Total number of subjects with ECG rest XML: {len(sub_total)}")
 
-    for subject in tqdm(sub_total):
+    for subject in tqdm(sorted(sub_total)):
         if retest_suffix is None:
             xml_file_target = os.path.join(ecg_dir, f"{subject}_20205_2_0.xml")
         else:
@@ -51,7 +51,7 @@ def prepare_files_rest(pipeline_dir, data_raw_dir, retest_suffix=None):
         shutil.copy(xml_file_target, xml_file_dest)
 
 
-def prepare_files_exercise(pipeline_dir, data_raw_dir, retest_suffix=None):
+def prepare_files_exercise(data_raw_dir, retest_suffix=None):
     """
     Make use of exercise ECG in UKBiobank (data field 6025)
     """
@@ -67,7 +67,7 @@ def prepare_files_exercise(pipeline_dir, data_raw_dir, retest_suffix=None):
 
     logger.info(f"Total number of subjects with ECG exercise XML: {len(sub_total)}")
 
-    for subject in tqdm(sub_total):
+    for subject in tqdm(sorted(sub_total)):
         if retest_suffix is None:
             xml_file_target = os.path.join(ecg_dir, f"{subject}_6025_0_0.xml")
         else:
@@ -85,16 +85,15 @@ def prepare_files_exercise(pipeline_dir, data_raw_dir, retest_suffix=None):
 
 
 if __name__ == "__main__":
-    pipeline_dir = config.pipeline_dir
     data_raw_dir = config.data_raw_dir
     retest_suffix = config.retest_suffix
 
     logger.info("Copying ECG files for visit1 data")
-    # prepare_files_rest(pipeline_dir, data_raw_dir)
-    prepare_files_exercise(pipeline_dir, data_raw_dir)
+    prepare_files_rest(data_raw_dir)
+    prepare_files_exercise(data_raw_dir)
     if retest_suffix is not None:
         logger.info("Copying ECG files for visit2 data")
-        # prepare_files_rest(pipeline_dir, data_raw_dir, retest_suffix=retest_suffix)
-        prepare_files_exercise(pipeline_dir, data_raw_dir, retest_suffix=retest_suffix)
+        prepare_files_rest(data_raw_dir, retest_suffix=retest_suffix)
+        prepare_files_exercise(data_raw_dir, retest_suffix=retest_suffix)
     else:
         logger.info("No retest_suffix is provided, only visit1 data will be copied")

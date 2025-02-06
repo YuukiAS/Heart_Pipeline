@@ -812,6 +812,7 @@ if __name__ == "__main__":
             plt.suptitle(f"Subject {subject}: Ventricular Volume Time Series and ECG Signal")
             plt.tight_layout()
             fig.savefig(f"{sub_dir}/timeseries/ventricle_volume_ecg.png")
+            plt.close(fig)
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)

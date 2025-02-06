@@ -24,11 +24,11 @@ FreqFit = function(means, sds, n) {
                      comb.random = TRUE, method.tau = "REML", hakn = FALSE, 
                      prediction = TRUE)
     # * Estimate the CI for pooled mean
-    lower.random = m.reml$lower.random
+    lower.random = m.reml$lower.random  # Random effects model
     upper.random = m.reml$upper.random
 
     # * Estimate the prediction intervals for new study mean
-    lower.predict = m.reml$lower.predict
+    lower.predict = m.reml$lower.predict  # Prediction Interval
     upper.predict = m.reml$upper.predict
 
     # pooled variance - assumes study populations drawn

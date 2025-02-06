@@ -34,10 +34,10 @@ import config
 
 from utils.log_utils import setup_logging
 from utils.quality_control_utils import la_pass_quality_control
-from utils.analyze_utils import plot_time_series_double_x, plot_time_series_double_x_y, analyze_time_series_derivative
+from utils.analyze_utils import plot_time_series_dual_axes, plot_time_series_dual_axes_double_y, analyze_time_series_derivative
 from utils.cardiac_utils import cine_2d_la_motion_and_strain_analysis, evaluate_strain_by_length_la
 
-logger = setup_logging("eval_strain_sax")
+logger = setup_logging("eval_strain_lax")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--retest", action="store_true")
@@ -57,11 +57,11 @@ if __name__ == "__main__":
         sub_dir = os.path.join(data_dir, subject)
         seg_la_name = os.path.join(sub_dir, "seg4_la_4ch.nii.gz")
 
-        nim = nib.load(seg_la_name)
-        T = nim.header["dim"][4]
-        temporal_resolution = nim.header["pixdim"][4]
+        nim_la = nib.load(seg_la_name)
+        T = nim_la.header["dim"][4]
+        temporal_resolution = nim_la.header["pixdim"][4] * 1000
         time_grid_point = np.arange(T)
-        time_grid_real = time_grid_point * temporal_resolution  # unit: s
+        time_grid_real = time_grid_point * temporal_resolution  # unit: ms
 
         if not os.path.exists(seg_la_name):
             logger.error(f"Segmentation of long axis file for {subject} does not exist")
@@ -106,57 +106,293 @@ if __name__ == "__main__":
         for i in range(6):
             feature_dict.update(
                 {
-                    f"LV: Longitudinal Strain (Segment_{i + 1}) [%]": longit_strain[i, :].min(),  # no need to plus one
+                    f"Strain-LAX: Longitudinal Strain (Segment_{i + 1}) [%]": longit_strain[i, :].min(),  # no need to plus one
                 }
             )
 
         feature_dict.update(
             {
-                "LV: Longitudinal Strain (Global) [%]": longit_strain[6, :].min(),
+                "Strain-LAX: Longitudinal Strain (Global) [%]": longit_strain[6, :].min(),
             }
         )
 
+        os.makedirs(f"{sub_dir}/timeseries", exist_ok=True)
+
+        # Store the time series of global strains
+        logger.info(f"{subject}: Store time series of global strains.")
+        data_strain = {
+            "Strain-LAX: Longitudinal Strain [%]": longit_strain,
+            "Strain-LAX: Global Longitudinal Strain [%]": longit_strain[6, :],
+        }
+        np.savez(f"{sub_dir}/timeseries/strain_lax.npz", **data_strain)
+
         # * Make a time series plot and store the time series of global strain
         logger.info(f"{subject}: Plot time series of global strain.")
-
-        fig, ax1, ax2 = plot_time_series_double_x(
+        fig, ax1, ax2 = plot_time_series_dual_axes(
             time_grid_point,
-            time_grid_real * 1000,
             longit_strain[6, :],
             "Time [frame]",
             "Time [ms]",
             "Strain [%]",
             lambda x: x * temporal_resolution,
             lambda x: x / temporal_resolution,
-            title=f"Subject {subject}: Global Longitudinal Strain (GLS) Time Series (Raw)",
+            title=f"Subject {subject}: Global Longitudinal Strain (GLS) Time Series",
         )
         fig.savefig(f"{sub_dir}/timeseries/gls_raw.png")
         plt.close(fig)
 
         # Read in important time points
-        ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
-        atrium = np.load(f"{sub_dir}/timeseries/atrium.npz")
+        try:
+            ventricle = np.load(f"{sub_dir}/timeseries/ventricle.npz")
+        except FileNotFoundError:
+            logger.error(f"{subject}: No ventricle time series information, skipped.")
+            continue
 
         T_ES = ventricle["LV: T_ES [frame]"]
-        T_1_3_DD = T_ES + math.ceil((50 - T_ES) / 3)
-        T_pre_a = None
+        T_1_3_DD = T_ES + math.ceil((50 - T_ES) / 3)  # used to calculate SI-DI
 
-        try:
-            T_pre_a = atrium["LA: T_pre_a"]
-        except KeyError:
-            logger.warning(f"{subject}: No atrial contraction time information for strain calculation.")
+        # * Feature 1: Peak-systolic strain, end-systolic strain, post-systolic strain
+        # Ref Post-systolic shortening index by echocardiography evaluation of dyssynchrony https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9409501/pdf/pone.0273419.pdf
 
-        # * Feature 1: Strain Rate
+        # We will use smoothed strain for all advanced features
+        fANCOVA = importr("fANCOVA")
+        x_r = FloatVector(time_grid_real)
+        y_r_gls = FloatVector(longit_strain[6, :])
+        loess_fit_gls = fANCOVA.loess_as(x_r, y_r_gls, degree=2, criterion="gcv")
+        GLS_loess_x = np.array(loess_fit_gls.rx2("x")).reshape(
+            T,
+        )
+        GLS_loess_y = np.array(loess_fit_gls.rx2("fitted"))
+
+        # In addition to global longitudinal strain, we will need time to peak strain for each segment to calculate MDI
+        T_longit_strain_peak_list = []
+        for i in range(6):
+            y_r_ls_i = FloatVector(longit_strain[i, :])
+            loess_fit_ls_i = fANCOVA.loess_as(x_r, y_r_ls_i, degree=2, criterion="gcv")
+            LS_loess_y_i = np.array(loess_fit_ls_i.rx2("fitted"))
+            T_longit_strain_peak_list.append(np.argmax(abs(LS_loess_y_i)))
+
+        # All following values are in absolute values!
+        longit_strain_ES = abs(GLS_loess_y[T_ES])
+
+        T_longit_strain_peak = np.argmax(abs(GLS_loess_y))
+        longit_strain_peak = np.max(abs(GLS_loess_y))
+
+        feature_dict.update(
+            {
+                "Strain-LAX: End Systolic Longitudinal Strain (Absolute Value) [%]": longit_strain_ES,
+                "Strain-LAX: Peak Systolic Longitudinal Strain (Absolute Value) [%]": longit_strain_peak,
+            }
+        )
+        logger.info(f"{subject}: End-systolic, peak-systolic longitudinal global strain calculated.")
+
+        if longit_strain_ES < 0.1 or longit_strain_peak < 0.1:
+            logger.error(f"{subject}: Extremely small longitudinal strain values detected skipped.")
+            continue
+
+        T_longit_strain_post = None
+        longit_strain_post = None
+
+        if T_longit_strain_peak > T_ES:
+            # define Post systolic strain is calculated as the difference between the maximum strain and systolic strain
+            # Ref Postsystolic Shortening by Speckle Tracking Echocardiography Is an Independent Predictor. https://doi.org/10.1161/JAHA.117.008367
+            T_longit_strain_post = T_longit_strain_peak
+            longit_strain_post = longit_strain_peak - longit_strain_ES
+
+            feature_dict.update(
+                {
+                    "Strain-LAX: Post Systolic Longitudinal Strain (Absolute Value) [%]": longit_strain_post,
+                }
+            )
+            logger.info(f"{subject}: Post-systolic longitudinal global strain calculated.")
+
+        # Add more information to the time series of strain
+        colors = ["blue"] * len(GLS_loess_x)
+        colors[T_ES] = "purple"
+        colors[T_1_3_DD] = "green"
+        if T_longit_strain_post is None:
+            colors[T_longit_strain_peak] = "red"
+        else:
+            colors[T_longit_strain_post] = "orange"
+        fig, ax1, ax2 = plot_time_series_dual_axes_double_y(
+            time_grid_point,
+            longit_strain[6, :],
+            GLS_loess_y,
+            "Time [frame]",
+            "Time [ms]",
+            "Strain [%]",
+            lambda x: x * temporal_resolution,
+            lambda x: x / temporal_resolution,
+            title=f"Subject {subject}: Global Longitudinal Strain (GLS) Time Series (Smoothed)",
+            colors=colors,
+        )
+        ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_ES,
+            ax1.get_ylim()[1],
+            "End Systole",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        ax1.axvline(x=T_1_3_DD, color="green", linestyle="--", alpha=0.7)
+        ax1.text(
+            T_1_3_DD,
+            ax1.get_ylim()[1],
+            "First 1/3 Diastolic Duration",
+            verticalalignment="bottom",
+            horizontalalignment="center",
+            fontsize=6,
+            color="black",
+        )
+        if T_longit_strain_post is None:
+            ax1.axvline(x=T_longit_strain_peak, color="red", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_longit_strain_peak,
+                ax1.get_ylim()[0],
+                "Peak Systolic Strain",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+        else:
+            ax1.axvline(x=T_longit_strain_post, color="orange", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_longit_strain_post,
+                ax1.get_ylim()[0],
+                "Post Systolic Strain",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+        if T_longit_strain_post is None:
+            box_text = (
+                "Global Longitudinal Strain\n"
+                f"End Systolic: Strain: {longit_strain_ES:.2f} %\n"
+                f"Peak Systolic Strain: {longit_strain_peak:.2f} %"
+            )
+        else:
+            box_text = (
+                "Global Longitudinal Strain\n"
+                f"End Systolic: Strain: {longit_strain_ES:.2f} %\n"
+                f"Peak Systolic Strain: {longit_strain_peak:.2f} %\n"
+                f"Post Systolic Strain: {longit_strain_post:.2f} %"
+            )
+        box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+        ax1.text(
+            0.98,
+            0.95,
+            box_text,
+            transform=ax1.transAxes,
+            fontsize=8,
+            verticalalignment="top",
+            horizontalalignment="right",
+            bbox=box_props,
+        )
+        fig.savefig(f"{sub_dir}/timeseries/gls.png")
+        plt.close(fig)
+
+        # * Visualize strains alongside ECG, also determining the RR interval if available
+        ecg_processor = ECG_Processor(subject, args.retest)
+        if not config.useECG or not ecg_processor.check_data_rest():
+            RR_interval = None
+            logger.warning(f"{subject}: No ECG rest data, time to peak strain index will not be calculated.")
+        else:
+            RR_interval = ecg_processor.determine_RR_interval()  # should be close to MeanNN in neurokit2
+            logger.info(f"{subject}: RR interval is {RR_interval:.2f} ms.")
+
+            logger.info(f"{subject}: Visualize strains alongside with ECG")
+
+            ecg_info = ecg_processor.visualize_ecg_info()
+            time = ecg_info["time"]
+            signal = ecg_info["signal"]
+            P_index = ecg_info["P_index"]
+            Q_index = ecg_info["Q_index"]
+            R_index = ecg_info["R_index"]
+            S_index = ecg_info["S_index"]
+            T_index = ecg_info["T_index"]
+
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+            ax1.plot(time_grid_real, longit_strain[6, :], color="r")
+            ax1.set_xlabel("Time [ms]")
+            ax1.set_ylabel("Longitudinal Strain [%]")
+            ax2.plot(time, signal, color="b")
+            ax2.set_ylabel("ECG Signal")
+            ax2.set_yticks([])
+            ax1.axvline(x=T_ES * temporal_resolution, color="purple", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_ES * temporal_resolution,
+                ax1.get_ylim()[1],
+                "End Systole",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+            ax2.annotate(
+                "R",
+                xy=(time[R_index], signal[R_index]),
+                xytext=(time[R_index], signal[R_index] - 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "Q",
+                xy=(time[Q_index], signal[Q_index]),
+                xytext=(time[Q_index], signal[Q_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "S",
+                xy=(time[S_index], signal[S_index]),
+                xytext=(time[S_index], signal[S_index] - 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "P",
+                xy=(time[P_index], signal[P_index]),
+                xytext=(time[P_index], signal[P_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            ax2.annotate(
+                "T",
+                xy=(time[T_index], signal[T_index]),
+                xytext=(time[T_index], signal[T_index] + 20),
+                arrowprops=dict(facecolor="black", arrowstyle="->"),
+                fontsize=8,
+                ha="center",
+                color="black",
+            )
+            plt.suptitle(f"Subject {subject}: Global Longitudinal Strain (GLS) Time Series and ECG Signal")
+            plt.tight_layout()
+            fig.savefig(f"{sub_dir}/timeseries/gls_ecg.png")
+            plt.close(fig)
+
+        # * Feature 2: Strain Rate
+        # Instead of using np.diff, we use np.gradient to ensure the same length
+        GLS_diff_y = np.gradient(GLS_loess_x, GLS_loess_y) * 1000    # unit: %/s
 
         try:
             T_GLSR_pos, T_GLSR_neg, GLSR_pos, GLSR_neg = analyze_time_series_derivative(
-                time_grid_real,
+                time_grid_real / 1000,
                 longit_strain[6, :] / 100,  # Since strain is in %
                 n_pos=2,
                 n_neg=1,
-                method="loess",  # for strain rate, we don't use the moving average method
             )
-
             GLSR_S = GLSR_neg[0]
             GLSR_E = GLSR_pos[np.argmin(T_GLSR_pos)]
             GLSR_A = GLSR_pos[np.argmax(T_GLSR_pos)]
@@ -164,211 +400,186 @@ if __name__ == "__main__":
                 raise ValueError("Time for peak early diastolic longitudinal strain rate should be after ES.")
             feature_dict.update(
                 {
-                    "LV: Longitudinal Strain Rate (Peak-systolic) [1/s]": GLSR_S,
-                    "LV: Longitudinal Strain Rate (Early-diastole) [1/s]": GLSR_E,
-                    "LV: Longitudinal Strain Rate (Late-diastole) [1/s]": GLSR_A,
+                    "Strain-LAX: Peak Systolic Longitudinal Strain Rate [1/s]": GLSR_S,
+                    "Strain-LAX: Early Diastolic Longitudinal Strain Rate [1/s]": GLSR_E,
+                    "Strain-LAX: Late Diastolic Longitudinal Strain Rate [1/s]": GLSR_A,
                 }
             )
+
             logger.info(f"{subject}: Global longitudinal strain rate calculated.")
+
+            # Plot strain rate
+            T_GLSR_S = T_GLSR_neg[0]
+            T_GLSR_E = np.min(T_GLSR_pos)
+            T_GLSR_A = np.max(T_GLSR_pos)
+            colors = ["blue"] * len(GLS_loess_x)
+            colors[T_ES] = "purple"
+            colors[T_GLSR_S] = "deepskyblue"
+            colors[T_GLSR_E] = "aqua"
+            colors[T_GLSR_A] = "lime"
+            fig, ax1, ax2 = plot_time_series_dual_axes(
+                time_grid_point,
+                GLS_diff_y / 100,
+                "Time [frame]",
+                "Time [ms]",
+                "Longitudinal Strain Rate [1/s]",
+                lambda x: x * temporal_resolution,
+                lambda x: x / temporal_resolution,
+                title=f"Subject {subject}: Global Longitudinal Strain Rate Time Series",
+                colors=colors,
+            )
+            ax1.axvline(x=T_ES, color="purple", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_ES,
+                ax1.get_ylim()[1],
+                "End Systole",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+            ax1.axvline(x=T_GLSR_S, color="deepskyblue", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_GLSR_S,
+                ax1.get_ylim()[1],
+                "Peak Systolic SR",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+            ax1.axvline(x=T_GLSR_E, color="aqua", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_GLSR_E,
+                ax1.get_ylim()[1],
+                "Early Diastolic SR",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+            ax1.axvline(x=T_GLSR_A, color="lime", linestyle="--", alpha=0.7)
+            ax1.text(
+                T_GLSR_A,
+                ax1.get_ylim()[1],
+                "Late Diastolic SR",
+                verticalalignment="bottom",
+                horizontalalignment="center",
+                fontsize=6,
+                color="black",
+            )
+            box_text = (
+                "Global Circumferential Strain Rate\n"
+                f"Peak Systolic Strain Rate: {GLSR_S:.2f} 1/s\n"
+                f"Early Diastolic Strain Rate: {GLSR_E:.2f} 1/s\n"
+                f"Late Diastolic Strain Rate: {GLSR_A:.2f} 1/s"
+            )
+            box_props = dict(boxstyle="round", facecolor="white", edgecolor="black", alpha=0.8)
+            ax1.text(
+                0.98,
+                0.95,
+                box_text,
+                transform=ax1.transAxes,
+                fontsize=8,
+                verticalalignment="top",
+                horizontalalignment="right",
+                bbox=box_props,
+            )
+            fig.savefig(f"{sub_dir}/timeseries/glsr.png")
+            plt.close(fig)
         except ValueError as e:
             logger.warning(f"{subject}: {e}  No global longitudinal strain rate calculated.")
 
-        # * Feature 2: Peak-systolic strain, end-systolic strain, post-systolic strain
-        # * Feature 3: Post systolic index (PSI), Time to peak interval, Mechanical dispersion index (MDI)
-        # * We record both global ones and ones for each segment
+        # * Feature 3: Time to peak strain, Post systolic strain index (PSI), Mechanical dispersion/dys-synchrony index (MDI)
 
-        # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9409501/pdf/pone.0273419.pdf
-        PSS = False  # Post-systolic shortening
-        t_longit_strain_peak_list = []  # define used to calculate Mechanical dispersion index
-
-        # Determine the RR interval
-        ecg_processor = ECG_Processor(subject, args.retest)
-
-        if config.useECG and not ecg_processor.check_data_rest():
-            RR_interval = None
-            logger.warning(f"{subject}: No ECG rest data, time to peak strain index will not be calculated.")
-        else:
-            RR_interval = ecg_processor.determine_RR_interval()  # should be close to MeanNN in neurokit2
-
-        for i in range(7):
-            # We will use smoothed strain for all advanced features
-            fANCOVA = importr("fANCOVA")
-            x_r = FloatVector(time_grid_real)
-            y_r_i = FloatVector(longit_strain[6, :])
-            loess_fit_i = fANCOVA.loess_as(x_r, y_r_i, degree=2, criterion="gcv")
-            loess_x = np.array(loess_fit_i.rx2("x")).reshape(
-                T,
-            )
-            loess_y_i = np.array(loess_fit_i.rx2("fitted"))
-
-            if i == 6:
-                GLS_loess_y = loess_y_i
-
-            if i == 6:  # We make a time series plot for global longitudinal strain
-                colors = ["blue"] * T
-                colors[T_ES] = "red"
-                colors[T_1_3_DD] = "green"
-                if T_pre_a is not None:
-                    colors[T_pre_a] = "orange"
-
-                fig, ax1, ax2 = plot_time_series_double_x_y(
-                    time_grid_point,
-                    time_grid_real * 1000,
-                    longit_strain[6, :],
-                    loess_y_i,
-                    "Time [frame]",
-                    "Time [ms]",
-                    "Strain [%]",
-                    lambda x: x * temporal_resolution,
-                    lambda x: x / temporal_resolution,
-                    title=f"Subject {subject}: Global Longitulongit_strain_ESdinal Strain (GLS) Time Series",
-                    colors=colors,
-                )
-                fig.savefig(f"{sub_dir}/timeseries/gls.png")
-                plt.close(fig)
-
-            longit_strain_ES = abs(loess_y_i[T_ES])
-
-            T_longit_strain_peak = np.argmax(abs(loess_y_i))
-            longit_strain_peak = np.max(abs(loess_y_i))
-
-            T_longit_strain_post = None
-            longit_strain_post = None
-            if T_longit_strain_peak > T_ES:
-                # Post systolic shortening exists
-                T_longit_strain_post = T_longit_strain_peak
-                longit_strain_post = longit_strain_peak
-
-                if i == 6:
-                    feature_dict.update(
-                        {
-                            "LV: Longitudinal Strain (Global End-systolic, absolute value) [%]": longit_strain_ES,
-                            "LV: Longitudinal Strain (Global Post-systolic, absolute value) [%]": longit_strain_post,
-                        }
-                    )
-                    logger.info(f"{subject}: End-systolic, post-systolic longitudinal global strain calculated.")
-                else:
-                    feature_dict.update(
-                        {
-                            f"LV: Longitudinal Strain (Segment_{i + 1} " f"End-systolic, absolute value) [%]": longit_strain_ES,
-                            f"LV: Longitudinal Strain (Segment_{i + 1} "
-                            f"Post-systolic, absolute value) [%]": longit_strain_post,
-                        }
-                    )
-            else:
-                if i == 6:
-                    feature_dict.update(
-                        {
-                            "LV: Longitudinal Strain (Global End-systolic, absolute value) [%]": longit_strain_ES,
-                            "LV: Longitudinal Strain (Global Peak-systolic, absolute value) [%]": longit_strain_peak,
-                        }
-                    )
-                    logger.info(f"{subject}: End-systolic, peak-systolic longitudinal global strain calculated.")
-                else:
-                    feature_dict.update(
-                        {
-                            f"LV: Longitudinal Strain (Segment_{i + 1} " f"End-systolic, absolute value) [%]": longit_strain_ES,
-                            f"LV: Longitudinal Strain (Segment_{i + 1} "
-                            f"Peak-systolic, absolute value) [%]": longit_strain_peak,
-                        }
-                    )
-
-            # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9409501/pdf/pone.0273419.pdf
-
-            if longit_strain_post is not None:
-                longit_PSI = (longit_strain_post - longit_strain_ES) / (longit_strain_post)
-            else:
-                longit_PSI = 0
-
-            if i == 6:
-                feature_dict.update(
-                    {
-                        "LV: Longitudinal Strain-Post-systolic Index (Global) [%]": longit_PSI * 100,
-                    }
-                )
-                logger.info(f"{subject}: Global Post-systolic index calculated.")
-            else:
-                feature_dict.update(
-                    {
-                        f"LV: Longitudinal Strain-Post-systolic Index (Segment_{i + 1}) [%]": longit_PSI * 100,
-                    }
-                )
-
-                if longit_PSI > 0.2:
-                    PSS = True
-
-            t_longit_strain_peak = T_longit_strain_peak * temporal_resolution * 1000  # unit: ms
-
-            feature_dict.update(
-                {
-                    "LV: Longitudinal Strain-Time to Peak [ms]": t_longit_strain_peak,
-                }
-            )
-
-            if i == 6:
-                logger.info(f"{subject}: ECG rest data exists, calculate global time to peak strain index.")
-            else:
-                t_longit_strain_peak_list.append(t_longit_strain_peak)
-
-            if RR_interval is not None:
-                t_longit_strain_peak_index = t_longit_strain_peak / RR_interval
-
-                feature_dict.update(
-                    {
-                        "LV: Longitudinal Strain-Time to Peak Index": t_longit_strain_peak_index,
-                    }
-                )
-
-        # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9409501/pdf/pone.0273419.pdf
-        # Since analysis is based on frames, MSI should only be reported if segments have distinct time to peak strain
-        if np.unique(t_longit_strain_peak_list).shape[0] > 1:
-            MSI = np.std(t_longit_strain_peak_list)
-            feature_dict.update(
-                {
-                    "LV: Longitudinal Strain-Mechanical Dispersion Index [ms]": MSI,
-                }
-            )
-            logger.info(f"{subject}: Mechanical dispersion index calculated.")
-
-        # * Feature 4 Systolic stretch, Strain imaging diastolic index (SI-DI)
-
-        # Ref https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9349311/pdf/380_2022_Article_2047.pdf
-
-        GLS_loess_y_systole = GLS_loess_y[:T_ES]
-        try:
-            if np.max(GLS_loess_y_systole) < 0:
-                raise ValueError("No positive strain in early systole.")
-            longit_strain_systole_positive = np.max(GLS_loess_y_systole)
-            longit_strain_systole_negative = np.min(GLS_loess_y_systole)
-            systolic_stretch = longit_strain_systole_positive / (longit_strain_systole_positive - longit_strain_systole_negative)
-            feature_dict.update(
-                {
-                    "LV: Longitudinal Strain-Systolic Stretch [%]": systolic_stretch * 100,
-                }
-            )
-            logger.info(f"{subject}: Systolic stretch calculated.")
-        except ValueError:
-            logger.warning(f"{subject}: No positive strain in early systole, systolic stretch will not be calculated.")
-
-        # Ref https://www.sciencedirect.com/science/article/pii/S0914508711000116
-
-        longit_strain_1_3_DD = abs(GLS_loess_y[T_1_3_DD])
-
-        longit_SI_DI = (longit_strain_ES - longit_strain_1_3_DD) / longit_strain_ES
-
+        t_longit_strain_peak = T_longit_strain_peak * temporal_resolution  # unit: ms
         feature_dict.update(
             {
-                "LV: Longitudinal Strain-Strain Imaging Diastolic Index [%]": longit_SI_DI * 100,
+                "Strain-LAX: Time to Peak Longitudinal Strain [ms]": t_longit_strain_peak,
             }
         )
 
-        logger.info(f"{subject}: Strain imaging diastolic index (SI-DI) calculated.")
+        if RR_interval:
+            t_longit_strain_peak_index = t_longit_strain_peak / RR_interval
+            logger.info(f"{subject}: ECG rest data exists, calculate global time to peak strain index.")
+            feature_dict.update(
+                {
+                    "Strain-LAX: Time to Peak Longitudinal Strain Index": t_longit_strain_peak_index,
+                }
+            )
+
+        # Ref Postsystolic Shortening Is an Independent Predictor of Cardiovascular Events and Mortality. https://doi.org/10.1161/JAHA.117.008367
+        # Ref Post-systolic shortening index by echocardiography evaluation of dyssynchrony https://doi.org/10.1371/journal.pone.0273419
+        # Ref Post-systolic shortening predicts heart failure following acute coronary syndrome https://doi.org/10.1016/j.ijcard.2018.11.106
+        # If no regional post systolic strain present, it PSI is 0.
+        # If a single wall segment exhibits PSI>=20%, the wall is categorized as having Post systolic shortening (PSS)
+        if T_longit_strain_post is not None:
+            longit_PSI = longit_strain_post / (longit_strain_peak) * 100
+            feature_dict.update(
+                {
+                    "Strain-LAX: Longitudinal Strain Post Systolic Index [%]": longit_PSI,
+                }
+            )
+            logger.info(f"{subject}: Global Post-systolic index calculated.")
+        else:
+            longit_PSI = 0
+
+        # Ref Post-systolic shortening index by echocardiography evaluation of dyssynchrony https://doi.org/10.1371/journal.pone.0273419
+        # Ref Mechanical dispersion and global longitudinal strain by speckle tracking echocardiography https://doi.org/10.1111/echo.13547
+        # Ref Prognostic importance of left ventricular mechanical dyssynchrony in heart failure with preserved ejection fraction https://doi.org/10.1002/ejhf.789
+        t_longit_strain_peak_list = []  # define used to calculate Mechanical dispersion index
+        for i in range(6):
+            t_longit_strain_peak_i = T_longit_strain_peak_list[i] * temporal_resolution
+            t_longit_strain_peak_list.append(t_longit_strain_peak_i)
+
+        # define Mechanical Dispersion: Standard deviation of all LV segmental time-to-peak intervals
+        # Since analysis is based on frames, MSI should only be reported if segments have distinct time to peak strain
+        if np.unique(t_longit_strain_peak_list).shape[0] > 1:
+            MS = np.std(t_longit_strain_peak_list)  # Therefore it measures the dys-synchrony
+            feature_dict.update(
+                {
+                    "Strain-LAX: Longitudinal Strain Mechanical Dispersion [ms]": MS,
+                }
+            )
+            logger.info(f"{subject}: Mechanical dispersion calculated.")
+
+        # * Feature 4 Strain imaging diastolic index (SI-DI)
+        # Ref Prediction of coronary artery stenosis using strain imaging diastolic index at rest https://doi.org/10.1016/j.jjcc.2011.01.008
+
+        # define SI-DI can be calculated through (Strain at ES - Strain at 1/3 DD) / Strain at ES
+        longit_strain_1_3_DD = abs(GLS_loess_y[T_1_3_DD])
+        longit_SI_DI = (longit_strain_ES - longit_strain_1_3_DD) / longit_strain_ES
+
+        if longit_SI_DI > 2:
+            logger.warning(f"{subject}: Extremely high longitudinal strain imaging diastolic index (SI-DI) detected, skipped.")
+        else:
+            logger.info(f"{subject}: Longitudinal strain imaging diastolic index (SI-DI) calculated.")
+            feature_dict.update(
+                {
+                    "Strain-LAX: Longitudinal Strain Imaging Diastolic Index [%]": longit_SI_DI * 100,
+                }
+            )
+
+        # * Feature 5 Pre-Systolic stretch (PSS, SPS)
+        # Ref Multi-Parametric Speckle Tracking Analyses to Characterize Cardiac Amyloidosis https://doi.org/10.1007/s00380-022-02047-6.
+        GLS_loess_y_systole = GLS_loess_y[:T_ES]
+        if np.max(GLS_loess_y_systole) > 0:
+            longit_strain_systole_positive = np.max(GLS_loess_y_systole)
+            # define Systolic stretch: Peak extension strain during systole / maximum strain change during systole
+            # note that longit_strain_ES is absolute value, so we add instead of subtract
+            pre_systolic_stretch = longit_strain_systole_positive / (longit_strain_systole_positive + longit_strain_ES) * 100
+            feature_dict.update(
+                {
+                    "Strain-LAX: Longitudinal Strain Pre Systolic Stretch [%]": pre_systolic_stretch,
+                }
+            )
+            logger.info(f"{subject}: Systolic stretch calculated.")
 
         df_row = pd.DataFrame([feature_dict])
         df = pd.concat([df, df_row], ignore_index=True)
 
     target_dir = config.features_visit2_dir if args.retest else config.features_visit1_dir
-    target_dir = os.path.join(target_dir, "strain")
+    target_dir = os.path.join(target_dir, "strain_lax")
     os.makedirs(target_dir, exist_ok=True)
     df.sort_index(axis=1, inplace=True)  # sort the columns according to alphabet orders
     df.to_csv(os.path.join(target_dir, f"{args.file_name}.csv"), index=False)

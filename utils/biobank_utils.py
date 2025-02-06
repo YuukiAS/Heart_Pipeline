@@ -26,6 +26,7 @@ and vary between manufacturers and machines.
 
 import os
 import re
+import pandas as pd
 import pickle
 import cv2
 import pydicom as dicom
@@ -523,3 +524,13 @@ class Biobank_Dataset(object):
         """Save the image in nifti format."""
         for name, image in self.data.items():
             image.WriteToNifti(os.path.join(output_dir, "{0}.nii.gz".format(name)))
+
+
+def query_BSA(eid):
+    """
+    Query the body surface area (BSA) of a subject. The BSA file should be documented in config.BSA_file.
+    By default, it should make use of the DuBois & DuBois formula, which derives BSA from height and weight.
+    """
+    BSA_info = pd.read_csv(config.BSA_file)[["eid", config.BSA_col_name]]
+    BSA_subject = BSA_info[BSA_info["eid"] == int(eid)][config.BSA_col_name].values[0]
+    return BSA_subject

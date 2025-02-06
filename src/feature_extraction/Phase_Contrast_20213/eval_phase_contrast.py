@@ -501,10 +501,18 @@ if __name__ == "__main__":
 
         feature_dict.update(
             {
-                "Aortic Flow: Velocity Time Integral [cm]": VTI,
                 "Aortic Flow: Aortic Valve Area [cm^2]": AVA,
             }
         )
+
+        if VTI > 100:
+            logger.warning(f"{subject}: Extremely high VTI detected, skipped")
+        else:
+            feature_dict.update(
+                {
+                    "Aortic Flow: Velocity Time Integral [cm]": VTI,
+                }
+            )
 
         # * Feature4: Flow displacement
         # This is a quantitative parameter for measuring eccentric aortic systolic flow

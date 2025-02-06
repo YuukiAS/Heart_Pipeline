@@ -5,10 +5,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import config
 
 
-def generate_header_cpu(jobname, pipeline_dir, file_i, file_script, retest_suffix=None):
+def generate_header_cpu(jobname, pipeline_dir, file_i, file_script, retest_suffix=None, high_demand=False):
     file_script.write("#!/bin/bash\n")
     file_script.write("#SBATCH --ntasks=1\n")
-    file_script.write("#SBATCH --cpus-per-task=16\n")
+    if high_demand:
+        file_script.write("#SBATCH --cpus-per-task=16\n")
+    else:
+        file_script.write("#SBATCH --cpus-per-task=4\n")
     if retest_suffix is None:
         if file_i:
             file_script.write(f"#SBATCH --job-name={jobname}_{file_i}\n")
@@ -23,7 +26,10 @@ def generate_header_cpu(jobname, pipeline_dir, file_i, file_script, retest_suffi
         else:
             file_script.write(f"#SBATCH --job-name={jobname}_{retest_suffix}\n")
             file_script.write(f"#SBATCH --output={jobname}_{retest_suffix}.out\n")
-    file_script.write("#SBATCH --mem=16G\n")
+    if high_demand:
+        file_script.write("#SBATCH --mem=16G\n")
+    else:
+        file_script.write("#SBATCH --mem=4G\n")
     file_script.write("#SBATCH --time=48:00:00\n")
     file_script.write("#SBATCH --partition=general\n")
     file_script.write("\n")
@@ -35,7 +41,7 @@ def generate_header_cpu(jobname, pipeline_dir, file_i, file_script, retest_suffi
 def generate_header_gpu(jobname, pipeline_dir, file_i, file_script, retest_suffix=None):
     file_script.write("#!/bin/bash\n")
     file_script.write("#SBATCH --ntasks=1\n")
-    file_script.write("#SBATCH --cpus-per-task=16\n")
+    file_script.write("#SBATCH --cpus-per-task=8\n")
     if retest_suffix is None:
         if file_i:
             file_script.write(f"#SBATCH --job-name={jobname}_{file_i}\n")

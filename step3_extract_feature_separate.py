@@ -58,7 +58,7 @@ def generate_scripts(
                 generate_header_gpu("Heart_ECG", pipeline_dir, None, file_ecg, retest_suffix=retest_suffix)
 
             file_ecg.write("echo 'Extract ECG features'\n")
-            file_ecg.write(f"python -u ./src/feature_extraction/ecg/ecg_neurokit.py {retest_str}\n")
+            file_ecg.write(f"python -u ./src/feature_extraction/ECG_6025_20205/ecg_neurokit.py {retest_str}\n")
             file_ecg.write("echo 'Done!'\n")
             file_submit.write("sbatch batECG.sh\n")
 
@@ -159,31 +159,56 @@ def generate_scripts(
 
                 if file_i == 1:
                     if "aortic_scout" in modality:
-                        generate_aggregate(file_aggregate, "aortic_structure", retest_suffix=retest_suffix)
+                        generate_aggregate(file_aggregate, csv_folder_name="aortic_structure", retest_suffix=retest_suffix)
 
                     if "la" in modality:
-                        generate_aggregate(file_aggregate, "atrial_volume", retest_suffix=retest_suffix)
-                        generate_aggregate(file_aggregate, "strain_la", retest_suffix=retest_suffix)
+                        generate_aggregate(
+                            file_aggregate, csv_folder_name="atrium", feature_name="atrial_volume", retest_suffix=retest_suffix
+                        )
+                        generate_aggregate(
+                            file_aggregate, csv_folder_name="strain_lax", feature_name="strain_la", retest_suffix=retest_suffix
+                        )
 
                     if "sa" in modality:
-                        generate_aggregate(file_aggregate, "ventricular_volume", retest_suffix=retest_suffix)
-                        generate_aggregate(file_aggregate, "wall_thickness", retest_suffix=retest_suffix)
-                        generate_aggregate(file_aggregate, "strain_sa", retest_suffix=retest_suffix)
+                        generate_aggregate(
+                            file_aggregate,
+                            csv_folder_name="ventricle",
+                            feature_name="ventricular_volume",
+                            retest_suffix=retest_suffix,
+                        )
+                        generate_aggregate(file_aggregate, csv_folder_name="wall_thickness", retest_suffix=retest_suffix)
+                        generate_aggregate(
+                            file_aggregate, csv_folder_name="strain_sax", feature_name="strain_sa", retest_suffix=retest_suffix
+                        )
 
                     if "aortic_dist" in modality:
-                        generate_aggregate(file_aggregate, "aortic_dist", retest_suffix=retest_suffix)
+                        generate_aggregate(
+                            file_aggregate,
+                            csv_folder_name="aortic_distensibility",
+                            feature_name="aortic_dist",
+                            retest_suffix=retest_suffix,
+                        )
 
                     if "tag" in modality:
-                        generate_aggregate(file_aggregate, "strain_tagged", retest_suffix=retest_suffix)
+                        generate_aggregate(
+                            file_aggregate,
+                            csv_folder_name="strain_tagged",
+                            feature_name="strain_tagged",
+                            retest_suffix=retest_suffix,
+                        )
 
                     if "lvot" in modality:
-                        generate_aggregate(file_aggregate, "LVOT", retest_suffix=retest_suffix)
+                        generate_aggregate(
+                            file_aggregate, csv_folder_name="aortic_diameter", feature_name="LVOT", retest_suffix=retest_suffix
+                        )
 
                     if "aortic_blood_flow" in modality:
-                        generate_aggregate(file_aggregate, "aortic_flow", retest_suffix=retest_suffix)
+                        generate_aggregate(file_aggregate, csv_folder_name="aortic_flow", retest_suffix=retest_suffix)
 
                     if "shmolli" in modality:
-                        generate_aggregate(file_aggregate, "native_T1", retest_suffix=retest_suffix)
+                        generate_aggregate(
+                            file_aggregate, csv_folder_name="native_T1", feature_name="native_T1", retest_suffix=retest_suffix
+                        )
 
                 file_script.write("echo 'Done!'\n")
 
@@ -204,7 +229,7 @@ if __name__ == "__main__":
     logger.info("Generate scripts to extract features for visit1 data")
     generate_scripts(pipeline_dir, data_visit1_dir, code_dir, modality, useECG)
     if retest_suffix is not None:
-        logger.info("Generate scripts tp extract features for visit2 data")
+        logger.info("Generate scripts to extract features for visit2 data")
         generate_scripts(pipeline_dir, data_visit2_dir, code_dir, modality, useECG, retest_suffix=retest_suffix)
     else:
         logger.info("No retest_suffix is provided, only features for visit1 data will be extracted")
