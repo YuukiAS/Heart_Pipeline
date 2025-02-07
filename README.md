@@ -222,9 +222,13 @@ The pipeline consists of four main steps, which can be executed sequentially and
 - [ ] Documentation
 
 ### Combined
+- [ ] Validate
 - [ ] Feature: TV, MV tenting area and tenting length
 
     Refer to paper *Ricci, F., Aung, N., Gallina, S., Zemrak, F., Fung, K., Bisaccia, G., Paiva, J. M., Khanji, M. Y., Mantini, C., Palermi, S., Lee, A. M., Piechnik, S. K., Neubauer, S., & Petersen, S. E. (2020). Cardiovascular magnetic resonance reference values of mitral and tricuspid annular dimensions: The UK Biobank cohort. Journal of Cardiovascular Magnetic Resonance, 23(1), 5. https://doi.org/10.1186/s12968-020-00688-y*
+
+- [ ] Improve ICC
+- [ ] Documentation
 
 ## Miscellaneous 
 - [ ] Calculate reproducibility metrics

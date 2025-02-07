@@ -28,6 +28,8 @@
     "flexsearch": "^0.7.31",
     "gh-pages": "^6.2.0",
     "js-yaml": "^4.1.0",
+    "markdown-it": "^14.1.0",
+    "markdown-it-katex": "^2.0.3",
     "next": "^14.0.4",
     "next-themes": "^0.2.1",
     "prism-react-renderer": "^2.0.6",
@@ -39,6 +41,7 @@
     "typescript": "^5.3.3"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
     "prettier": "^3.3.2",
@@ -46,4 +49,3 @@
     "sharp": "0.33.1"
   }
 }
-

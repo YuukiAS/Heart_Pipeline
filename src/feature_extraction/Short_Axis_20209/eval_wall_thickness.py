@@ -161,9 +161,12 @@ if __name__ == "__main__":
         fig, ax = plot_bulls_eye(wall_thickness_ES[:16], title="Myocardium Thickness at ES", label="Thickness [mm]")
         fig.savefig(f"{sub_dir}/visualization/myocardium/thickness_ES.png")
         plt.close(fig)
-        fig, ax = plot_bulls_eye(thickening[:16], title="Myocardium Thickening", label="Thickening [%]")
-        fig.savefig(f"{sub_dir}/visualization/myocardium/thickening.png")
-        plt.close(fig)
+        try:
+            fig, ax = plot_bulls_eye(thickening[:16], title="Myocardium Thickening", label="Thickening [%]")
+            fig.savefig(f"{sub_dir}/visualization/myocardium/thickening.png")
+            plt.close(fig)
+        except ValueError as e:
+            logger.warning(f"{subject}: Error {e} when plotting bull's eye plot for thickening")
 
         # * Feature 2: Radius and thickness that incorporate distance to barycenter of LV cavity (with modification)
         # Refer Explainable cardiac pathology classification on cine MRI with motion characterization https://www.sciencedirect.com/science/article/pii/S1361841519300519

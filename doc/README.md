@@ -22,6 +22,8 @@ Finally, open [http://localhost:3000](http://localhost:3000) in your browser to 
 
 You can start editing this template by modifying the files in the `/src` folder. The site will auto-update as you edit these files.
 
+The main page will be `src/app/page.md`. To change the order of pages, modify `src/lib/navigation.ts`.
+
 ## Global search
 
 This template includes a global search that's powered by the [FlexSearch](https://github.com/nextapps-de/flexsearch) library. It's available by clicking the search input or by using the `⌘K` shortcut.

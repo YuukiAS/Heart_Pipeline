@@ -2,55 +2,27 @@ export const navigation = [
   {
     title: 'Introduction',
     links: [
-      { title: 'Getting started', href: '/' },
-      { title: 'Installation', href: '/docs/installation' },
+      { title: 'Getting started', href: '/' }
     ],
   },
   {
-    title: 'Core concepts',
+    title: 'Common Knowledge',
     links: [
-      { title: 'Understanding caching', href: '/docs/understanding-caching' },
-      {
-        title: 'Predicting user behavior',
-        href: '/docs/predicting-user-behavior',
-      },
-      { title: 'Basics of time-travel', href: '/docs/basics-of-time-travel' },
-      {
-        title: 'Introduction to string theory',
-        href: '/docs/introduction-to-string-theory',
-      },
-      { title: 'The butterfly effect', href: '/docs/the-butterfly-effect' },
+      { title: 'Medical Imaging Formats', href: '/docs/Common/image_format' },
+      { title: 'Introduction of Cardiovascular Diseases', href: '/docs/Common/common_disease' },
+      { title: 'Terminologies in Cardiovascular Diseases', href: '/docs/Common/terminology' }
     ],
   },
   {
-    title: 'Advanced guides',
+    title: 'Data Field 20208: Long Axis',
     links: [
-      { title: 'Writing plugins', href: '/docs/writing-plugins' },
-      { title: 'Neuralink integration', href: '/docs/neuralink-integration' },
-      { title: 'Temporal paradoxes', href: '/docs/temporal-paradoxes' },
-      { title: 'Testing', href: '/docs/testing' },
-      { title: 'Compile-time caching', href: '/docs/compile-time-caching' },
-      {
-        title: 'Predictive data generation',
-        href: '/docs/predictive-data-generation',
-      },
+      { title: 'Evaluate Atrial Volume', href: '/docs/Long_Axis_20208/eval_atrial_volume' }
     ],
   },
   {
-    title: 'API reference',
+    title: 'Data Field 20209: Short Axis',
     links: [
-      { title: 'CacheAdvance.predict()', href: '/docs/cacheadvance-predict' },
-      { title: 'CacheAdvance.flush()', href: '/docs/cacheadvance-flush' },
-      { title: 'CacheAdvance.revert()', href: '/docs/cacheadvance-revert' },
-      { title: 'CacheAdvance.regret()', href: '/docs/cacheadvance-regret' },
+      { title: 'Evaluate Ventricular Volume', href: '/docs/Short_Axis_20209/eval_ventricular_volume' }
     ],
-  },
-  {
-    title: 'Contributing',
-    links: [
-      { title: 'How to contribute', href: '/docs/how-to-contribute' },
-      { title: 'Architecture guide', href: '/docs/architecture-guide' },
-      { title: 'Design principles', href: '/docs/design-principles' },
-    ],
-  },
+  }
 ]

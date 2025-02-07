@@ -296,27 +296,33 @@ if __name__ == "__main__":
 
         # Instead of using np.diff, we use np.gradient to ensure the same length
         GCS_diff_y = np.gradient(GCS_loess_y, GCS_loess_x) * 1000  # unit: %/s
-        GRS_diff_y = np.gradient(GRS_loess_y, GRS_loess_x) * 1000 
+        GRS_diff_y = np.gradient(GRS_loess_y, GRS_loess_x) * 1000
 
         # Circumferential strain rate
         T_GCSR_S = T_GCSR_E = T_GRSR_S = T_GRSR_E = None
         try:
-            # * Note that there are only 20 frames, not covering the entire cardiac cycle, we don't calculate late diastole SR
-            T_GCSR_pos, T_GCSR_neg, GCSR_pos, GCSR_neg = analyze_time_series_derivative(
-                time_grid_real / 1000,
-                circum_strain["global"] / 100,  # Since strain is in %
-                n_pos=1,  # set n_pos to 1 instead 2 for SAX
-                n_neg=1,
-            )
-        except IndexError:  # in some cases there will even be no early diastole strain rate
-            T_GCSR_pos, T_GCSR_neg, GCSR_pos, GCSR_neg = analyze_time_series_derivative(
-                time_grid_real / 1000,
-                circum_strain["global"] / 100,
-                n_pos=0,
-                n_neg=1,
-            )
+            try:
+                # * Note that there are only 20 frames, not covering the entire cardiac cycle, we don't calculate late diastole SR
+                T_GCSR_pos, T_GCSR_neg, GCSR_pos, GCSR_neg = analyze_time_series_derivative(
+                    time_grid_real / 1000,
+                    circum_strain["global"] / 100,  # Since strain is in %
+                    n_pos=1,  # set n_pos to 1 instead 2 for SAX
+                    n_neg=1,
+                )
+            except IndexError:  # in some cases there will even be no early diastole strain rate
+                try:
+                    T_GCSR_pos, T_GCSR_neg, GCSR_pos, GCSR_neg = analyze_time_series_derivative(
+                        time_grid_real / 1000,
+                        circum_strain["global"] / 100,
+                        n_pos=0,
+                        n_neg=1,
+                    )
+                except IndexError:
+                    # even the peak systolic strain rate cannot be calculated
+                    raise ValueError(f"{subject}: Failed to determine the peak systolic and early diastole strain rates.")
         except ValueError as e:
             logger.warning(f"{subject}: {e}  No global circumferential strain rate calculated.")
+            continue
 
         try:
             T_GCSR_S = T_GCSR_neg[0]
@@ -343,15 +349,20 @@ if __name__ == "__main__":
 
         # Radial strain rate
         try:
-            T_GRSR_pos, T_GRSR_neg, GRSR_pos, GRSR_neg = analyze_time_series_derivative(
-                time_grid_real / 1000, radial_strain["global"] / 100, n_pos=1, n_neg=1
-            )
-        except IndexError:
-            T_GRSR_pos, T_GRSR_neg, GRSR_pos, GRSR_neg = analyze_time_series_derivative(
-                time_grid_real / 1000, radial_strain["global"] / 100, n_pos=1, n_neg=0
-            )
+            try:
+                T_GRSR_pos, T_GRSR_neg, GRSR_pos, GRSR_neg = analyze_time_series_derivative(
+                    time_grid_real / 1000, radial_strain["global"] / 100, n_pos=1, n_neg=1
+                )
+            except IndexError:
+                try:
+                    T_GRSR_pos, T_GRSR_neg, GRSR_pos, GRSR_neg = analyze_time_series_derivative(
+                        time_grid_real / 1000, radial_strain["global"] / 100, n_pos=1, n_neg=0
+                    )
+                except IndexError:
+                    raise ValueError(f"{subject}: Failed to determine the peak systolic and early diastole strain rates.")
         except ValueError as e:
             logger.warning(f"{subject}: {e} No global radial strain rate calculated.")
+            continue
 
         try:
             T_GRSR_S = T_GRSR_pos[0]

@@ -384,7 +384,7 @@ if __name__ == "__main__":
 
         # * Feature 2: Strain Rate
         # Instead of using np.diff, we use np.gradient to ensure the same length
-        GLS_diff_y = np.gradient(GLS_loess_x, GLS_loess_y) * 1000    # unit: %/s
+        GLS_diff_y = np.gradient(GLS_loess_x, GLS_loess_y) * 1000  # unit: %/s
 
         try:
             T_GLSR_pos, T_GLSR_neg, GLSR_pos, GLSR_neg = analyze_time_series_derivative(
@@ -487,7 +487,7 @@ if __name__ == "__main__":
             )
             fig.savefig(f"{sub_dir}/timeseries/glsr.png")
             plt.close(fig)
-        except ValueError as e:
+        except (IndexError, ValueError) as e:
             logger.warning(f"{subject}: {e}  No global longitudinal strain rate calculated.")
 
         # * Feature 3: Time to peak strain, Post systolic strain index (PSI), Mechanical dispersion/dys-synchrony index (MDI)

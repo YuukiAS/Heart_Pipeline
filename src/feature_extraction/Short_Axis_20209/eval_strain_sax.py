@@ -702,7 +702,7 @@ if __name__ == "__main__":
             )
             fig.savefig(f"{sub_dir}/timeseries/gcsr.png")
             plt.close(fig)
-        except ValueError as e:
+        except (IndexError, ValueError) as e:
             logger.warning(f"{subject}: {e}  No global circumferential strain rate calculated.")
 
         try:
@@ -804,7 +804,7 @@ if __name__ == "__main__":
             )
             fig.savefig(f"{sub_dir}/timeseries/grsr.png")
             plt.close(fig)
-        except ValueError as e:
+        except (IndexError, ValueError) as e:
             logger.warning(f"{subject}: {e} No global radial strain rate calculated.")
 
         # * Feature 3 Time to peak strain

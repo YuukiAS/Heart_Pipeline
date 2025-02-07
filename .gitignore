@@ -69,3 +69,4 @@ node_modules
 out
 env_phase_contrast
 ICC_result.*
+step3_extract_feature_separate_test.py
