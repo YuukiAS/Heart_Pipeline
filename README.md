@@ -238,6 +238,10 @@ The pipeline consists of four main steps, which can be executed sequentially and
 - [ ] Improve the post-processing quality, such as introducing uncertainty estimation
 - [ ] Potential downstream analysis such as prediction or GWAS.
 
+## Documentation
+- [ ] Classify features according to structural and functional
+- [ ] Add its usage for diseases
+- [ ] Add its regions
 
 # References
 

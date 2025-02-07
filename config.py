@@ -9,6 +9,7 @@ logging_level = logging.INFO
 
 # Modify: The main directory of the pipeline
 pipeline_dir = "/work/users/y/u/yuukias/Heart_Pipeline"  # The main directory of the pipeline
+# Modify: Change env_variable.sh in pipeline_dir to temp_dir defined below
 temp_dir = os.path.join(pipeline_dir, "temp")  # The directory for temporary files
 code_dir = os.path.join(pipeline_dir, "code")  # The directory for slurm scrips
 lib_dir = os.path.join(pipeline_dir, "lib")  # The directory for all external codes
@@ -16,7 +17,7 @@ model_dir = os.path.join(pipeline_dir, "model")  # The directory for weights of 
 data_dir = os.path.join(pipeline_dir, "data")  # * The directory for Nifti data and all other intermediate results
 data_visit1_dir = os.path.join(data_dir, "visit1", "nii")
 data_visit2_dir = os.path.join(data_dir, "visit2", "nii")
-features_dir = os.path.join(data_dir, "features")  # * The directory to store all extracted features
+features_dir = os.path.join(data_dir, "features", "Pipeline_Result")  # * The directory to store all extracted features
 # Note: The final results will be stored in 'aggregated' subfolder
 features_visit1_dir = os.path.join(features_dir, "visit1")
 features_visit2_dir = os.path.join(features_dir, "visit2")

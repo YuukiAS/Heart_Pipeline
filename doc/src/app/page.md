@@ -48,6 +48,15 @@ For each feature, the corresponding reference range can be found in `/tasks/refe
 
 Most features can be indexed using BSA, calculated using the DuBois & DuBois formula: $BSA=0.007184\cdot H^{0.725}\cdot W^{0.425}$, where $H$ is the height in cm and $W$ is the weight in kg (Du Bois & Du Bois, 1916).
 
+TODO: 
+
+- [ ] Number of cusps of aortic valve
+- [ ] 3Ch View
+- [ ] Enhancement of registration for strain
+- [ ] Changes in angle caused by shear (ERC, ECL)
+- [ ] More strain calculated from tagged MRI
+
+
 ## References
 
 M.D, R. W. B., Biederman, R. W. W., Doyle, M., & Yamrozik, J. (2008). The Cardiovascular MRI Tutorial: Lectures and Learning. Lippincott Williams & Wilkins.

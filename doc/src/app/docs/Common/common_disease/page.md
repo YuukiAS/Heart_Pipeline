@@ -1,10 +1,13 @@
 ---
-title: Common Cardiovascular Diseases (CVD)
+title: Common Cardiovascular Diseases
 ---
 
 Cardiovascular disease (CVD) is a collective term designating all types of affliction affecting the blood circulatory system, including the heart and vasculature, which, respectively, displaces and conveys the blood. Over the last decade, cardiovascular disease (CVD) has become the single largest cause of death worldwide. In 2004, CVD caused an estimated 17 million deaths and led to 151 million disability-adjusted life years (DALYs) lost—about 30% of all deaths and 14% of all DALYs lost that year. Like many high-income countries during the last century, low- and middle-income countries are seeing an alarming increase in the rates of CVD, and this change is accelerating. In 2001, 75% of global deaths and 82% of total DALYs lost caused by coronary heart disease (CHD) occurred in low- and middle-income countries.
 
 The sections below will detail the most common cardiovascular diseases, the specific references will be put at the end of each section while the general ones will be provided at the end of the document.
+
+Reference: https://biobank.ctsu.ox.ac.uk/ukb/field.cgi?id=20002
+
 
 ## Atrial Fibrillation 心房颤动 (AF)
 
@@ -25,6 +28,10 @@ Chapter14
 Chronic heart failure is a complex clinical syndrome that has multiple causes and etiologies. The core lesion involves structural and functional changes in the heart and peripheral vasculature that lead to impaired systolic and diastolic function. The resultant clinical manifestations are variable, but the most common symptoms include exertional dypsnea, orthopnea, and nocturnal dypsnea. Other common signs and symptoms include edema, fatigue, and chest congestion. HF can be classified into three groups based on the percentage of the ejection fraction (EF): heart failure with reduced EF (HFrEF), heart failure with mildly reduced EF (HFmrEF), and heart failure with preserved ejection fraction (HFpEF).
 
 Chapter19
+
+*Murphy, S. P., Ibrahim, N. E., & Januzzi, J. L. (2020). Heart failure with reduced ejection fraction: a review. Jama, 324(5), 488-504.*
+
+*Redfield, M. M., & Borlaug, B. A. (2023). Heart failure with preserved ejection fraction: a review. Jama, 329(10), 827-838.*
 
 ## Coronary Heart Disease 冠状动脉心脏病 (CHD)
 
